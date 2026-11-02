@@ -1,80 +1,61 @@
 // 플로코 고양이 — 보영이 그린 캐릭터 시트에서 자른 그림
 import type { Cat } from '../types'
-import sit from '../assets/cat/sit.png'
-import side from '../assets/cat/side.png'
-import back from '../assets/cat/back.png'
-import sleep from '../assets/cat/sleep.png'
-import play from '../assets/cat/play.png'
-import snack from '../assets/cat/snack.png'
-import faceHappy from '../assets/cat/face_happy.png'
-import faceWow from '../assets/cat/face_wow.png'
-import faceWhat from '../assets/cat/face_what.png'
-import faceSad from '../assets/cat/face_sad.png'
-import faceMad from '../assets/cat/face_mad.png'
-import faceSleepy from '../assets/cat/face_sleepy.png'
 
-export type Pose = 'sit' | 'side' | 'back' | 'sleep' | 'play' | 'snack'
+// src/assets/cat/*.png 를 이름으로 불러온다
+const files = import.meta.glob('../assets/cat/*.png', { eager: true, import: 'default' }) as Record<string, string>
+export const ART: Record<string, string> = Object.fromEntries(
+  Object.entries(files).map(([path, url]) => [path.split('/').pop()!.replace('.png', ''), url]),
+)
 
-// 그림 원본 크기와 화면에서의 높이 비율 (앉은 포즈 높이 = 1)
-export const POSES: Record<Pose, { src: string; w: number; h: number; scale: number }> = {
-  sit: { src: sit, w: 333, h: 395, scale: 1 },
-  side: { src: side, w: 269, h: 355, scale: 0.92 },
-  back: { src: back, w: 218, h: 328, scale: 0.86 },
-  sleep: { src: sleep, w: 357, h: 235, scale: 0.72 },
-  play: { src: play, w: 241, h: 233, scale: 0.7 },
-  snack: { src: snack, w: 288, h: 228, scale: 0.7 },
-}
+// 원본 크기(시트 그대로라 모든 그림 비율이 같다)와 그림이 바라보는 방향
+export const POSES = {
+  sit: { w: 142, h: 177, dir: 'front' },
+  side: { w: 138, h: 171, dir: 'left' },
+  back: { w: 125, h: 172, dir: 'front' },
+  back2: { w: 114, h: 175, dir: 'front' },
+  walk: { w: 201, h: 153, dir: 'left' },
+  stretch: { w: 211, h: 207, dir: 'left' },
+  reach: { w: 124, h: 221, dir: 'front' },
+  hug: { w: 159, h: 184, dir: 'left' },
+  box: { w: 192, h: 162, dir: 'front' },
+  blanket: { w: 187, h: 169, dir: 'front' },
+  lie: { w: 258, h: 126, dir: 'left' },
+  lielook: { w: 198, h: 136, dir: 'right' },
+  sleep: { w: 244, h: 160, dir: 'front' },
+  roll: { w: 177, h: 165, dir: 'front' },
+  crown: { w: 180, h: 178, dir: 'front' },
+  toy: { w: 175, h: 187, dir: 'left' },
+  bed: { w: 162, h: 166, dir: 'front' },
+  boba: { w: 150, h: 177, dir: 'front' },
+  bath: { w: 170, h: 157, dir: 'front' },
+} as const
+export type Pose = keyof typeof POSES
 
-export const FACES = { happy: faceHappy, wow: faceWow, what: faceWhat, sad: faceSad, mad: faceMad, sleepy: faceSleepy }
-export type Face = keyof typeof FACES
+export const OUTFITS = ['hoodie', 'beret', 'dino', 'duck', 'scarf']
+export const outfitOf = (cat: Cat) => cat.equipped.find((e) => OUTFITS.includes(e))
 
-// 한 포즈의 그림 (+ 앉은 포즈일 때 꾸미기 아이템)
-export function CatSprite({ cat, pose, height }: { cat: Cat; pose: Pose; height: number }) {
-  const p = POSES[pose]
-  const h = height * p.scale
-  const w = (h * p.w) / p.h
-  const eq = (id: string) => cat.equipped.includes(id)
+export type Face = 'calm' | 'happy' | 'wow' | 'sad' | 'mad' | 'sleepy'
+
+// 한 포즈의 그림. 앉아 있을 때 옷을 입고 있으면 옷 입은 그림으로 바꾼다.
+export function CatSprite({ cat, pose, unit }: { cat: Cat; pose: Pose; unit: number }) {
+  const outfit = pose === 'sit' ? outfitOf(cat) : undefined
+  const src = ART[outfit ?? pose]
+  const h = (outfit ? 180 : POSES[pose].h) * unit
   return (
-    <div className={`cat-sprite ${pose}`} style={{ width: w, height: h }}>
-      <img src={p.src} alt={cat.name || '고양이'} draggable={false} />
-      {pose === 'sit' && (
-        <svg className="cat-wear" viewBox="0 0 333 395" aria-hidden>
-          <g stroke="#7a6a62" strokeWidth="5" strokeLinejoin="round" strokeLinecap="round">
-            {eq('scarf') && (
-              <>
-                <path d="M58 210 Q160 248 278 208 L282 234 Q160 276 56 236 Z" fill="#C9DCEF" />
-                <path d="M196 244 L210 298 L186 298 L178 248 Z" fill="#C9DCEF" />
-              </>
-            )}
-            {eq('glasses') && (
-              <g fill="#EEF5FB" fillOpacity="0.3">
-                <circle cx="90" cy="138" r="31" />
-                <circle cx="212" cy="138" r="31" />
-                <path d="M121 136 Q151 126 181 136" fill="none" />
-              </g>
-            )}
-            {eq('ribbon') && (
-              <g transform="translate(230 68) rotate(18)">
-                <path d="M0 0 L-26 -16 L-26 16 Z M0 0 L26 -16 L26 16 Z" fill="#F6D1D1" />
-                <circle r="8" fill="#F6D1D1" />
-              </g>
-            )}
-            {eq('beanie') && (
-              <>
-                <path d="M42 94 C46 6 268 2 274 94 Z" fill="#DCD3EE" />
-                <rect x="34" y="82" width="248" height="26" rx="13" fill="#ECE7F7" />
-                <circle cx="157" cy="10" r="15" fill="#FFFDF9" />
-              </>
-            )}
-          </g>
-        </svg>
-      )}
+    <div className={`cat-sprite ${pose}`} style={{ height: h }}>
+      <img src={src} alt={cat.name || '고양이'} draggable={false} />
     </div>
   )
 }
 
-// 진한 카드 위로 고개 내민 얼굴
+export function faceFor(cat: Cat): Face {
+  if (cat.hunger < 30) return 'wow'
+  if (cat.mood < 30) return 'sad'
+  if (cat.mood < 45) return 'sleepy'
+  if (cat.mood >= 75) return 'happy'
+  return 'calm'
+}
+
 export function CatFace({ cat, size = 96, face }: { cat: Cat; size?: number; face?: Face }) {
-  const f: Face = face ?? (cat.hunger < 30 ? 'what' : cat.mood < 30 ? 'sad' : cat.mood < 45 ? 'sleepy' : cat.mood >= 75 ? 'happy' : 'wow')
-  return <img className="cat-face" src={FACES[f]} width={size} alt="" draggable={false} />
+  return <img className="cat-face" src={ART[`face_${face ?? faceFor(cat)}`]} width={size} alt="" draggable={false} />
 }

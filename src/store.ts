@@ -382,9 +382,9 @@ export const actions = {
           hunger: Math.min(100, cat.hunger + (item.effect?.hunger ?? 0)),
           mood: Math.min(100, cat.mood + (item.effect?.mood ?? 0)),
         }
-        ng = addFeed({ ...ng, cat }, item.emoji, `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`)
+        ng = addFeed({ ...ng, cat }, '🍽', `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`)
       } else {
-        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, item.emoji, `${item.name}을(를) 샀어요.`)
+        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, '🛍', `${item.name}을(를) 샀어요.`)
       }
       return ng
     })

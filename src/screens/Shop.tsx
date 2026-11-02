@@ -5,6 +5,21 @@ import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
 import { Playground } from '../components/Playground'
 import { ItemIcon } from '../components/Icons'
+import { ART } from '../components/CatView'
+
+const ICON: Record<string, string> = {
+  snack: ART.hug,
+  boba: ART.boba,
+  toy: ART.toy,
+  hoodie: ART.hoodie,
+  beret: ART.beret,
+  dino: ART.dino,
+  duck: ART.duck,
+  scarf: ART.scarf,
+  box: ART.box,
+  cushion: ART.sleep,
+  bed: ART.bed,
+}
 
 export function Shop() {
   const s = useGame()
@@ -26,8 +41,9 @@ export function Shop() {
           const on = g.cat.equipped.includes(item.id)
           return (
             <div key={item.id} className={`shop-item ${on ? 'equipped' : ''}`}>
-              <div className="shop-ico">{ItemIcon[item.id]}</div>
+              <div className="shop-ico">{ICON[item.id] ? <img src={ICON[item.id]} alt="" /> : ItemIcon[item.id]}</div>
               <b>{item.name}</b>
+              {item.desc && <small className="muted">{item.desc}</small>}
               {item.effect && (
                 <small className="muted">
                   {item.effect.hunger ? `배부름 +${item.effect.hunger} ` : ''}
@@ -36,7 +52,7 @@ export function Shop() {
               )}
               {owned ? (
                 <button className={`btn small ${on ? 'primary' : ''}`} onClick={() => actions.toggleEquip(item.id)}>
-                  {on ? '입는 중' : '입히기'}
+                  {on ? (item.slot === 'room' ? '두는 중' : '입는 중') : item.slot === 'room' ? '두기' : '입히기'}
                 </button>
               ) : (
                 <button className="btn small" onClick={() => buy(item.id)}>
@@ -62,8 +78,8 @@ export function Shop() {
         <Playground cat={g.cat} height={230} catHeight={112} />
       </div>
       {msg && <p className="toast-inline">{msg}</p>}
-      {section('food', '간식·장난감')}
-      {section('deco', '꾸미기')}
+      {section('food', '돌보기')}
+      {section('deco', '옷·가구')}
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
   )

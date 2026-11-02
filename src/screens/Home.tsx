@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, trainingAvailable, useGame } from '../store'
 import { tickerOf } from '../data/market'
-import { CatFace } from '../components/CatView'
+import { ART, CatFace } from '../components/CatView'
 import { Playground, type PlayEvent } from '../components/Playground'
 import type { Tab } from '../App'
 
@@ -40,7 +40,11 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const status = cat.hunger < 30 ? '배가 고프대요' : cat.mood < 30 ? '조금 심심해해요' : cat.mood >= 60 ? '기분이 좋아요' : '느긋하게 쉬고 있어요'
   const days = Math.max(1, Math.floor((Date.now() - (s.user?.joinedAt ?? Date.now())) / 86_400_000) + 1)
 
-  const flash = (t: string, ok: boolean, type: 'feed' | 'play') => {
+  const give = (id: 'feed' | 'snack' | 'boba' | 'toy', msg: string) => {
+    const e = actions.buyItem(id)
+    flash(e ?? msg, !e, id)
+  }
+  const flash = (t: string, ok: boolean, type: 'feed' | 'snack' | 'boba' | 'toy') => {
     setToast(t)
     if (ok) setEv({ type, key: Date.now() })
     setTimeout(() => setToast(''), 1800)
@@ -80,12 +84,26 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             {cat.exp}/{RULES.expPerLevel}
           </span>
         </div>
-        <div className="row">
-          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('feed'); flash(e ?? '밥 그릇을 놓았어요', !e, 'feed') }}>
-            밥 주기 <span className="btn-meta">100G</span>
+        <div className="care-row">
+          <button className="care" onClick={() => give('feed', '밥 그릇을 놓았어요')}>
+            <img src={ART.side} alt="" />
+            <b>밥</b>
+            <small>100G</small>
           </button>
-          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('toy'); flash(e ?? '장난감을 꺼냈어요', !e, 'play') }}>
-            놀아주기 <span className="btn-meta">150G</span>
+          <button className="care" onClick={() => give('snack', '생선 인형을 줬어요')}>
+            <img src={ART.hug} alt="" />
+            <b>간식</b>
+            <small>180G</small>
+          </button>
+          <button className="care" onClick={() => give('toy', '장난감을 흔들었어요')}>
+            <img src={ART.toy} alt="" />
+            <b>놀기</b>
+            <small>150G</small>
+          </button>
+          <button className="care" onClick={() => give('boba', '버블티를 줬어요')}>
+            <img src={ART.boba} alt="" />
+            <b>버블티</b>
+            <small>200G</small>
           </button>
         </div>
       </section>

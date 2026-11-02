@@ -1,6 +1,9 @@
 // 길드: 멤버, 초대 링크, 기여(제안·복기 기록에서 계산), 데모 도구
 import { useState } from 'react'
 import { actions, useGame } from '../store'
+import { ART } from '../components/CatView'
+
+const AVATARS = ['friend_grey', 'friend_orange', 'friend_black', 'friend_fluffy']
 
 export function GuildScreen() {
   const s = useGame()
@@ -47,9 +50,9 @@ export function GuildScreen() {
 
       <h2 className="section-title">같이 키우는 친구</h2>
       <ul className="members">
-        {stats.map(({ m, proposals, retros, opposes }) => (
+        {stats.map(({ m, proposals, retros, opposes }, i) => (
           <li key={m.id}>
-            <span className="avatar">{m.nickname.slice(0, 1)}</span>
+            <img className="avatar" src={ART[AVATARS[i % AVATARS.length]]} alt="" />
             <div>
               <b>
                 {m.nickname}
