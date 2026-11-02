@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, trainingAvailable, useGame } from '../store'
 import { tickerOf } from '../data/market'
-import { CatView } from '../components/CatView'
+import { CatView, CatFace, type Pose } from '../components/CatView'
 import { Scene } from '../components/Scene'
 import type { Tab } from '../App'
 
@@ -33,15 +33,20 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const train = trainingAvailable(g.cat)
   const myId = me(g).id
   const [toast, setToast] = useState('')
+  const [pose, setPose] = useState<Pose | undefined>()
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId))
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
   const status = cat.hunger < 30 ? '배가 고프대요' : cat.mood < 30 ? '조금 심심해해요' : cat.mood >= 60 ? '기분이 좋아요' : '느긋하게 쉬고 있어요'
   const days = Math.max(1, Math.floor((Date.now() - (s.user?.joinedAt ?? Date.now())) / 86_400_000) + 1)
 
-  const flash = (t: string) => {
+  const flash = (t: string, ok: boolean, p: Pose) => {
     setToast(t)
-    setTimeout(() => setToast(''), 1600)
+    if (ok) setPose(p)
+    setTimeout(() => {
+      setToast('')
+      setPose(undefined)
+    }, 2200)
   }
 
   const p = waiting[0]
@@ -61,7 +66,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
       <section className="card cat-card">
         <Scene>
           <span className="pill pill-dark-on-cream">Lv.{cat.level}</span>
-          <CatView cat={cat} size={210} />
+          <CatView cat={cat} size={210} pose={pose} />
         </Scene>
         <div className="meters">
           <Meter label="배부름" value={cat.hunger} />
@@ -77,10 +82,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </span>
         </div>
         <div className="row">
-          <button className="btn btn-soft grow" onClick={() => flash(actions.buyItem('feed') ?? '밥을 먹었어요')}>
+          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('feed'); flash(e ?? '밥을 먹었어요', !e, 'snack') }}>
             밥 주기 <span className="btn-meta">100G</span>
           </button>
-          <button className="btn btn-soft grow" onClick={() => flash(actions.buyItem('toy') ?? '같이 놀았어요')}>
+          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('toy'); flash(e ?? '같이 놀았어요', !e, 'play') }}>
             놀아주기 <span className="btn-meta">150G</span>
           </button>
         </div>
@@ -89,7 +94,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
       {/* 앱에서 가장 눈에 띄는 카드: 지금 할 일 */}
       <section className="q-card">
         <div className="peek" aria-hidden>
-          <CatView cat={{ ...cat, equipped: cat.equipped.filter((e) => e !== 'cushion' && e !== 'plant') }} size={120} />
+          <CatFace cat={cat} size={96} />
         </div>
         {p ? (
           <>

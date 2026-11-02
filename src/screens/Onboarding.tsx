@@ -27,7 +27,7 @@ export function Onboarding() {
             <div className="intro-bubble b1">근거 쓰면 레벨 업</div>
             <div className="intro-bubble b2">친구랑 투표해서 투자</div>
             <CatView
-              cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: ['scarf'] }}
+              cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: [] }}
               size={190}
             />
           </div>
