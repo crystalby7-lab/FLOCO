@@ -3,8 +3,7 @@ import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
-import { CatView } from '../components/CatView'
-import { Scene } from '../components/Scene'
+import { Playground } from '../components/Playground'
 import { ItemIcon } from '../components/Icons'
 
 export function Shop() {
@@ -59,10 +58,8 @@ export function Shop() {
           <h1>상점</h1>
         </div>
       </header>
-      <div className="shop-preview">
-        <Scene compact>
-          <CatView cat={g.cat} size={150} />
-        </Scene>
+      <div className="bleed">
+        <Playground cat={g.cat} height={230} catHeight={112} />
       </div>
       {msg && <p className="toast-inline">{msg}</p>}
       {section('food', '간식·장난감')}

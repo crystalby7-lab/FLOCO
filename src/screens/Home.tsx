@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, trainingAvailable, useGame } from '../store'
 import { tickerOf } from '../data/market'
-import { CatView, CatFace, type Pose } from '../components/CatView'
-import { Scene } from '../components/Scene'
+import { CatFace } from '../components/CatView'
+import { Playground, type PlayEvent } from '../components/Playground'
 import type { Tab } from '../App'
 
 function useTick(ms = 30_000) {
@@ -33,20 +33,17 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const train = trainingAvailable(g.cat)
   const myId = me(g).id
   const [toast, setToast] = useState('')
-  const [pose, setPose] = useState<Pose | undefined>()
+  const [ev, setEv] = useState<PlayEvent>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId))
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
   const status = cat.hunger < 30 ? '배가 고프대요' : cat.mood < 30 ? '조금 심심해해요' : cat.mood >= 60 ? '기분이 좋아요' : '느긋하게 쉬고 있어요'
   const days = Math.max(1, Math.floor((Date.now() - (s.user?.joinedAt ?? Date.now())) / 86_400_000) + 1)
 
-  const flash = (t: string, ok: boolean, p: Pose) => {
+  const flash = (t: string, ok: boolean, type: 'feed' | 'play') => {
     setToast(t)
-    if (ok) setPose(p)
-    setTimeout(() => {
-      setToast('')
-      setPose(undefined)
-    }, 2200)
+    if (ok) setEv({ type, key: Date.now() })
+    setTimeout(() => setToast(''), 1800)
   }
 
   const p = waiting[0]
@@ -63,14 +60,16 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </h1>
       </div>
 
-      <section className="card cat-card">
-        <Scene>
-          <span className="pill pill-dark-on-cream">Lv.{cat.level}</span>
-          <CatView cat={cat} size={210} pose={pose} />
-        </Scene>
+      <div className="bleed">
+        <Playground cat={cat} event={ev} />
+        <span className="lv-tag">Lv.{cat.level}</span>
+        <span className="tap-hint">{cat.name}를 눌러보세요</span>
+      </div>
+
+      <section className="card status-card">
         <div className="meters">
           <Meter label="배부름" value={cat.hunger} />
-          <Meter label="기분" value={cat.mood} />
+          <Meter label="기분" value={cat.mood} tone="pinkish" />
         </div>
         <div className="exp-line">
           <span className="sub small">경험치</span>
@@ -82,10 +81,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </span>
         </div>
         <div className="row">
-          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('feed'); flash(e ?? '밥을 먹었어요', !e, 'snack') }}>
+          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('feed'); flash(e ?? '밥 그릇을 놓았어요', !e, 'feed') }}>
             밥 주기 <span className="btn-meta">100G</span>
           </button>
-          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('toy'); flash(e ?? '같이 놀았어요', !e, 'play') }}>
+          <button className="btn btn-soft grow" onClick={() => { const e = actions.buyItem('toy'); flash(e ?? '장난감을 꺼냈어요', !e, 'play') }}>
             놀아주기 <span className="btn-meta">150G</span>
           </button>
         </div>
@@ -159,10 +158,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 }
 
 // Kync식 10칸 게이지
-function Meter({ label, value }: { label: string; value: number }) {
+function Meter({ label, value, tone = '' }: { label: string; value: number; tone?: string }) {
   const on = Math.round(value / 10)
   return (
-    <div className="meter">
+    <div className={`meter ${tone}`}>
       <div className="meter-top">
         <span>{label}</span>
         <b>{Math.round(value)}</b>

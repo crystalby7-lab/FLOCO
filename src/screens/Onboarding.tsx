@@ -2,7 +2,7 @@
 // 개인정보 원칙: 실명·연락처·학교명은 받지 않고 닉네임과 학년만 저장
 import { useState } from 'react'
 import { actions, useGame } from '../store'
-import { CatView } from '../components/CatView'
+import { Playground } from '../components/Playground'
 import { Wordmark } from '../components/Wordmark'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
@@ -23,13 +23,10 @@ export function Onboarding() {
         <div className="onboard-hero">
           <Wordmark large />
           <p className="tagline">친구들이랑 고양이 한 마리,<br />같이 키워볼래요?</p>
-          <div className="intro-art">
+          <div className="intro-art bleed">
             <div className="intro-bubble b1">근거 쓰면 레벨 업</div>
             <div className="intro-bubble b2">친구랑 투표해서 투자</div>
-            <CatView
-              cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: [] }}
-              size={190}
-            />
+            <Playground cat={{ name: '플로', level: 1, exp: 0, hunger: 80, mood: 70, updatedAt: Date.now(), lastClaimAt: 0, equipped: [] }} height={240} catHeight={118} />
           </div>
         </div>
         <div className="card form">
