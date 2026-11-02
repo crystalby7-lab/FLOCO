@@ -1,0 +1,430 @@
+// 게임 상태 저장소
+// 지금은 브라우저(localStorage)에 저장합니다. Firebase 연결 시 이 파일의 load/save와
+// 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
+
+import { useSyncExternalStore } from 'react'
+import type { Cat, GameState, Guild, Member, Proposal, AiResult } from './types'
+import { QUESTS } from './data/quests'
+import { priceOf, tickerOf } from './data/market'
+import { itemOf } from './data/shop'
+import { reviewReasons } from './aiReview'
+
+const KEY = 'floco-mvp-v1'
+
+export const RULES = {
+  startGold: 100_000,
+  goldPerHour: 60, // F8 자동 훈련
+  trainCapHours: 8, // 상한: 8시간치까지만 쌓임
+  hungerDecayPerHour: 4,
+  moodDecayPerHour: 3,
+  floor: 10, // 손실이 나도, 오래 안 들어와도 고양이는 이 아래로 안 떨어짐
+  expPerLevel: 100,
+  exp: { proposalPass: 15, opposeReason: 5, retro: 30 },
+}
+
+const uid = () => Math.random().toString(36).slice(2, 10)
+const now = () => Date.now()
+
+const initial: GameState = { version: 1, user: null, guild: null, quests: {}, day: 0 }
+
+function load(): GameState {
+  try {
+    const raw = localStorage.getItem(KEY)
+    if (raw) return { ...initial, ...JSON.parse(raw) }
+  } catch {
+    /* 저장소를 못 쓰는 환경이면 새로 시작 */
+  }
+  return initial
+}
+
+let state: GameState = load()
+const listeners = new Set<() => void>()
+
+function set(updater: (s: GameState) => GameState) {
+  state = updater(state)
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state))
+  } catch {
+    /* 무시 */
+  }
+  listeners.forEach((l) => l())
+}
+
+export function useGame(): GameState {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l)
+      return () => listeners.delete(l)
+    },
+    () => state,
+  )
+}
+
+// ───────── 계산 도우미 ─────────
+
+export function catNow(cat: Cat, t = now()): Cat {
+  const hours = (t - cat.updatedAt) / 3_600_000
+  return {
+    ...cat,
+    hunger: Math.max(RULES.floor, cat.hunger - hours * RULES.hungerDecayPerHour),
+    mood: Math.max(RULES.floor, cat.mood - hours * RULES.moodDecayPerHour),
+    updatedAt: t,
+  }
+}
+
+export function trainingAvailable(cat: Cat, t = now()): { gold: number; full: boolean; hours: number } {
+  const hours = Math.min(RULES.trainCapHours, (t - cat.lastClaimAt) / 3_600_000)
+  return { gold: Math.floor(hours * RULES.goldPerHour), full: hours >= RULES.trainCapHours, hours }
+}
+
+export function questsDone(s: GameState, region: 'village' | 'forest') {
+  const list = QUESTS.filter((q) => q.region === region)
+  return list.filter((q) => s.quests[q.id]?.done).length === list.length
+}
+
+export function unlocked(s: GameState) {
+  const tools = new Set<string>()
+  if (questsDone(s, 'village')) tools.add('invest')
+  QUESTS.forEach((q) => q.unlocks && s.quests[q.id]?.done && tools.add(q.unlocks))
+  return tools
+}
+
+export const me = (g: Guild) => g.members.find((m) => m.isMe)!
+export const memberName = (g: Guild, id: string) => g.members.find((m) => m.id === id)?.nickname ?? '?'
+export const majority = (g: Guild) => Math.floor(g.members.length / 2) + 1
+
+// ───────── 내부 수정 도우미 ─────────
+
+function updateGuild(fn: (g: Guild, s: GameState) => Guild) {
+  set((s) => (s.guild ? { ...s, guild: fn(s.guild, s) } : s))
+}
+
+function addFeed(g: Guild, icon: string, text: string): Guild {
+  return { ...g, feed: [{ id: uid(), icon, text, at: now() }, ...g.feed].slice(0, 60) }
+}
+
+function addExp(g: Guild, amount: number, why: string): Guild {
+  let cat = { ...g.cat, exp: g.cat.exp + amount }
+  let leveled = false
+  while (cat.exp >= RULES.expPerLevel) {
+    cat = { ...cat, exp: cat.exp - RULES.expPerLevel, level: cat.level + 1 }
+    leveled = true
+  }
+  let ng = addFeed({ ...g, cat }, '✨', `${why} · 경험치 +${amount}`)
+  if (leveled) ng = addFeed(ng, '🎉', `${g.cat.name}가 Lv.${cat.level}이 됐어요!`)
+  return ng
+}
+
+function newCat(name: string): Cat {
+  const t = now()
+  return { name, level: 1, exp: 0, hunger: 70, mood: 70, updatedAt: t, lastClaimAt: t - 2 * 3_600_000, equipped: [] }
+}
+
+// ───────── 데모 친구 (Firebase 연결 전까지 친구 역할) ─────────
+
+const BOT_OPPOSE = [
+  '한 산업에만 몰려 있어서 너무 크게 흔들릴 것 같아.',
+  '수수료가 다른 ETF보다 높아서 오래 들고 있기엔 아쉬워.',
+  '지금 금고에서 너무 큰 비중이라 나눠서 사는 게 좋겠어.',
+  '최근에 많이 올라서 이유가 아직 유효한지 더 보고 싶어.',
+]
+const BOT_RETRO_PROPOSER = [
+  '분산은 잘 됐다고 생각했는데, 환율 영향을 확인하지 않은 게 아쉬웠다. 다음엔 환율도 같이 보겠다.',
+  '산 이유는 장기 성장이었는데 며칠 만에 팔아서 이유와 행동이 안 맞았다. 다음엔 보유 기간도 정하고 제안하겠다.',
+]
+const BOT_RETRO_OPPONENT = [
+  '내가 걱정한 흔들림이 실제로 있었다. 반대 이유를 더 구체적인 숫자로 썼으면 설득력이 있었을 것 같다.',
+  '반대했지만 결과는 괜찮았다. 내가 본 위험이 틀린 건지, 운이 좋았던 건지 더 지켜봐야겠다.',
+]
+const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
+
+function botMembers(): Member[] {
+  return [
+    { id: 'bot-haneul', nickname: '하늘', isBot: true },
+    { id: 'bot-doyun', nickname: '도윤', isBot: true },
+  ]
+}
+
+function seedProposal(): Proposal {
+  return {
+    id: uid(),
+    proposerId: 'bot-haneul',
+    ticker: 'SP500',
+    amount: 45_000,
+    reasons: [
+      '미국 대표 회사 500곳을 한 번에 담고 있어서 한 회사가 떨어져도 덜 흔들리고, 총보수도 0.07%로 낮다.',
+      '원·달러 환율이 오르내리면 수익이 달라지는 점은 아직 확인 못 했다.',
+      '나스닥100 ETF도 봤는데 기술 기업에만 몰려 있어서 이번엔 사지 않기로 했다.',
+    ],
+    ai: { pass: true, message: '근거가 확인됐어요.' },
+    votes: [{ memberId: 'bot-haneul', agree: true }],
+    status: 'voting',
+    createdDay: 0,
+  }
+}
+
+function scheduleBotVotes(proposalId: string) {
+  const g = state.guild
+  if (!g) return
+  const p = g.proposals.find((x) => x.id === proposalId)
+  if (!p || p.status !== 'voting') return
+  const waiting = g.members.filter((m) => m.isBot && !p.votes.some((v) => v.memberId === m.id))
+  waiting.forEach((bot, i) => {
+    setTimeout(() => {
+      const agree = Math.random() < 0.7
+      castVote(proposalId, bot.id, agree, agree ? undefined : pick(BOT_OPPOSE))
+    }, 1200 + i * 1400)
+  })
+}
+
+function scheduleBotRetros(proposalId: string) {
+  const g = state.guild
+  if (!g) return
+  const p = g.proposals.find((x) => x.id === proposalId)
+  if (!p) return
+  const writers = g.members.filter(
+    (m) => m.isBot && (m.id === p.proposerId || p.votes.some((v) => v.memberId === m.id && !v.agree)),
+  )
+  writers.forEach((bot, i) => {
+    setTimeout(() => {
+      const role = bot.id === p.proposerId ? 'proposer' : 'opponent'
+      writeRetro(proposalId, bot.id, pick(role === 'proposer' ? BOT_RETRO_PROPOSER : BOT_RETRO_OPPONENT))
+    }, 1500 + i * 1500)
+  })
+}
+
+// ───────── 투표 결과 처리 (F5) ─────────
+// 실제 서비스에서는 서버 함수가 한 번에 처리해 동시 투표 충돌을 막는다.
+
+function resolve(g: Guild, s: GameState, proposalId: string): Guild {
+  const p = g.proposals.find((x) => x.id === proposalId)
+  if (!p || p.status !== 'voting') return g
+  const yes = p.votes.filter((v) => v.agree).length
+  const no = p.votes.filter((v) => !v.agree).length
+  const need = majority(g)
+  const t = tickerOf(p.ticker)
+
+  if (yes >= need) {
+    if (g.gold < p.amount || Math.floor(p.amount / priceOf(p.ticker, s.day)) < 1) {
+      const rejected: Proposal = { ...p, status: 'rejected' }
+      return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '금고 골드가 부족해 매수하지 못했어요.')
+    }
+    const price = priceOf(p.ticker, s.day)
+    const qty = Math.floor(p.amount / price)
+    const cost = qty * price
+    const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty }
+    return addFeed(
+      { ...g, gold: g.gold - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
+      '✅',
+      `과반 찬성! ${t.name} ${qty}주를 ${price.toLocaleString()}골드에 샀어요.`,
+    )
+  }
+  if (no > g.members.length - need) {
+    const rejected: Proposal = { ...p, status: 'rejected' }
+    return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '🙅', `${t.name} 제안이 반대가 많아 부결됐어요.`)
+  }
+  return g
+}
+
+function castVote(proposalId: string, memberId: string, agree: boolean, reason?: string) {
+  updateGuild((g, s) => {
+    const p = g.proposals.find((x) => x.id === proposalId)
+    if (!p || p.status !== 'voting' || p.votes.some((v) => v.memberId === memberId)) return g
+    let ng: Guild = {
+      ...g,
+      proposals: g.proposals.map((x) => (x.id === proposalId ? { ...x, votes: [...x.votes, { memberId, agree, reason }] } : x)),
+    }
+    const who = memberName(g, memberId)
+    ng = addFeed(ng, agree ? '👍' : '✋', agree ? `${who}님이 찬성했어요.` : `${who}님이 반대했어요: "${reason}"`)
+    if (!agree && reason) ng = addExp(ng, RULES.exp.opposeReason, `${who}님의 반대 이유`)
+    return resolve(ng, s, proposalId)
+  })
+}
+
+// ───────── 화면에서 쓰는 action ─────────
+
+export const actions = {
+  createUser(nickname: string, grade: string) {
+    set((s) => ({ ...s, user: { id: 'me', nickname, grade, joinedAt: now() } }))
+  },
+
+  createGuild(guildName: string, catName: string) {
+    set((s) => {
+      if (!s.user) return s
+      const members: Member[] = [{ id: s.user.id, nickname: s.user.nickname, isMe: true }, ...botMembers()]
+      let guild: Guild = {
+        name: guildName,
+        code: Math.random().toString(36).slice(2, 8).toUpperCase(),
+        members,
+        gold: RULES.startGold,
+        cat: newCat(catName),
+        proposals: [seedProposal()],
+        retros: [],
+        feed: [],
+        ownedItems: [],
+      }
+      guild = addFeed(guild, '🐣', `${guildName} 길드가 만들어지고 ${catName}가 태어났어요!`)
+      guild = addFeed(guild, '💡', '하늘님이 미국 S&P500 ETF 매수를 제안했어요. 투표해 주세요!')
+      return { ...s, guild }
+    })
+  },
+
+  joinGuild(code: string) {
+    set((s) => {
+      if (!s.user) return s
+      const members: Member[] = [...botMembers(), { id: s.user.id, nickname: s.user.nickname, isMe: true }]
+      let guild: Guild = {
+        name: '데모 길드',
+        code: code.toUpperCase(),
+        members,
+        gold: RULES.startGold,
+        cat: newCat('모찌'),
+        proposals: [seedProposal()],
+        retros: [],
+        feed: [],
+        ownedItems: [],
+      }
+      guild = addFeed(guild, '👋', `${s.user.nickname}님이 길드에 들어왔어요!`)
+      return { ...s, guild }
+    })
+  },
+
+  claimTraining() {
+    updateGuild((g) => {
+      const { gold } = trainingAvailable(g.cat)
+      if (gold <= 0) return g
+      return addFeed({ ...g, gold: g.gold + gold, cat: { ...catNow(g.cat), lastClaimAt: now() } }, '🏋️', `자동 훈련 보상 ${gold}골드를 받았어요.`)
+    })
+  },
+
+  completeQuest(questId: string, score: number) {
+    set((s) => {
+      const quest = QUESTS.find((q) => q.id === questId)!
+      const first = !s.quests[questId]?.done
+      let ns: GameState = { ...s, quests: { ...s.quests, [questId]: { done: true, score: Math.max(score, s.quests[questId]?.score ?? 0), at: now() } } }
+      if (first && ns.guild) {
+        let g = addFeed(ns.guild, '📘', `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요.`)
+        if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! 공동 투자 제안과 ETF 숲이 열렸어요.')
+        if (quest.unlocks) g = addFeed(g, '🔓', 'ETF 비교 도구가 해금됐어요.')
+        ns = { ...ns, guild: g }
+      }
+      return ns
+    })
+  },
+
+  // F4: 이유 3칸 → AI 검토 → 통과하면 길드에 올라감
+  propose(ticker: string, amount: number, reasons: [string, string, string]): AiResult {
+    const g = state.guild!
+    const myId = me(g).id
+    const prev = g.proposals.filter((p) => p.proposerId === myId).map((p) => p.reasons[0])
+    const ai = reviewReasons(reasons, prev)
+    if (!ai.pass) return ai
+    if (amount > g.gold) return { pass: false, message: '금고 골드보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
+    if (amount < priceOf(ticker, state.day)) return { pass: false, message: '1주 가격보다 금액이 적어요.', hint: '금액을 늘리거나 다른 종목을 골라보세요.' }
+    const p: Proposal = {
+      id: uid(),
+      proposerId: myId,
+      ticker,
+      amount,
+      reasons,
+      ai,
+      votes: [{ memberId: myId, agree: true }],
+      status: 'voting',
+      createdDay: state.day,
+    }
+    updateGuild((gg) => {
+      let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '💡', `${me(gg).nickname}님이 ${tickerOf(ticker).name} 매수를 제안했어요.`)
+      ng = addExp(ng, RULES.exp.proposalPass, 'AI 근거 검토 통과')
+      return ng
+    })
+    scheduleBotVotes(p.id)
+    return ai
+  },
+
+  vote(proposalId: string, agree: boolean, reason?: string) {
+    castVote(proposalId, me(state.guild!).id, agree, reason)
+    scheduleBotVotes(proposalId)
+  },
+
+  sell(proposalId: string) {
+    updateGuild((g, s) => {
+      const p = g.proposals.find((x) => x.id === proposalId)
+      if (!p || p.status !== 'holding' || !p.qty || !p.buyPrice) return g
+      const price = priceOf(p.ticker, s.day)
+      const income = p.qty * price
+      const profit = income - p.qty * p.buyPrice
+      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day }
+      const ng = { ...g, gold: g.gold + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
+      return addFeed(
+        ng,
+        profit >= 0 ? '📈' : '📉',
+        `${tickerOf(p.ticker).name}를 팔았어요 (${profit >= 0 ? '+' : ''}${profit.toLocaleString()}골드). 제안자·반대자는 복기를 써주세요.`,
+      )
+    })
+    scheduleBotRetros(proposalId)
+  },
+
+  writeMyRetro(proposalId: string, text: string) {
+    writeRetro(proposalId, me(state.guild!).id, text)
+  },
+
+  buyItem(itemId: string): string | null {
+    const g = state.guild!
+    const item = itemOf(itemId)!
+    if (g.gold < item.price) return '금고 골드가 부족해요.'
+    if (item.kind === 'deco' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
+    updateGuild((gg) => {
+      let cat = catNow(gg.cat)
+      let ng: Guild = { ...gg, gold: gg.gold - item.price }
+      if (item.kind === 'food') {
+        cat = {
+          ...cat,
+          hunger: Math.min(100, cat.hunger + (item.effect?.hunger ?? 0)),
+          mood: Math.min(100, cat.mood + (item.effect?.mood ?? 0)),
+        }
+        ng = addFeed({ ...ng, cat }, item.emoji, `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`)
+      } else {
+        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, item.emoji, `${item.name}을(를) 샀어요.`)
+      }
+      return ng
+    })
+    return null
+  },
+
+  toggleEquip(itemId: string) {
+    updateGuild((g) => {
+      const item = itemOf(itemId)!
+      const on = g.cat.equipped.includes(itemId)
+      const others = g.cat.equipped.filter((id) => id !== itemId && (item.slot === 'room' || itemOf(id)?.slot !== item.slot))
+      return { ...g, cat: { ...g.cat, equipped: on ? others : [...others, itemId] } }
+    })
+  },
+
+  // 데모용
+  nextDay() {
+    set((s) => {
+      const ns = { ...s, day: s.day + 1 }
+      return ns.guild ? { ...ns, guild: addFeed(ns.guild, '📅', `하루가 지났어요 (거래일 ${ns.day}).`) } : ns
+    })
+  },
+  reset() {
+    set(() => initial)
+  },
+}
+
+function writeRetro(proposalId: string, authorId: string, text: string) {
+  updateGuild((g) => {
+    const p = g.proposals.find((x) => x.id === proposalId)
+    if (!p || g.retros.some((r) => r.proposalId === proposalId && r.authorId === authorId)) return g
+    const role = p.proposerId === authorId ? 'proposer' : 'opponent'
+    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text }] }
+    return addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 복기`)
+  })
+}
+
+// 복기를 써야 하는 사람인지
+export function mustRetro(g: Guild, p: Proposal, memberId: string) {
+  if (p.status !== 'sold') return false
+  const involved = p.proposerId === memberId || p.votes.some((v) => v.memberId === memberId && !v.agree)
+  return involved && !g.retros.some((r) => r.proposalId === p.id && r.authorId === memberId)
+}

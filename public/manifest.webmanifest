@@ -1,0 +1,13 @@
+{
+  "name": "FLOCO",
+  "short_name": "FLOCO",
+  "description": "친구들과 고양이를 함께 키우며 배우는 청소년 금융교육 게임",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F3EC",
+  "theme_color": "#2F6BFF",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
