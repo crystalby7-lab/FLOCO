@@ -37,15 +37,15 @@ export function GuildScreen() {
       </header>
 
       <section className="card invite">
-        <div className="card-title">친구 초대</div>
+        <div className="card-title">친구 부르기</div>
         <div className="code">{g.code}</div>
         <button className="btn primary block" onClick={copy}>
-          {copied ? '복사됨!' : '초대 링크 복사'}
+          {copied ? '복사했어요!' : '초대 링크 복사'}
         </button>
-        <p className="fineprint">고양이는 혼자 키울 수 없어요. 친구가 링크로 들어오면 같은 고양이를 함께 봐요 (Firebase 연결 후 작동).</p>
+        <p className="fineprint">친구가 이 링크로 들어오면 같은 고양이를 같이 키워요</p>
       </section>
 
-      <h2 className="section-title">멤버</h2>
+      <h2 className="section-title">같이 키우는 친구</h2>
       <ul className="members">
         {stats.map(({ m, proposals, retros, opposes }) => (
           <li key={m.id}>
@@ -54,10 +54,10 @@ export function GuildScreen() {
               <b>
                 {m.nickname}
                 {m.isMe && <span className="me-tag">나</span>}
-                {m.isBot && <span className="bot-tag">데모</span>}
+                {m.isBot && <span className="bot-tag">테스트</span>}
               </b>
               <small>
-                제안 {proposals} · 반대 이유 {opposes} · 복기 {retros}
+                제안 {proposals} · 걱정 {opposes} · 돌아보기 {retros}
               </small>
             </div>
           </li>
@@ -65,11 +65,11 @@ export function GuildScreen() {
       </ul>
 
       <section className="card demo">
-        <div className="card-title">🛠 데모 도구 (테스트용)</div>
-        <p className="muted">현재 거래일 {s.day}. 시세는 데모용 가상 값이에요.</p>
+        <div className="card-title">테스트 도구</div>
+        <p className="muted">거래일 {s.day} · 가격은 연습용이에요</p>
         <div className="row gap">
           <button className="btn" onClick={actions.nextDay}>
-            📅 하루 지나기
+            하루 지나기
           </button>
           <button
             className="btn danger"

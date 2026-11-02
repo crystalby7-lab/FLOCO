@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { actions, questsDone, unlocked, useGame } from '../store'
 import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
 import { Sheet } from '../components/ui'
+import { Lock } from '../components/Icons'
 
 export function MapScreen() {
   const s = useGame()
@@ -17,7 +18,7 @@ export function MapScreen() {
       <header className="top">
         <div>
           <div className="eyebrow">플로월드</div>
-          <h1>퀘스트 지도</h1>
+          <h1>모험 지도</h1>
         </div>
       </header>
 
@@ -32,8 +33,7 @@ export function MapScreen() {
               <div className="region-head">
                 <div>
                   <h2>
-                    {locked ? '🔒 ' : ''}
-                    {r.name}
+                    {locked && <Lock size={15} />} {r.name}
                   </h2>
                   <p>{r.desc}</p>
                 </div>
@@ -49,28 +49,28 @@ export function MapScreen() {
                     const rec = s.quests[q.id]
                     return (
                       <button key={q.id} className={`quest ${rec?.done ? 'done' : ''}`} onClick={() => setOpen(q)}>
-                        <span className="quest-dot">{rec?.done ? '✓' : q.type === 'judge' ? '⚖' : '★'}</span>
+                        <span className="quest-dot">{rec?.done ? <Check /> : <span className="quest-num">{QUESTS.filter((x) => x.region === q.region).indexOf(q) + 1}</span>}</span>
                         <span className="quest-text">
                           <b>{q.title}</b>
                           <small>{q.summary}</small>
                         </span>
-                        {q.unlocks && !rec?.done && <span className="tag">해금</span>}
+                        {q.unlocks && !rec?.done && <span className="tag">도구 해금</span>}
                       </button>
                     )
                   })}
                 </div>
               )}
-              {r.id === 'forest' && locked && <p className="lock-note">기초 마을 퀘스트 3개를 완료하면 열려요.</p>}
+              {r.id === 'forest' && locked && <p className="lock-note">기초 마을을 다 돌면 길이 열려요</p>}
             </section>
           )
         })}
       </div>
 
       <section className="card">
-        <div className="card-title">🧰 해금한 투자 도구</div>
+        <div className="card-title">모은 도구</div>
         {Object.entries(TOOLS).map(([id, t]) => (
           <div key={id} className={`tool ${tools.has(id) ? '' : 'off'}`}>
-            <b>{tools.has(id) ? '✅' : '🔒'} {t.name}</b>
+            <b>{!tools.has(id) && <Lock size={13} />} {t.name}</b>
             <small>{t.desc}</small>
           </div>
         ))}
@@ -101,7 +101,7 @@ function LearnQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
     return (
       <div className="quest-body">
         <div className="concept">
-          <div className="eyebrow">개념 카드</div>
+          <div className="eyebrow">알아두기</div>
           <h3>{quest.card!.title}</h3>
           <ul>
             {quest.card!.points.map((p) => (
@@ -110,7 +110,7 @@ function LearnQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
           </ul>
         </div>
         <button className="btn primary" onClick={() => setStep(0)}>
-          퀴즈 풀기 (3문제)
+          퀴즈 풀러 가기
         </button>
       </div>
     )
@@ -120,11 +120,11 @@ function LearnQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
     const pass = score >= 2
     return (
       <div className="quest-body center">
-        <div className="big-emoji">{pass ? '🎉' : '🤔'}</div>
+        <div className="result-badge">{pass ? '잘했어요!' : '조금만 더'}</div>
         <h3>
           {score}/{quiz.length} 정답
         </h3>
-        <p className="muted">{pass ? '퀘스트 완료!' : '2문제 이상 맞히면 완료돼요. 개념 카드를 다시 볼까요?'}</p>
+        <p className="muted">{pass ? '퀘스트 완료!' : '2개 이상 맞히면 통과예요. 카드 한 번 더 볼까요?'}</p>
         {pass ? (
           <button
             className="btn primary"
@@ -174,7 +174,7 @@ function LearnQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
       {picked !== null && (
         <>
           <p className={`explain ${picked === q.answer ? 'ok' : 'no'}`}>
-            <b>{picked === q.answer ? '정답! ' : '아쉬워요. '}</b>
+            <b>{picked === q.answer ? '정답! ' : '아쉽다! '}</b>
             {q.why}
           </p>
           <button className="btn primary" onClick={() => { setPicked(null); setStep(step + 1) }}>
@@ -198,11 +198,11 @@ function JudgeQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
   if (i >= list.length) {
     return (
       <div className="quest-body center">
-        <div className="big-emoji">⚖️</div>
+        <div className="result-badge">끝!</div>
         <h3>
           {score}/{list.length} 판단 일치
         </h3>
-        <p className="muted">판단과 이유를 써본 것 자체가 퀘스트 완료 조건이에요.</p>
+        <p className="muted">맞고 틀린 것보다, 이유를 써본 게 중요해요</p>
         <button
           className="btn primary"
           onClick={() => {
@@ -227,14 +227,14 @@ function JudgeQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
       <div className="situation">{sit.text}</div>
       <div className="row gap">
         <button className={`option ${choice === 'invest' ? 'picked' : ''}`} disabled={submitted} onClick={() => setChoice('invest')}>
-          📊 투자
+          투자 같아
         </button>
         <button className={`option ${choice === 'gamble' ? 'picked' : ''}`} disabled={submitted} onClick={() => setChoice('gamble')}>
-          🎲 도박
+          도박 같아
         </button>
       </div>
       <label className="small-label">
-        왜 그렇게 판단했나요? (한 줄)
+        왜 그렇게 생각했어? (한 줄)
         <input value={reason} disabled={submitted} onChange={(e) => setReason(e.target.value)} maxLength={60} />
       </label>
       {!submitted ? (
@@ -268,5 +268,13 @@ function JudgeQuest({ quest, onClose }: { quest: Quest; onClose: () => void }) {
         </>
       )}
     </div>
+  )
+}
+
+function Check() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 8.5 L6.5 12 L13 4.5" />
+    </svg>
   )
 }

@@ -5,12 +5,13 @@ import { changePct, priceOf, tickerOf, TICKERS } from '../data/market'
 import { Empty, Gold, Sheet } from '../components/ui'
 import type { AiResult, Guild, Proposal } from '../types'
 import type { Tab } from '../App'
+import { Lock } from '../components/Icons'
 
-const REASON_LABELS = ['왜 사는지', '무엇을 확인하지 않았는지', '무엇을 사지 않기로 했는지'] as const
+const REASON_LABELS = ['왜 사고 싶어?', '아직 모르는 건?', '안 사기로 한 건?'] as const
 const REASON_PH = [
-  '무엇을 담은 상품인지, 직접 확인한 사실을 근거로',
-  '아직 모르는 위험이나 확인 못 한 것',
-  '비교했다가 고르지 않은 것과 그 이유',
+  '직접 찾아본 걸로 써봐요 (담긴 회사, 수수료 등)',
+  '확인 못 한 것, 걱정되는 것',
+  '같이 봤다가 안 고른 것과 이유',
 ]
 
 export function Invest({ go }: { go: (t: Tab) => void }) {
@@ -25,15 +26,15 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
         <header className="top">
           <div>
             <div className="eyebrow">길드 금고</div>
-            <h1>공동 투자</h1>
+            <h1>같이 투자</h1>
           </div>
         </header>
         <div className="card locked-card">
-          <div className="big-emoji">🔒</div>
-          <h3>기초 마을을 먼저 완료해요</h3>
-          <p className="muted">저축·투자·도박의 차이를 배우면 길드에 투자 제안을 올릴 수 있어요. 친구 제안에 투표는 지금도 할 수 있어요.</p>
+          <div className="lock-circle"><Lock size={26} /></div>
+          <h3>기초 마을부터 다녀와요</h3>
+          <p className="muted">퀘스트 3개를 끝내면 나도 제안할 수 있어요. 친구 제안엔 지금도 의견을 낼 수 있어요.</p>
           <button className="btn primary" onClick={() => go('map')}>
-            퀘스트 지도로 가기
+            지도로 가기
           </button>
         </div>
         <ProposalSections g={g} day={s.day} />
@@ -45,8 +46,8 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
     <div className="screen">
       <header className="top">
         <div>
-          <div className="eyebrow">거래일 {s.day} · 과반 {majority(g)}명 찬성 시 매수</div>
-          <h1>공동 투자</h1>
+          <div className="eyebrow">{majority(g)}명이 좋다고 하면 사요</div>
+          <h1>같이 투자</h1>
         </div>
         <div className="vault">
           <div className="eyebrow">금고</div>
@@ -54,7 +55,7 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
         </div>
       </header>
       <button className="btn primary block" onClick={() => setWriting(true)}>
-        ✍️ 투자 제안하기
+        새로 제안하기
       </button>
       <ProposalSections g={g} day={s.day} />
       {writing && <ProposalForm g={g} day={s.day} compare={tools.has('etf_compare')} onClose={() => setWriting(false)} />}
@@ -68,12 +69,12 @@ function ProposalSections({ g, day }: { g: Guild; day: number }) {
   const done = g.proposals.filter((p) => p.status === 'sold' || p.status === 'rejected')
   return (
     <>
-      <h2 className="section-title">🗳 투표 중</h2>
-      {voting.length ? voting.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>투표 중인 제안이 없어요.</Empty>}
-      <h2 className="section-title">💼 보유 중</h2>
-      {holding.length ? holding.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>길드가 가진 종목이 없어요.</Empty>}
-      <h2 className="section-title">📝 지난 결정과 복기</h2>
-      {done.length ? done.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>아직 끝난 결정이 없어요.</Empty>}
+      <h2 className="section-title">의견 모으는 중</h2>
+      {voting.length ? voting.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>지금은 조용해요</Empty>}
+      <h2 className="section-title">길드가 가진 것</h2>
+      {holding.length ? holding.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>아직 산 게 없어요</Empty>}
+      <h2 className="section-title">지난 이야기</h2>
+      {done.length ? done.map((p) => <ProposalCard key={p.id} g={g} p={p} day={day} />) : <Empty>팔고 나면 여기서 같이 돌아봐요</Empty>}
     </>
   )
 }
@@ -93,7 +94,7 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
   const retros = g.retros.filter((r) => r.proposalId === p.id)
   const needRetro = mustRetro(g, p, myId)
 
-  const statusLabel = { voting: '투표 중', holding: '보유 중', sold: '매도 완료', rejected: '부결' }[p.status]
+  const statusLabel = { voting: '의견 모으는 중', holding: '갖고 있어요', sold: '팔았어요', rejected: '이번엔 패스' }[p.status]
 
   return (
     <article className={`proposal ${p.status}`}>
@@ -108,7 +109,7 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
         <div className="proposal-right">
           {p.status === 'voting' && (
             <span className="votes">
-              👍 {yes} ✋ {no}
+              좋아 {yes} · 글쎄 {no}
             </span>
           )}
           {(p.status === 'holding' || p.status === 'sold') && (
@@ -117,7 +118,7 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
               {pnl.toLocaleString()}G
             </span>
           )}
-          {needRetro && <span className="dot-alert">복기</span>}
+          {needRetro && <span className="dot-alert">돌아보기</span>}
           <span className="chev">{open ? '▴' : '▾'}</span>
         </div>
       </button>
@@ -132,13 +133,13 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
               </li>
             ))}
           </ol>
-          <p className="ai-pass">🤖 AI 근거 검토 통과</p>
+          <p className="ai-pass">AI 친구가 이유를 확인했어요</p>
 
           {p.votes.length > 0 && (
             <ul className="vote-list">
               {p.votes.map((v) => (
                 <li key={v.memberId}>
-                  <b>{v.agree ? '👍' : '✋'} {memberName(g, v.memberId)}</b>
+                  <b>{memberName(g, v.memberId)} · {v.agree ? '좋아' : '글쎄'}</b>
                   {v.reason && <span>"{v.reason}"</span>}
                 </li>
               ))}
@@ -148,30 +149,30 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
           {p.status === 'voting' && !myVote && !opposing && (
             <div className="row gap">
               <button className="btn primary" onClick={() => actions.vote(p.id, true)}>
-                👍 찬성
+                좋아
               </button>
               <button className="btn" onClick={() => setOpposing(true)}>
-                ✋ 반대
+                글쎄, 걱정돼
               </button>
             </div>
           )}
           {p.status === 'voting' && !myVote && opposing && (
             <div className="form">
               <label className="small-label">
-                반대 이유 한 줄 (경험치 +{RULES.exp.opposeReason})
-                <input value={oppose} onChange={(e) => setOppose(e.target.value)} maxLength={80} placeholder="어떤 점이 걱정되나요?" />
+                어떤 게 걱정돼? (경험치 +{RULES.exp.opposeReason})
+                <input value={oppose} onChange={(e) => setOppose(e.target.value)} maxLength={80} placeholder="한 줄이면 충분해요" />
               </label>
               <div className="row gap">
                 <button className="btn" onClick={() => setOpposing(false)}>
                   취소
                 </button>
                 <button className="btn primary" disabled={oppose.trim().length < 8} onClick={() => actions.vote(p.id, false, oppose.trim())}>
-                  반대 제출
+                  의견 보내기
                 </button>
               </div>
             </div>
           )}
-          {p.status === 'voting' && myVote && <p className="muted">투표 완료 · 다른 길드원을 기다리는 중</p>}
+          {p.status === 'voting' && myVote && <p className="muted">의견 보냈어요 · 친구들 기다리는 중</p>}
 
           {p.status === 'holding' && (
             <div className="hold">
@@ -184,9 +185,9 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
                 <b>{p.qty}주</b>
               </div>
               <button className="btn" onClick={() => actions.sell(p.id)}>
-                매도하기
+                팔기
               </button>
-              <p className="fineprint">데모에선 누구나 매도할 수 있어요. 매도 방식(투표 여부)은 미팅에서 정해주세요.</p>
+              
             </div>
           )}
 
@@ -201,7 +202,7 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
               {retros.map((r) => (
                 <div key={r.id} className="retro">
                   <small>
-                    {memberName(g, r.authorId)} · {r.role === 'proposer' ? '제안자' : '반대자'} 복기
+                    {memberName(g, r.authorId)} · {r.role === 'proposer' ? '제안한 사람' : '걱정한 사람'}
                   </small>
                   <p>{r.text}</p>
                 </div>
@@ -209,16 +210,16 @@ function ProposalCard({ g, p, day }: { g: Guild; p: Proposal; day: number }) {
               {needRetro && (
                 <div className="form">
                   <label className="small-label">
-                    내 복기 · 결과가 아니라 판단을 돌아봐요 (경험치 +{RULES.exp.retro}, 수익과 무관)
+                    돌아보기 · 벌었든 잃었든 경험치 +{RULES.exp.retro}
                     <textarea
                       rows={3}
                       value={retro}
                       onChange={(e) => setRetro(e.target.value)}
-                      placeholder="내 이유 중 맞았던 것 / 틀렸던 것 / 다음에 바꿀 것"
+                      placeholder="내 이유 중 맞았던 것, 빗나간 것, 다음엔 바꿀 것"
                     />
                   </label>
                   <button className="btn primary" disabled={retro.trim().length < 20} onClick={() => actions.writeMyRetro(p.id, retro.trim())}>
-                    복기 제출
+                    다 썼어요
                   </button>
                 </div>
               )}
@@ -249,8 +250,8 @@ function ProposalForm({ g, day, compare, onClose }: { g: Guild; day: number; com
   }
 
   return (
-    <Sheet title="투자 제안하기" onClose={onClose}>
-      <div className="field-label">종목</div>
+    <Sheet title="친구들한테 제안하기" onClose={onClose}>
+      <div className="field-label">뭘 살까?</div>
       <div className="ticker-list">
         {TICKERS.map((t) => {
           const ch = changePct(t.code, day, 5)
@@ -270,9 +271,9 @@ function ProposalForm({ g, day, compare, onClose }: { g: Guild; day: number; com
           )
         })}
       </div>
-      {!compare && <p className="fineprint">🔒 ETF 숲 '비교하는 법'을 완료하면 담은 것·보수·흔들림을 나란히 볼 수 있어요.</p>}
+      {!compare && <p className="fineprint">ETF 숲 마지막 퀘스트를 끝내면 비교 도구가 열려요</p>}
 
-      <div className="field-label">금액 · 금고 {g.gold.toLocaleString()}G</div>
+      <div className="field-label">얼마나? <span className="muted">금고 {g.gold.toLocaleString()}G</span></div>
       <div className="chips">
         {[10_000, 20_000, 30_000, 50_000].map((a) => {
           const q = Math.floor(a / priceOf(ticker, day))
@@ -286,7 +287,7 @@ function ProposalForm({ g, day, compare, onClose }: { g: Guild; day: number; com
 
       {REASON_LABELS.map((label, i) => (
         <label key={label} className="small-label">
-          {i + 1}. {label}
+          {label}
           <textarea
             rows={2}
             value={reasons[i]}
@@ -302,16 +303,16 @@ function ProposalForm({ g, day, compare, onClose }: { g: Guild; day: number; com
 
       {result && (
         <div className={`ai-result ${result.pass ? 'ok' : 'no'}`}>
-          <b>🤖 {result.pass ? '통과' : '반려'}</b>
+          <b>{result.pass ? '좋아요, 올렸어요!' : '조금만 더 써볼까요?'}</b>
           <p>{result.message}</p>
-          {result.hint && <p className="hint">💡 {result.hint}</p>}
+          {result.hint && <p className="hint">{result.hint}</p>}
         </div>
       )}
 
       <button className="btn primary block" disabled={checking || reasons.some((r) => !r.trim())} onClick={submit}>
-        {checking ? 'AI가 근거를 읽는 중…' : 'AI 검토 받고 제안하기'}
+        {checking ? 'AI 친구가 읽는 중…' : '이유 확인받고 올리기'}
       </button>
-      <p className="fineprint">AI가 반려한 제안은 올라가지 않아요. 수익이 나도 근거 없는 매매엔 보상이 없어요.</p>
+      <p className="fineprint">이유가 확인돼야 친구들한테 올라가요</p>
     </Sheet>
   )
 }

@@ -1,112 +1,115 @@
-// 길드 고양이 그림 (직접 그린 SVG). 디자인 외주가 나오면 이 컴포넌트만 교체.
+// 플로코 고양이 (오리지널 디자인: 줄무늬 이마 + 둥근 몸)
 import type { Cat } from '../types'
+
+const INK = '#5B4636'
 
 export function CatView({ cat, size = 220 }: { cat: Cat; size?: number }) {
   const eq = (id: string) => cat.equipped.includes(id)
   const happy = cat.mood >= 60
   const sad = cat.mood < 30
   const hungry = cat.hunger < 30
+  const st = { stroke: INK, strokeWidth: 2.6, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
 
   return (
-    <svg viewBox="0 0 240 220" width={size} height={size * (220 / 240)} className="cat-svg" role="img" aria-label={`${cat.name} 고양이`}>
-      {/* 방 */}
-      {eq('cushion') && <ellipse cx="120" cy="196" rx="86" ry="16" fill="#F5C84C" stroke="#1B1F2A" strokeWidth="2.5" />}
-      {!eq('cushion') && <ellipse cx="120" cy="198" rx="70" ry="9" fill="#1B1F2A" opacity="0.08" />}
+    <svg viewBox="0 0 240 220" width={size} height={size * (220 / 240)} className="cat-svg" role="img" aria-label={`${cat.name || '고양이'}`}>
+      {eq('cushion') ? (
+        <g>
+          <ellipse cx="120" cy="198" rx="84" ry="15" fill="#F6D27A" {...st} />
+          <ellipse cx="120" cy="194" rx="58" ry="7" fill="#FBE4A6" />
+        </g>
+      ) : (
+        <ellipse cx="120" cy="200" rx="66" ry="8" fill={INK} opacity="0.12" />
+      )}
       {eq('plant') && (
-        <g transform="translate(196 120)">
-          <path d="M8 40 C0 20 -4 8 6 0 C12 14 14 26 12 40" fill="#5DAA68" stroke="#1B1F2A" strokeWidth="2" />
-          <path d="M14 40 C20 22 30 14 36 16 C32 28 24 36 18 40" fill="#7CC489" stroke="#1B1F2A" strokeWidth="2" />
-          <rect x="2" y="38" width="26" height="30" rx="4" fill="#D9714E" stroke="#1B1F2A" strokeWidth="2.5" />
+        <g transform="translate(192 130)">
+          <path d="M14 30 C4 24 2 10 10 6 C16 12 18 22 14 30 Z" fill="#9BCB7E" {...st} />
+          <path d="M20 30 C26 20 38 18 36 26 C32 31 26 32 20 30 Z" fill="#B5DB98" {...st} />
+          <path d="M6 30 h24 l-3 26 h-18 Z" fill="#E5A07E" {...st} />
         </g>
       )}
 
       <g className={sad ? 'cat-body cat-slow' : 'cat-body'}>
         {/* 꼬리 */}
-        <path d="M172 170 C206 160 214 120 196 104" fill="none" stroke="#1B1F2A" strokeWidth="14" strokeLinecap="round" />
-        <path d="M172 170 C206 160 214 120 196 104" fill="none" stroke="#F2A65A" strokeWidth="9" strokeLinecap="round" />
+        <path d="M168 176 C200 172 214 140 200 118 C196 112 188 114 190 122 C198 140 186 160 166 162" fill="#F6C08F" {...st} />
         {/* 몸 */}
-        <ellipse cx="120" cy="158" rx="62" ry="40" fill="#F2A65A" stroke="#1B1F2A" strokeWidth="3" />
-        <ellipse cx="120" cy="166" rx="34" ry="24" fill="#FFF6E6" />
-        {/* 귀 */}
-        <path d="M68 78 L76 30 L106 64 Z" fill="#F2A65A" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M172 78 L164 30 L134 64 Z" fill="#F2A65A" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M78 66 L81 44 L96 61 Z" fill="#F7B9A8" />
-        <path d="M162 66 L159 44 L144 61 Z" fill="#F7B9A8" />
+        <path d="M66 190 C58 150 76 124 120 124 C164 124 182 150 174 190 Z" fill="#F6C08F" {...st} />
+        <path d="M94 190 C92 166 102 152 120 152 C138 152 148 166 146 190 Z" fill="#FFF4E4" />
+        {/* 앞발 */}
+        <path d="M86 192 C86 182 104 182 104 192" fill="#FFF4E4" {...st} />
+        <path d="M136 192 C136 182 154 182 154 192" fill="#FFF4E4" {...st} />
+
         {/* 머리 */}
-        <ellipse cx="120" cy="98" rx="60" ry="50" fill="#F2A65A" stroke="#1B1F2A" strokeWidth="3" />
-        <path d="M104 52 L110 70 M120 50 L120 70 M136 52 L130 70" stroke="#D9843C" strokeWidth="4" strokeLinecap="round" />
-        <ellipse cx="120" cy="114" rx="30" ry="22" fill="#FFF6E6" />
+        <path
+          d="M64 98 C60 80 62 58 70 40 C80 46 90 54 98 60 C112 56 128 56 142 60 C150 54 160 46 170 40 C178 58 180 80 176 98 C172 126 150 140 120 140 C90 140 68 126 64 98 Z"
+          fill="#F6C08F"
+          {...st}
+        />
+        <path d="M74 52 C80 56 84 60 88 64 L78 72 Z" fill="#F4A9A0" opacity="0.7" />
+        <path d="M166 52 C160 56 156 60 152 64 L162 72 Z" fill="#F4A9A0" opacity="0.7" />
+        {/* 이마 줄무늬 */}
+        <path d="M108 64 L111 76 M120 62 L120 76 M132 64 L129 76" stroke="#D99662" strokeWidth="4" strokeLinecap="round" />
+        {/* 주둥이 */}
+        <ellipse cx="120" cy="112" rx="24" ry="17" fill="#FFF4E4" />
 
         {/* 눈 */}
         {happy ? (
           <>
-            <path d="M88 96 Q96 86 104 96" stroke="#1B1F2A" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M136 96 Q144 86 152 96" stroke="#1B1F2A" strokeWidth="4" fill="none" strokeLinecap="round" />
+            <path d="M88 98 Q95 90 102 98" fill="none" {...st} strokeWidth="3.2" />
+            <path d="M138 98 Q145 90 152 98" fill="none" {...st} strokeWidth="3.2" />
           </>
         ) : sad ? (
           <>
-            <path d="M88 92 Q96 100 104 94" stroke="#1B1F2A" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M136 94 Q144 100 152 92" stroke="#1B1F2A" strokeWidth="4" fill="none" strokeLinecap="round" />
+            <path d="M88 96 Q95 102 102 97" fill="none" {...st} strokeWidth="3.2" />
+            <path d="M138 97 Q145 102 152 96" fill="none" {...st} strokeWidth="3.2" />
           </>
         ) : (
           <>
-            <ellipse cx="96" cy="94" rx="6" ry="8" fill="#1B1F2A" />
-            <ellipse cx="144" cy="94" rx="6" ry="8" fill="#1B1F2A" />
+            <ellipse cx="95" cy="96" rx="4.5" ry="6" fill={INK} />
+            <ellipse cx="145" cy="96" rx="4.5" ry="6" fill={INK} />
+            <circle cx="96.5" cy="93.5" r="1.5" fill="#fff" />
+            <circle cx="146.5" cy="93.5" r="1.5" fill="#fff" />
           </>
         )}
         {eq('glasses') && (
-          <g fill="none" stroke="#1B1F2A" strokeWidth="3">
-            <circle cx="96" cy="94" r="15" />
-            <circle cx="144" cy="94" r="15" />
-            <path d="M111 94 L129 94" />
+          <g fill="#EAF3FB" fillOpacity="0.35" {...st}>
+            <circle cx="95" cy="96" r="14" />
+            <circle cx="145" cy="96" r="14" />
+            <path d="M109 96 h22" fill="none" />
           </g>
         )}
-        {/* 코·입 */}
-        <path d="M114 108 L126 108 L120 115 Z" fill="#E86F6F" />
-        <path d={sad ? 'M110 126 Q120 120 130 126' : 'M110 120 Q115 126 120 120 Q125 126 130 120'} stroke="#1B1F2A" strokeWidth="3" fill="none" strokeLinecap="round" />
         {/* 볼 */}
-        {happy && (
-          <>
-            <ellipse cx="80" cy="114" rx="8" ry="5" fill="#F7B9A8" opacity="0.9" />
-            <ellipse cx="160" cy="114" rx="8" ry="5" fill="#F7B9A8" opacity="0.9" />
-          </>
-        )}
-        {/* 수염 */}
-        <g stroke="#1B1F2A" strokeWidth="2" strokeLinecap="round">
-          <path d="M70 110 L48 104 M70 118 L48 120" />
-          <path d="M170 110 L192 104 M170 118 L192 120" />
-        </g>
-
-        {/* 앞발 */}
-        <ellipse cx="98" cy="190" rx="14" ry="9" fill="#FFF6E6" stroke="#1B1F2A" strokeWidth="3" />
-        <ellipse cx="142" cy="190" rx="14" ry="9" fill="#FFF6E6" stroke="#1B1F2A" strokeWidth="3" />
+        <ellipse cx="80" cy="112" rx="8" ry="5" fill="#F4A9A0" opacity={sad ? 0.3 : 0.75} />
+        <ellipse cx="160" cy="112" rx="8" ry="5" fill="#F4A9A0" opacity={sad ? 0.3 : 0.75} />
+        {/* 코·입 */}
+        <path d="M116 106 h8 l-4 4 Z" fill="#E98A86" />
+        <path d={sad ? 'M113 121 Q120 116 127 121' : 'M113 116 Q116.5 121 120 116 Q123.5 121 127 116'} fill="none" {...st} strokeWidth="2.2" />
 
         {/* 꾸미기 */}
         {eq('scarf') && (
           <g>
-            <path d="M74 136 Q120 156 166 136 L166 150 Q120 170 74 150 Z" fill="#2F6BFF" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
-            <path d="M140 150 L146 182 L132 180 L130 154 Z" fill="#2F6BFF" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
+            <path d="M78 134 Q120 152 162 134 L164 146 Q120 166 76 146 Z" fill="#8FB3F5" {...st} />
+            <path d="M134 150 L140 176 L128 175 L124 154 Z" fill="#8FB3F5" {...st} />
           </g>
         )}
         {eq('ribbon') && (
-          <g transform="translate(150 50)">
-            <path d="M0 0 L-18 -12 L-18 12 Z M0 0 L18 -12 L18 12 Z" fill="#E5484D" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
-            <circle r="6" fill="#E5484D" stroke="#1B1F2A" strokeWidth="3" />
+          <g transform="translate(152 56) rotate(15)">
+            <path d="M0 0 L-15 -10 L-15 10 Z M0 0 L15 -10 L15 10 Z" fill="#F08A8A" {...st} />
+            <circle r="5" fill="#F08A8A" {...st} />
           </g>
         )}
         {eq('beanie') && (
           <g>
-            <path d="M70 66 Q120 6 170 66 Z" fill="#7B61FF" stroke="#1B1F2A" strokeWidth="3" strokeLinejoin="round" />
-            <rect x="66" y="60" width="108" height="14" rx="7" fill="#A897FF" stroke="#1B1F2A" strokeWidth="3" />
-            <circle cx="120" cy="20" r="10" fill="#FFF6E6" stroke="#1B1F2A" strokeWidth="3" />
+            <path d="M72 66 C76 26 164 26 168 66 Z" fill="#B9A7F0" {...st} />
+            <rect x="68" y="60" width="104" height="13" rx="6.5" fill="#D9CFF8" {...st} />
+            <circle cx="120" cy="26" r="9" fill="#FFF7EA" {...st} />
           </g>
         )}
       </g>
 
       {hungry && (
         <g className="bubble">
-          <rect x="164" y="20" width="62" height="32" rx="14" fill="#fff" stroke="#1B1F2A" strokeWidth="2.5" />
-          <text x="195" y="42" textAnchor="middle" fontSize="16">🥣?</text>
+          <path d="M168 16 h52 a12 12 0 0 1 12 12 v6 a12 12 0 0 1 -12 12 h-34 l-8 8 l-1 -8 h-9 a12 12 0 0 1 -12 -12 v-6 a12 12 0 0 1 12 -12 Z" fill="#FFFDF7" {...st} strokeWidth="2" />
+          <text x="194" y="37" textAnchor="middle" fontSize="13" fill={INK} fontFamily="Jua, sans-serif">배고파</text>
         </g>
       )}
     </svg>

@@ -4,6 +4,8 @@ import { actions, useGame } from '../store'
 import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
 import { CatView } from '../components/CatView'
+import { Scene } from '../components/Scene'
+import { ItemIcon } from '../components/Icons'
 
 export function Shop() {
   const s = useGame()
@@ -12,7 +14,7 @@ export function Shop() {
 
   const buy = (id: string) => {
     const err = actions.buyItem(id)
-    setMsg(err ?? '구매 완료!')
+    setMsg(err ?? '샀어요!')
     setTimeout(() => setMsg(''), 1500)
   }
 
@@ -25,7 +27,7 @@ export function Shop() {
           const on = g.cat.equipped.includes(item.id)
           return (
             <div key={item.id} className={`shop-item ${on ? 'equipped' : ''}`}>
-              <div className="shop-emoji">{item.emoji}</div>
+              <div className="shop-ico">{ItemIcon[item.id]}</div>
               <b>{item.name}</b>
               {item.effect && (
                 <small className="muted">
@@ -35,7 +37,7 @@ export function Shop() {
               )}
               {owned ? (
                 <button className={`btn small ${on ? 'primary' : ''}`} onClick={() => actions.toggleEquip(item.id)}>
-                  {on ? '착용 중' : '착용'}
+                  {on ? '입는 중' : '입히기'}
                 </button>
               ) : (
                 <button className="btn small" onClick={() => buy(item.id)}>
@@ -53,7 +55,7 @@ export function Shop() {
     <div className="screen">
       <header className="top">
         <div>
-          <div className="eyebrow">보이는 것만 바뀌어요</div>
+          <div className="eyebrow">길드 금고로 사요</div>
           <h1>상점</h1>
         </div>
         <div className="vault">
@@ -62,12 +64,14 @@ export function Shop() {
         </div>
       </header>
       <div className="shop-preview">
-        <CatView cat={g.cat} size={150} />
+        <Scene compact>
+          <CatView cat={g.cat} size={150} />
+        </Scene>
       </div>
       {msg && <p className="toast-inline">{msg}</p>}
-      {section('food', '돌봄')}
+      {section('food', '간식·장난감')}
       {section('deco', '꾸미기')}
-      <p className="fineprint">투자에 유리해지는 아이템, 골드 충전, 확률형 뽑기는 팔지 않아요.</p>
+      <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
   )
 }

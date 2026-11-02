@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { CatView } from '../components/CatView'
+import { Scene } from '../components/Scene'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
 
@@ -19,20 +20,20 @@ export function Onboarding() {
   if (!s.user) {
     return (
       <div className="onboard">
-        <div className="onboard-hero">
-          <CatView
-            cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: ['scarf'] }}
-            size={190}
-          />
-          <h1 className="logo">FLOCO</h1>
-          <p className="tagline">친구들과 고양이 한 마리를 함께 키우며
-            <br />
-            근거로 투자하는 법을 배워요</p>
-        </div>
+        <Scene compact>
+          <div className="onboard-hero">
+            <h1 className="logo">FLOCO</h1>
+            <p className="tagline">친구들이랑 고양이 한 마리, 같이 키워볼래?</p>
+            <CatView
+              cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: ['scarf'] }}
+              size={180}
+            />
+          </div>
+        </Scene>
         <div className="card form">
           <label>
             닉네임
-            <input value={nickname} maxLength={10} onChange={(e) => setNickname(e.target.value)} placeholder="친구들이 볼 이름" />
+            <input value={nickname} maxLength={10} onChange={(e) => setNickname(e.target.value)} placeholder="친구들이 부를 이름" />
           </label>
           <div className="field-label">학년</div>
           <div className="chips">
@@ -42,7 +43,7 @@ export function Onboarding() {
               </button>
             ))}
           </div>
-          <p className="fineprint">실명·연락처·학교명은 받지 않아요. 가상 골드는 현금으로 바꿀 수 없어요.</p>
+          <p className="fineprint">이름·연락처·학교는 묻지 않아요.</p>
           <button className="btn primary" disabled={!nickname.trim() || !grade} onClick={() => actions.createUser(nickname.trim(), grade)}>
             시작하기
           </button>
@@ -55,7 +56,7 @@ export function Onboarding() {
     <div className="onboard">
       <div className="onboard-head">
         <h1>{s.user.nickname}님, 반가워요!</h1>
-        <p>고양이는 친구 2~5명이 함께 키워요.</p>
+        <p>고양이는 친구들이랑 같이 키워요 (2~5명)</p>
       </div>
       <div className="seg">
         <button className={mode === 'create' ? 'on' : ''} onClick={() => setMode('create')}>
@@ -77,9 +78,9 @@ export function Onboarding() {
             <input value={catName} maxLength={8} onChange={(e) => setCatName(e.target.value)} placeholder="예: 주니" />
           </label>
           <button className="btn primary" disabled={!guildName.trim() || !catName.trim()} onClick={() => actions.createGuild(guildName.trim(), catName.trim())}>
-            길드 만들고 고양이 데려오기
+            고양이 데려오기
           </button>
-          <p className="fineprint">지금은 데모 친구 2명(하늘·도윤)이 함께 들어와 투표해요.</p>
+          <p className="fineprint">지금은 테스트용 친구 하늘·도윤이 같이 들어와요.</p>
         </div>
       ) : (
         <div className="card form">
@@ -90,7 +91,7 @@ export function Onboarding() {
           <button className="btn primary" disabled={code.trim().length < 4} onClick={() => actions.joinGuild(code.trim())}>
             길드 참가하기
           </button>
-          <p className="fineprint">데모 버전에서는 어떤 코드든 데모 길드로 들어가요.</p>
+          <p className="fineprint">테스트 버전에선 어떤 코드든 연습 길드로 들어가요.</p>
         </div>
       )}
     </div>

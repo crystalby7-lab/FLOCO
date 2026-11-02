@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Coin } from './Icons'
 
 export function Bar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
@@ -18,10 +19,13 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-grip" />
         <div className="sheet-head">
           <h2>{title}</h2>
           <button className="icon-btn" onClick={onClose} aria-label="닫기">
-            ✕
+            <svg viewBox="0 0 20 20" width="14" height="14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M5 5 L15 15 M15 5 L5 15" />
+            </svg>
           </button>
         </div>
         <div className="sheet-body">{children}</div>
@@ -30,12 +34,10 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   )
 }
 
-export function Gold({ value }: { value: number }) {
+export function Gold({ value, size = 18 }: { value: number; size?: number }) {
   return (
     <span className="gold">
-      <span className="coin" aria-hidden>
-        G
-      </span>
+      <Coin size={size} />
       {value.toLocaleString()}
     </span>
   )

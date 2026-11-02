@@ -216,12 +216,12 @@ function resolve(g: Guild, s: GameState, proposalId: string): Guild {
     return addFeed(
       { ...g, gold: g.gold - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
       '✅',
-      `과반 찬성! ${t.name} ${qty}주를 ${price.toLocaleString()}골드에 샀어요.`,
+      `모두 좋대요! ${t.name} ${qty}주를 ${price.toLocaleString()}골드에 샀어요.`,
     )
   }
   if (no > g.members.length - need) {
     const rejected: Proposal = { ...p, status: 'rejected' }
-    return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '🙅', `${t.name} 제안이 반대가 많아 부결됐어요.`)
+    return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '🙅', `${t.name} 제안은 이번엔 패스!`)
   }
   return g
 }
@@ -235,8 +235,8 @@ function castVote(proposalId: string, memberId: string, agree: boolean, reason?:
       proposals: g.proposals.map((x) => (x.id === proposalId ? { ...x, votes: [...x.votes, { memberId, agree, reason }] } : x)),
     }
     const who = memberName(g, memberId)
-    ng = addFeed(ng, agree ? '👍' : '✋', agree ? `${who}님이 찬성했어요.` : `${who}님이 반대했어요: "${reason}"`)
-    if (!agree && reason) ng = addExp(ng, RULES.exp.opposeReason, `${who}님의 반대 이유`)
+    ng = addFeed(ng, agree ? '👍' : '✋', agree ? `${who}님이 좋대요.` : `${who}님이 걱정했어요: "${reason}"`)
+    if (!agree && reason) ng = addExp(ng, RULES.exp.opposeReason, `${who}님의 걱정 한 줄`)
     return resolve(ng, s, proposalId)
   })
 }
@@ -334,7 +334,7 @@ export const actions = {
     }
     updateGuild((gg) => {
       let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '💡', `${me(gg).nickname}님이 ${tickerOf(ticker).name} 매수를 제안했어요.`)
-      ng = addExp(ng, RULES.exp.proposalPass, 'AI 근거 검토 통과')
+      ng = addExp(ng, RULES.exp.proposalPass, '이유 확인 통과')
       return ng
     })
     scheduleBotVotes(p.id)
@@ -358,7 +358,7 @@ export const actions = {
       return addFeed(
         ng,
         profit >= 0 ? '📈' : '📉',
-        `${tickerOf(p.ticker).name}를 팔았어요 (${profit >= 0 ? '+' : ''}${profit.toLocaleString()}골드). 제안자·반대자는 복기를 써주세요.`,
+        `${tickerOf(p.ticker).name}를 팔았어요 (${profit >= 0 ? '+' : ''}${profit.toLocaleString()}골드). 같이 돌아봐요!`,
       )
     })
     scheduleBotRetros(proposalId)
@@ -418,7 +418,7 @@ function writeRetro(proposalId: string, authorId: string, text: string) {
     if (!p || g.retros.some((r) => r.proposalId === proposalId && r.authorId === authorId)) return g
     const role = p.proposerId === authorId ? 'proposer' : 'opponent'
     const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text }] }
-    return addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 복기`)
+    return addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 돌아보기`)
   })
 }
 

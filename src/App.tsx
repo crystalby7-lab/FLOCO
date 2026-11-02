@@ -6,15 +6,16 @@ import { MapScreen } from './screens/MapScreen'
 import { Invest } from './screens/Invest'
 import { Shop } from './screens/Shop'
 import { GuildScreen } from './screens/GuildScreen'
+import { TabIcon } from './components/Icons'
 
 export type Tab = 'home' | 'map' | 'invest' | 'shop' | 'guild'
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home', label: '홈', icon: '🏠' },
-  { id: 'map', label: '지도', icon: '🗺' },
-  { id: 'invest', label: '투자', icon: '🗳' },
-  { id: 'shop', label: '상점', icon: '🛍' },
-  { id: 'guild', label: '길드', icon: '👥' },
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'home', label: '홈' },
+  { id: 'map', label: '지도' },
+  { id: 'invest', label: '투자' },
+  { id: 'shop', label: '상점' },
+  { id: 'guild', label: '길드' },
 ]
 
 export default function App() {
@@ -52,7 +53,7 @@ export default function App() {
       <nav className="tabbar">
         {TABS.map((t) => (
           <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => go(t.id)}>
-            <span className="tab-icon">{t.icon}</span>
+            <span className="tab-icon">{TabIcon[t.id]}</span>
             <span>{t.label}</span>
             {t.id === 'invest' && investBadge > 0 && <span className="tab-badge">{investBadge}</span>}
           </button>
