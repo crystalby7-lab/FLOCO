@@ -6,6 +6,7 @@ export function GuildScreen() {
   const s = useGame()
   const g = s.guild!
   const [copied, setCopied] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const link = `${location.origin}${location.pathname}?invite=${g.code}`
 
   const copy = async () => {
@@ -73,10 +74,14 @@ export function GuildScreen() {
           <button
             className="btn danger"
             onClick={() => {
-              if (confirm('모든 데이터를 지우고 처음부터 시작할까요?')) actions.reset()
+              if (confirmReset) actions.reset()
+              else {
+                setConfirmReset(true)
+                setTimeout(() => setConfirmReset(false), 3000)
+              }
             }}
           >
-            처음부터
+            {confirmReset ? '한 번 더 누르면 초기화' : '처음부터'}
           </button>
         </div>
       </section>
