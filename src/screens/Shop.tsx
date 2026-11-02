@@ -52,15 +52,11 @@ export function Shop() {
   )
 
   return (
-    <div className="screen">
+    <div className="tab-panel">
       <header className="top">
         <div>
           <div className="eyebrow">길드 금고로 사요</div>
           <h1>상점</h1>
-        </div>
-        <div className="vault">
-          <div className="eyebrow">금고</div>
-          <Gold value={g.gold} />
         </div>
       </header>
       <div className="shop-preview">

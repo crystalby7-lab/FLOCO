@@ -1,14 +1,14 @@
 // 플로코 고양이 (오리지널 디자인: 줄무늬 이마 + 둥근 몸)
 import type { Cat } from '../types'
 
-const INK = '#5B4636'
+const INK = '#3B2F29'
 
 export function CatView({ cat, size = 220 }: { cat: Cat; size?: number }) {
   const eq = (id: string) => cat.equipped.includes(id)
   const happy = cat.mood >= 60
   const sad = cat.mood < 30
   const hungry = cat.hunger < 30
-  const st = { stroke: INK, strokeWidth: 2.6, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
+  const st = { stroke: INK, strokeWidth: 2.4, strokeLinejoin: 'round' as const, strokeLinecap: 'round' as const }
 
   return (
     <svg viewBox="0 0 240 220" width={size} height={size * (220 / 240)} className="cat-svg" role="img" aria-label={`${cat.name || '고양이'}`}>
@@ -109,7 +109,7 @@ export function CatView({ cat, size = 220 }: { cat: Cat; size?: number }) {
       {hungry && (
         <g className="bubble">
           <path d="M168 16 h52 a12 12 0 0 1 12 12 v6 a12 12 0 0 1 -12 12 h-34 l-8 8 l-1 -8 h-9 a12 12 0 0 1 -12 -12 v-6 a12 12 0 0 1 12 -12 Z" fill="#FFFDF7" {...st} strokeWidth="2" />
-          <text x="194" y="37" textAnchor="middle" fontSize="13" fill={INK} fontFamily="Jua, sans-serif">배고파</text>
+          <text x="194" y="37" textAnchor="middle" fontSize="13" fill={INK} fontFamily="SUIT Variable, sans-serif" fontWeight="700">배고파</text>
         </g>
       )}
     </svg>

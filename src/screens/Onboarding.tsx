@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { CatView } from '../components/CatView'
-import { Scene } from '../components/Scene'
+import { Wordmark } from '../components/Wordmark'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
 
@@ -20,16 +20,18 @@ export function Onboarding() {
   if (!s.user) {
     return (
       <div className="onboard">
-        <Scene compact>
-          <div className="onboard-hero">
-            <h1 className="logo">FLOCO</h1>
-            <p className="tagline">친구들이랑 고양이 한 마리, 같이 키워볼래?</p>
+        <div className="onboard-hero">
+          <Wordmark large />
+          <p className="tagline">친구들이랑 고양이 한 마리,<br />같이 키워볼래요?</p>
+          <div className="intro-art">
+            <div className="intro-bubble b1">근거 쓰면 레벨 업</div>
+            <div className="intro-bubble b2">친구랑 투표해서 투자</div>
             <CatView
               cat={{ name: '', level: 1, exp: 0, hunger: 80, mood: 80, updatedAt: 0, lastClaimAt: 0, equipped: ['scarf'] }}
-              size={180}
+              size={190}
             />
           </div>
-        </Scene>
+        </div>
         <div className="card form">
           <label>
             닉네임

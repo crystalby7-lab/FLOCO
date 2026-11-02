@@ -14,7 +14,7 @@ export function MapScreen() {
   const regionLocked = (id: string) => (id === 'forest' ? !villageDone : id === 'city' || id === 'port')
 
   return (
-    <div className="screen">
+    <div className="tab-panel">
       <header className="top">
         <div>
           <div className="eyebrow">플로월드</div>

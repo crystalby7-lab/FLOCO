@@ -28,7 +28,7 @@ export function GuildScreen() {
   }))
 
   return (
-    <div className="screen">
+    <div className="tab-panel">
       <header className="top">
         <div>
           <div className="eyebrow">길드 {g.members.length}/5명</div>

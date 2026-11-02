@@ -22,7 +22,7 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 
   if (!tools.has('invest')) {
     return (
-      <div className="screen">
+      <div className="tab-panel">
         <header className="top">
           <div>
             <div className="eyebrow">길드 금고</div>
@@ -43,15 +43,11 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
   }
 
   return (
-    <div className="screen">
+    <div className="tab-panel">
       <header className="top">
         <div>
           <div className="eyebrow">{majority(g)}명이 좋다고 하면 사요</div>
           <h1>같이 투자</h1>
-        </div>
-        <div className="vault">
-          <div className="eyebrow">금고</div>
-          <Gold value={g.gold} />
         </div>
       </header>
       <button className="btn primary block" onClick={() => setWriting(true)}>

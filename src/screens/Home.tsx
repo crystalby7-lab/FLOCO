@@ -1,9 +1,9 @@
-// 홈: 길드 고양이 · 자동 훈련 (F7·F8) · 할 일 · 길드 소식
+// 홈: 길드 고양이 · 자동 훈련 (F7·F8) · 오늘의 제안 · 길드 소식
 import { useEffect, useState } from 'react'
-import { actions, catNow, me, mustRetro, RULES, trainingAvailable, useGame } from '../store'
+import { actions, catNow, me, memberName, mustRetro, RULES, trainingAvailable, useGame } from '../store'
+import { tickerOf } from '../data/market'
 import { CatView } from '../components/CatView'
 import { Scene } from '../components/Scene'
-import { Gold } from '../components/ui'
 import type { Tab } from '../App'
 
 function useTick(ms = 30_000) {
@@ -22,9 +22,8 @@ const timeAgo = (at: number) => {
   return h < 24 ? `${h}시간 전` : `${Math.floor(h / 24)}일 전`
 }
 
-// 소식 종류별 색 (이모지 대신 작은 점)
 const feedTone = (icon: string) =>
-  ['✅', '📈', '🎉', '🔓', '✨'].includes(icon) ? 'good' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'warn' : ['💡', '👍', '📘'].includes(icon) ? 'blue' : 'plain'
+  ['✅', '📈', '🎉', '🔓', '✨'].includes(icon) ? 'moss' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'berry' : ['💡', '👍', '📘'].includes(icon) ? 'honey' : ''
 
 export function Home({ go }: { go: (t: Tab) => void }) {
   useTick()
@@ -33,112 +32,141 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const cat = catNow(g.cat)
   const train = trainingAvailable(g.cat)
   const myId = me(g).id
-  const [msg, setMsg] = useState('')
+  const [toast, setToast] = useState('')
 
-  const toVote = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId)).length
-  const toRetro = g.proposals.filter((p) => mustRetro(g, p, myId)).length
-  const status = cat.hunger < 30 ? '배가 고파요' : cat.mood < 30 ? '조금 심심해요' : cat.mood >= 60 ? '기분이 좋아요' : '느긋하게 쉬는 중'
+  const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId))
+  const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
+  const status = cat.hunger < 30 ? '배가 고프대요' : cat.mood < 30 ? '조금 심심해해요' : cat.mood >= 60 ? '기분이 좋아요' : '느긋하게 쉬고 있어요'
+  const days = Math.max(1, Math.floor((Date.now() - (s.user?.joinedAt ?? Date.now())) / 86_400_000) + 1)
 
   const flash = (t: string) => {
-    setMsg(t)
-    setTimeout(() => setMsg(''), 1600)
+    setToast(t)
+    setTimeout(() => setToast(''), 1600)
   }
 
+  const p = waiting[0]
+  const r = retros[0]
+
   return (
-    <div className="home">
-      <Scene>
-        <div className="hud">
-          <div className="hud-name">
-            <span className="hud-guild">{g.name}</span>
-            <span className="hud-cat">
-              {cat.name} <span className="lv">Lv.{cat.level}</span>
-            </span>
-          </div>
-          <div className="hud-gold">
-            <Gold value={g.gold} />
-          </div>
+    <div className="tab-panel">
+      <div className="today-hero">
+        <div className="th-day">
+          {g.name} · 함께한 지 {days}일
         </div>
-        <div className="speech">{status}</div>
-        <div className="cat-wrap">
-          <CatView cat={cat} size={230} />
-        </div>
-        {msg && <div className="pop">{msg}</div>}
-      </Scene>
-
-      <div className="home-panel">
-        <div className="stat-row">
-          <Meter label="배부름" value={cat.hunger} tone="orange" />
-          <Meter label="기분" value={cat.mood} tone="pink" />
-          <Meter label="경험치" value={(cat.exp / RULES.expPerLevel) * 100} tone="blue" text={`${cat.exp}/${RULES.expPerLevel}`} />
-        </div>
-
-        <div className="action-row">
-          <button className="btn" onClick={() => flash(actions.buyItem('feed') ?? '냠냠, 맛있다!')}>
-            밥 주기 <small>100G</small>
-          </button>
-          <button className="btn" onClick={() => flash(actions.buyItem('toy') ?? '신나게 놀았어요!')}>
-            놀아주기 <small>150G</small>
-          </button>
-          <button className="btn primary" disabled={train.gold <= 0} onClick={actions.claimTraining}>
-            훈련 보상 <small>+{train.gold}G</small>
-          </button>
-        </div>
-        <p className="hint-line">
-          {train.full ? '훈련 보상이 가득 찼어요. 지금 받아가세요!' : `${cat.name}는 혼자서도 훈련해요 · 한 시간에 ${RULES.goldPerHour}G`}
-        </p>
-
-        {(toVote > 0 || toRetro > 0) && (
-          <div className="todo">
-            {toVote > 0 && (
-              <button className="todo-item" onClick={() => go('invest')}>
-                <span className="todo-dot blue" />
-                친구가 의견을 기다려요 <b>{toVote}</b>
-                <Chevron />
-              </button>
-            )}
-            {toRetro > 0 && (
-              <button className="todo-item" onClick={() => go('invest')}>
-                <span className="todo-dot green" />
-                돌아보기를 쓰면 경험치 +{RULES.exp.retro} <b>{toRetro}</b>
-                <Chevron />
-              </button>
-            )}
-          </div>
-        )}
-
-        <h2 className="section-title">길드 소식</h2>
-        <ul className="feed">
-          {g.feed.slice(0, 12).map((f) => (
-            <li key={f.id}>
-              <span className={`feed-dot ${feedTone(f.icon)}`} />
-              <span className="feed-text">{f.text}</span>
-              <span className="feed-time">{timeAgo(f.at)}</span>
-            </li>
-          ))}
-        </ul>
+        <h1 className="th-title">
+          {cat.name}는 {status}
+        </h1>
       </div>
+
+      <section className="card cat-card">
+        <Scene>
+          <span className="pill pill-dark-on-cream">Lv.{cat.level}</span>
+          <CatView cat={cat} size={210} />
+        </Scene>
+        <div className="meters">
+          <Meter label="배부름" value={cat.hunger} />
+          <Meter label="기분" value={cat.mood} />
+        </div>
+        <div className="exp-line">
+          <span className="sub small">경험치</span>
+          <div className="bar grow">
+            <div style={{ width: `${(cat.exp / RULES.expPerLevel) * 100}%` }} />
+          </div>
+          <span className="small num">
+            {cat.exp}/{RULES.expPerLevel}
+          </span>
+        </div>
+        <div className="row">
+          <button className="btn btn-soft grow" onClick={() => flash(actions.buyItem('feed') ?? '밥을 먹었어요')}>
+            밥 주기 <span className="btn-meta">100G</span>
+          </button>
+          <button className="btn btn-soft grow" onClick={() => flash(actions.buyItem('toy') ?? '같이 놀았어요')}>
+            놀아주기 <span className="btn-meta">150G</span>
+          </button>
+        </div>
+      </section>
+
+      {/* 앱에서 가장 눈에 띄는 카드: 지금 할 일 */}
+      <section className="q-card">
+        <div className="peek" aria-hidden>
+          <CatView cat={{ ...cat, equipped: cat.equipped.filter((e) => e !== 'cushion' && e !== 'plant') }} size={120} />
+        </div>
+        {p ? (
+          <>
+            <div className="q-label">친구가 의견을 기다려요</div>
+            <div className="q-text">
+              {memberName(g, p.proposerId)}님이 {tickerOf(p.ticker).name}를 사자고 했어요
+            </div>
+            <button className="btn btn-honey btn-block q-btn" onClick={() => go('invest')}>
+              이유 보고 의견 내기
+            </button>
+          </>
+        ) : r ? (
+          <>
+            <div className="q-label">같이 돌아볼 차례예요</div>
+            <div className="q-text">{tickerOf(r.ticker).name}, 내 판단은 어땠을까요?</div>
+            <button className="btn btn-honey btn-block q-btn" onClick={() => go('invest')}>
+              돌아보기 쓰기 · 경험치 +{RULES.exp.retro}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="q-label">오늘의 퀘스트</div>
+            <div className="q-text">지도에서 하나 배우고 오면 {cat.name}가 좋아할 거예요</div>
+            <button className="btn btn-honey btn-block q-btn" onClick={() => go('map')}>
+              지도 열기
+            </button>
+          </>
+        )}
+      </section>
+
+      <section className="card tight train">
+        <div className="grow">
+          <h3>혼자 하는 훈련</h3>
+          <p className="sub small">
+            {train.full ? '보상이 가득 찼어요' : `한 시간에 ${RULES.goldPerHour}G씩 모여요 · 최대 ${RULES.trainCapHours}시간`}
+          </p>
+          <div className="bar thin">
+            <div style={{ width: `${(train.hours / RULES.trainCapHours) * 100}%` }} />
+          </div>
+        </div>
+        <button className="btn btn-primary btn-sm" disabled={train.gold <= 0} onClick={actions.claimTraining}>
+          {train.gold}G 받기
+        </button>
+      </section>
+
+      <div className="section-head">
+        <h2>길드 소식</h2>
+      </div>
+      <ul className="list feed">
+        {g.feed.slice(0, 10).map((f) => (
+          <li key={f.id} className="list-row">
+            <span className={`feed-dot ${feedTone(f.icon)}`} />
+            <span className="row-text">{f.text}</span>
+            <span className="val tiny">{timeAgo(f.at)}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )
 }
 
-function Meter({ label, value, tone, text }: { label: string; value: number; tone: string; text?: string }) {
+// Kync식 10칸 게이지
+function Meter({ label, value }: { label: string; value: number }) {
+  const on = Math.round(value / 10)
   return (
     <div className="meter">
       <div className="meter-top">
         <span>{label}</span>
-        <span className="num">{text ?? Math.round(value)}</span>
+        <b>{Math.round(value)}</b>
       </div>
-      <div className="meter-track">
-        <div className={`meter-fill ${tone}`} style={{ width: `${Math.max(4, Math.min(100, value))}%` }} />
+      <div className="meter-segs">
+        {Array.from({ length: 10 }, (_, i) => (
+          <i key={i} className={i < on ? 'on' : ''} />
+        ))}
       </div>
     </div>
-  )
-}
-
-export function Chevron() {
-  return (
-    <svg className="chev-ico" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M6 3 L11 8 L6 13" />
-    </svg>
   )
 }

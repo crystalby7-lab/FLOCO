@@ -7,6 +7,8 @@ import { Invest } from './screens/Invest'
 import { Shop } from './screens/Shop'
 import { GuildScreen } from './screens/GuildScreen'
 import { TabIcon } from './components/Icons'
+import { Gold } from './components/ui'
+import { Wordmark } from './components/Wordmark'
 
 export type Tab = 'home' | 'map' | 'invest' | 'shop' | 'guild'
 
@@ -25,7 +27,9 @@ export default function App() {
   if (!s.user || !s.guild) {
     return (
       <div className="app">
-        <Onboarding />
+        <main className="app-main">
+          <Onboarding />
+        </main>
       </div>
     )
   }
@@ -38,12 +42,20 @@ export default function App() {
 
   const go = (t: Tab) => {
     setTab(t)
-    window.scrollTo(0, 0)
+    document.querySelector('.app-main')?.scrollTo(0, 0)
   }
 
   return (
     <div className="app">
-      <main className="content">
+      <header className="appbar">
+        <button className="wordmark-btn" onClick={() => go('home')} aria-label="홈으로">
+          <Wordmark />
+        </button>
+        <span className="gold-pill">
+          <Gold value={g.gold} size={16} />
+        </span>
+      </header>
+      <main className="app-main">
         {tab === 'home' && <Home go={go} />}
         {tab === 'map' && <MapScreen />}
         {tab === 'invest' && <Invest go={go} />}
@@ -52,7 +64,7 @@ export default function App() {
       </main>
       <nav className="tabbar">
         {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => go(t.id)}>
+          <button key={t.id} className={`tab-btn ${tab === t.id ? 'active' : ''}`} onClick={() => go(t.id)}>
             <span className="tab-icon">{TabIcon[t.id]}</span>
             <span>{t.label}</span>
             {t.id === 'invest' && investBadge > 0 && <span className="tab-badge">{investBadge}</span>}
