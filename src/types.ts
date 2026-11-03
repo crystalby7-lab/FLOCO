@@ -109,4 +109,5 @@ export type GameState = {
   daily: Daily // 오늘의 미션 (개인)
   tutorialDone: boolean
   prefs: Prefs
+  streak: { count: number; last: string } // 연속 출석 (하루에 하나라도 하면 이어짐)
 }

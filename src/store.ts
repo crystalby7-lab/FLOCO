@@ -37,7 +37,7 @@ const freshDaily = (): Daily => ({ date: today(), quest: false, vote: false, car
 
 export const DEFAULT_PREFS: Prefs = { chatter: true, calm: false, notifyVote: true, notifyRetro: true, notifyCat: true }
 
-const initial: GameState = { version: 3, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS }
+const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' } }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
@@ -45,6 +45,7 @@ function migrate(raw: Partial<GameState>): GameState {
   if (!s.daily || s.daily.date !== today()) s.daily = freshDaily()
   if (s.user) s.tutorialDone = true
   s.prefs = { ...DEFAULT_PREFS, ...(s.prefs ?? {}) }
+  s.streak = s.streak ?? { count: 0, last: '' }
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
@@ -139,10 +140,23 @@ export function vault(g: Guild, day: number) {
   return { cash: g.gold, invested, total: g.gold + invested, pnl, realized, holdings }
 }
 
+const yesterday = () => {
+  const d = new Date(Date.now() - 86_400_000)
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+
+// 연속 출석: 오늘 이미 했으면 그대로, 어제 했으면 +1, 아니면 1부터
+export function streakNow(s: GameState) {
+  const { count, last } = s.streak
+  return last === today() || last === yesterday() ? count : 0
+}
+
 function markDaily(key: 'quest' | 'vote' | 'care') {
   set((s) => {
     const d = s.daily.date === today() ? s.daily : freshDaily()
-    return d[key] ? { ...s, daily: d } : { ...s, daily: { ...d, [key]: true } }
+    const t = today()
+    const streak = s.streak.last === t ? s.streak : { count: s.streak.last === yesterday() ? s.streak.count + 1 : 1, last: t }
+    return { ...s, streak, daily: d[key] ? d : { ...d, [key]: true } }
   })
 }
 export const memberName = (g: Guild, id: string) => g.members.find((m) => m.id === id)?.nickname ?? '?'
@@ -543,7 +557,7 @@ export const actions = {
     })
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' } }))
   },
 }
 

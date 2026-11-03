@@ -123,3 +123,70 @@ export function Lock({ size = 16 }: { size?: number }) {
     </svg>
   )
 }
+
+// 연속 출석 불꽃
+export function Flame({ size = 20, off = false }: { size?: number; off?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+      <path
+        d="M12 2.5c.6 3.2 4.8 5.6 4.8 10.3A4.8 4.8 0 0 1 12 17.6a4.8 4.8 0 0 1-4.8-4.8c0-2 .9-3.4 2-4.6.2 1.5 1 2.6 2.1 2.9C11 8.4 11.3 5.2 12 2.5Z"
+        fill={off ? '#E5E5E5' : '#FF9F43'}
+      />
+      <path d="M12 21.5a5 5 0 0 1-5-5c0-1.4.6-2.6 1.6-3.6.3 1.6 1.4 2.6 2.6 2.6.2-1.6.6-2.8 1.6-4 1.6 1.6 4.2 2.7 4.2 5a5 5 0 0 1-5 5Z" fill={off ? '#D0D0D0' : '#FFC048'} />
+    </svg>
+  )
+}
+
+export function Close({ size = 22 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden>
+      <path d="M6 6 L18 18 M18 6 L6 18" />
+    </svg>
+  )
+}
+
+export function Star({ size = 26, fill = '#fff' }: { size?: number; fill?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+      <path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8L12 2.8Z" fill={fill} />
+    </svg>
+  )
+}
+
+export function CheckBold({ size = 26, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke={color} strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5 12.5 L10 17.5 L19 7" />
+    </svg>
+  )
+}
+
+export function Book({ size = 20 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" />
+      <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5" />
+    </svg>
+  )
+}
+
+export function ChartUp({ size = 40 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden>
+      <rect x="6" y="28" width="8" height="12" rx="2" fill="#7FB8FF" />
+      <rect x="20" y="20" width="8" height="20" rx="2" fill="#4B8DF8" />
+      <rect x="34" y="10" width="8" height="30" rx="2" fill="#2F6FDB" />
+    </svg>
+  )
+}
+
+export function Dice({ size = 40 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden>
+      <rect x="8" y="8" width="32" height="32" rx="8" fill="#FF8A8A" />
+      <circle cx="17" cy="17" r="3.2" fill="#fff" />
+      <circle cx="24" cy="24" r="3.2" fill="#fff" />
+      <circle cx="31" cy="31" r="3.2" fill="#fff" />
+    </svg>
+  )
+}
