@@ -1,4 +1,4 @@
-// 처음 화면: 소개 3장 → 닉네임·학년 → 길드 만들기 / 초대 코드로 참가 (F7)
+// 처음 화면: 소개 3장 → 닉네임·학년 → 설문 6문항 → 길드 만들기 / 초대 코드로 참가 (F7)
 // 개인정보 원칙: 실명·연락처·학교명은 받지 않고 닉네임과 학년만 저장
 import { useState } from 'react'
 import { actions, useGame } from '../store'
@@ -6,6 +6,7 @@ import { Playground } from '../components/Playground'
 import { Wordmark } from '../components/Wordmark'
 import { ART } from '../components/CatView'
 import type { Cat } from '../types'
+import { Survey } from './Survey'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
 
@@ -112,7 +113,10 @@ export function Onboarding() {
     )
   }
 
-  // 3) 길드
+  // 3) 설문
+  if (!s.user.survey) return <Survey onDone={actions.saveSurvey} />
+
+  // 4) 길드
   return (
     <div className="onboard">
       <div className="onboard-head">

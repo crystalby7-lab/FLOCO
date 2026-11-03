@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { Cat, Daily, GameState, Guild, Member, Proposal, AiResult } from './types'
+import type { Cat, Daily, GameState, Guild, Member, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
 import { itemOf } from './data/shop'
@@ -35,13 +35,16 @@ export const today = () => {
 }
 const freshDaily = (): Daily => ({ date: today(), quest: false, vote: false, care: false, claimed: false })
 
-const initial: GameState = { version: 2, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false }
+export const DEFAULT_PREFS: Prefs = { chatter: true, calm: false, notifyVote: true, notifyRetro: true, notifyCat: true }
+
+const initial: GameState = { version: 3, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
   const s = { ...initial, ...raw } as GameState
   if (!s.daily || s.daily.date !== today()) s.daily = freshDaily()
   if (s.user) s.tutorialDone = true
+  s.prefs = { ...DEFAULT_PREFS, ...(s.prefs ?? {}) }
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
@@ -474,6 +477,31 @@ export const actions = {
     set((s) => ({ ...s, tutorialDone: true }))
   },
 
+  saveSurvey(survey: Survey) {
+    set((s) => (s.user ? { ...s, user: { ...s.user, survey } } : s))
+  },
+
+  updateProfile(nickname: string, grade: string) {
+    set((s) => {
+      if (!s.user) return s
+      const user = { ...s.user, nickname, grade }
+      const guild = s.guild ? { ...s.guild, members: s.guild.members.map((m) => (m.isMe ? { ...m, nickname } : m)) } : s.guild
+      return { ...s, user, guild }
+    })
+  },
+
+  renameCat(name: string) {
+    updateGuild((g) => addFeed({ ...g, cat: { ...g.cat, name } }, '✏️', `고양이 이름이 ${name}(으)로 바뀌었어요.`))
+  },
+
+  renameGuild(name: string) {
+    updateGuild((g) => addFeed({ ...g, name }, '✏️', `길드 이름이 ${name}(으)로 바뀌었어요.`))
+  },
+
+  setPref<K extends keyof Prefs>(key: K, value: Prefs[K]) {
+    set((s) => ({ ...s, prefs: { ...s.prefs, [key]: value } }))
+  },
+
   buyItem(itemId: string): string | null {
     const g = state.guild!
     const item = itemOf(itemId)!
@@ -515,7 +543,7 @@ export const actions = {
     })
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily() }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS }))
   },
 }
 

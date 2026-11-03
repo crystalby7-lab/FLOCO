@@ -104,7 +104,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
       </div>
 
       <div className="bleed room-wrap">
-        <Playground cat={cat} event={ev} lines={lines} onPose={actions.seePose} height={300} catHeight={124} />
+        <Playground cat={cat} event={ev} lines={s.prefs.chatter ? lines : []} onPose={actions.seePose} height={300} catHeight={124} />
         <span className="lv-tag">Lv.{cat.level}</span>
         <span className="tap-hint">{cat.name}를 눌러보세요</span>
       </div>

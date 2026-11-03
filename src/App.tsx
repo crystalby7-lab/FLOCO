@@ -10,6 +10,7 @@ import { TabIcon } from './components/Icons'
 import { Gold } from './components/ui'
 import { Wordmark } from './components/Wordmark'
 import { LevelUp } from './components/LevelUp'
+import { Settings } from './screens/Settings'
 
 export type Tab = 'home' | 'map' | 'invest' | 'shop' | 'guild'
 
@@ -24,6 +25,7 @@ const TABS: { id: Tab; label: string }[] = [
 export default function App() {
   const s = useGame()
   const [tab, setTab] = useState<Tab>('home')
+  const [settings, setSettings] = useState(false)
 
   if (!s.user || !s.guild) {
     return (
@@ -47,14 +49,22 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${s.prefs.calm ? 'calm' : ''}`}>
       <header className="appbar">
         <button className="wordmark-btn" onClick={() => go('home')} aria-label="홈으로">
           <Wordmark />
         </button>
-        <span className="gold-pill">
-          <Gold value={g.gold} size={16} />
-        </span>
+        <div className="appbar-right">
+          <span className="gold-pill">
+            <Gold value={g.gold} size={16} />
+          </span>
+          <button className="icon-btn gear" aria-label="설정" onClick={() => setSettings(true)}>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3.2" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+            </svg>
+          </button>
+        </div>
       </header>
       <main className="app-main">
         {tab === 'home' && <Home go={go} />}
@@ -73,6 +83,7 @@ export default function App() {
         ))}
       </nav>
       {g.cat.level > (g.levelSeen ?? 1) && <LevelUp cat={g.cat} />}
+      {settings && <Settings onClose={() => setSettings(false)} />}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 // 길드: 우리 길드 기록 · 친구들 · 고양이 앨범 · 초대 · 테스트 도구
 import { useState } from 'react'
-import { actions, me, useGame, vault } from '../store'
+import { useGame, vault } from '../store'
 import { ART } from '../components/CatView'
 import { Avatar } from '../components/Avatar'
 
@@ -36,7 +36,6 @@ export function GuildScreen() {
   const s = useGame()
   const g = s.guild!
   const [copied, setCopied] = useState(false)
-  const [confirmReset, setConfirmReset] = useState(false)
   const [zoom, setZoom] = useState<string | null>(null)
   const link = `${location.origin}${location.pathname}?invite=${g.code}`
   const v = vault(g, s.day)
@@ -146,29 +145,6 @@ export function GuildScreen() {
         <p className="fineprint">친구가 이 링크로 들어오면 같은 고양이를 같이 키워요 (서비스 연결 후)</p>
       </section>
 
-      <section className="card demo">
-        <div className="card-title">테스트 도구</div>
-        <p className="muted">
-          {me(g).nickname} · 거래일 {s.day} · 가격은 연습용이에요
-        </p>
-        <div className="row">
-          <button className="btn" onClick={actions.nextDay}>
-            하루 지나기
-          </button>
-          <button
-            className="btn danger"
-            onClick={() => {
-              if (confirmReset) actions.reset()
-              else {
-                setConfirmReset(true)
-                setTimeout(() => setConfirmReset(false), 3000)
-              }
-            }}
-          >
-            {confirmReset ? '한 번 더 누르면 초기화' : '처음부터'}
-          </button>
-        </div>
-      </section>
 
       {zoom && (
         <div className="levelup-bg" onClick={() => setZoom(null)}>

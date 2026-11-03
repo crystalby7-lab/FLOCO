@@ -70,11 +70,32 @@ export type Guild = {
 
 export type QuestRecord = { done: boolean; score: number; at: number }
 
+// 처음 들어올 때 받는 설문 (사전 설문 겸 유입 경로 측정)
+export type Survey = {
+  experience: string // 주식 경험
+  image: string[] // 주식 하면 떠오르는 것
+  know: string[] // 친구한테 설명할 수 있는 것
+  pickBy: string[] // 종목을 고를 때 보는 것
+  goals: string[] // FLOCO로 하고 싶은 것
+  source: string // 어떻게 알게 됐는지
+  sourceEtc?: string
+  at: number
+}
+
+export type Prefs = {
+  chatter: boolean // 고양이 혼잣말
+  calm: boolean // 움직임 줄이기
+  notifyVote: boolean
+  notifyRetro: boolean
+  notifyCat: boolean
+}
+
 export type User = {
   id: string
   nickname: string
   grade: string
   joinedAt: number
+  survey?: Survey
 }
 
 export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean }
@@ -87,4 +108,5 @@ export type GameState = {
   day: number // 데모용 거래일 (Firebase 연결 후에는 실제 날짜 시세로 대체)
   daily: Daily // 오늘의 미션 (개인)
   tutorialDone: boolean
+  prefs: Prefs
 }
