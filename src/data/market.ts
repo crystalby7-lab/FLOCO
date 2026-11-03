@@ -28,8 +28,10 @@ function rand(seed: number) {
 }
 
 const cache: Record<string, number> = {}
+const HISTORY = 30 // 게임 시작 전 30거래일 시세도 있게 (차트용)
 
-export function priceOf(code: string, day: number): number {
+export function priceOf(code: string, gameDay: number): number {
+  const day = gameDay + HISTORY
   const key = `${code}:${day}`
   if (cache[key]) return cache[key]
   const t = tickerOf(code)
@@ -44,8 +46,19 @@ export function priceOf(code: string, day: number): number {
 }
 
 export function changePct(code: string, day: number, span = 1): number {
-  if (day - span < 0) return 0
   const now = priceOf(code, day)
   const before = priceOf(code, day - span)
   return ((now - before) / before) * 100
+}
+
+export function history(code: string, day: number, span = 20): number[] {
+  return Array.from({ length: span + 1 }, (_, i) => priceOf(code, day - span + i))
+}
+
+// 흔들림 정도 (하루 변동 폭 기준)
+export function swingOf(code: string): { label: '낮음' | '보통' | '높음'; tone: 'moss' | 'sky' | 'berry' } {
+  const v = tickerOf(code).vol
+  if (v <= 0.005) return { label: '낮음', tone: 'moss' }
+  if (v <= 0.015) return { label: '보통', tone: 'sky' }
+  return { label: '높음', tone: 'berry' }
 }

@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { Cat, GameState, Guild, Member, Proposal, AiResult } from './types'
+import type { Cat, Daily, GameState, Guild, Member, Proposal, AiResult } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
 import { itemOf } from './data/shop'
@@ -17,6 +17,10 @@ export const RULES = {
   trainCapHours: 8, // 상한: 8시간치까지만 쌓임
   hungerDecayPerHour: 4,
   moodDecayPerHour: 3,
+  cleanDecayPerHour: 2,
+  bathPrice: 80,
+  questReward: 200, // 퀘스트 첫 완료 시 금고 골드 (레벨은 근거·돌아보기로만)
+  dailyReward: 300, // 오늘의 미션 3개 완료 보상
   floor: 10, // 손실이 나도, 오래 안 들어와도 고양이는 이 아래로 안 떨어짐
   expPerLevel: 100,
   exp: { proposalPass: 15, opposeReason: 5, retro: 30 },
@@ -25,12 +29,36 @@ export const RULES = {
 const uid = () => Math.random().toString(36).slice(2, 10)
 const now = () => Date.now()
 
-const initial: GameState = { version: 1, user: null, guild: null, quests: {}, day: 0 }
+export const today = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+const freshDaily = (): Daily => ({ date: today(), quest: false, vote: false, care: false, claimed: false })
+
+const initial: GameState = { version: 2, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false }
+
+// 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
+function migrate(raw: Partial<GameState>): GameState {
+  const s = { ...initial, ...raw } as GameState
+  if (!s.daily || s.daily.date !== today()) s.daily = freshDaily()
+  if (s.user) s.tutorialDone = true
+  if (s.guild) {
+    const g = s.guild as Partial<Guild> & Guild
+    s.guild = {
+      ...g,
+      album: g.album ?? [],
+      levelSeen: g.levelSeen ?? g.cat.level,
+      createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
+      cat: { ...g.cat, clean: g.cat.clean ?? 80 },
+    }
+  }
+  return s
+}
 
 function load(): GameState {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { ...initial, ...JSON.parse(raw) }
+    if (raw) return migrate(JSON.parse(raw))
   } catch {
     /* 저장소를 못 쓰는 환경이면 새로 시작 */
   }
@@ -68,6 +96,7 @@ export function catNow(cat: Cat, t = now()): Cat {
     ...cat,
     hunger: Math.max(RULES.floor, cat.hunger - hours * RULES.hungerDecayPerHour),
     mood: Math.max(RULES.floor, cat.mood - hours * RULES.moodDecayPerHour),
+    clean: Math.max(RULES.floor, (cat.clean ?? 80) - hours * RULES.cleanDecayPerHour),
     updatedAt: t,
   }
 }
@@ -90,6 +119,29 @@ export function unlocked(s: GameState) {
 }
 
 export const me = (g: Guild) => g.members.find((m) => m.isMe)!
+
+// 금고 평가: 현금 + 보유 종목 지금 가격
+export function vault(g: Guild, day: number) {
+  const holdings = g.proposals
+    .filter((p) => p.status === 'holding' && p.qty && p.buyPrice)
+    .map((p) => {
+      const now = priceOf(p.ticker, day)
+      return { p, value: p.qty! * now, pnl: p.qty! * (now - p.buyPrice!), pct: ((now - p.buyPrice!) / p.buyPrice!) * 100 }
+    })
+  const invested = holdings.reduce((a, h) => a + h.value, 0)
+  const pnl = holdings.reduce((a, h) => a + h.pnl, 0)
+  const realized = g.proposals
+    .filter((p) => p.status === 'sold' && p.qty && p.buyPrice && p.sellPrice)
+    .reduce((a, p) => a + p.qty! * (p.sellPrice! - p.buyPrice!), 0)
+  return { cash: g.gold, invested, total: g.gold + invested, pnl, realized, holdings }
+}
+
+function markDaily(key: 'quest' | 'vote' | 'care') {
+  set((s) => {
+    const d = s.daily.date === today() ? s.daily : freshDaily()
+    return d[key] ? { ...s, daily: d } : { ...s, daily: { ...d, [key]: true } }
+  })
+}
 export const memberName = (g: Guild, id: string) => g.members.find((m) => m.id === id)?.nickname ?? '?'
 export const majority = (g: Guild) => Math.floor(g.members.length / 2) + 1
 
@@ -117,7 +169,7 @@ function addExp(g: Guild, amount: number, why: string): Guild {
 
 function newCat(name: string): Cat {
   const t = now()
-  return { name, level: 1, exp: 0, hunger: 70, mood: 70, updatedAt: t, lastClaimAt: t - 2 * 3_600_000, equipped: [] }
+  return { name, level: 1, exp: 0, hunger: 70, mood: 70, clean: 80, updatedAt: t, lastClaimAt: t - 2 * 3_600_000, equipped: [] }
 }
 
 // ───────── 데모 친구 (Firebase 연결 전까지 친구 역할) ─────────
@@ -262,6 +314,9 @@ export const actions = {
         retros: [],
         feed: [],
         ownedItems: [],
+        album: [],
+        levelSeen: 1,
+        createdAt: now(),
       }
       guild = addFeed(guild, '🐣', `${guildName} 길드가 만들어지고 ${catName}가 태어났어요!`)
       guild = addFeed(guild, '💡', '하늘님이 미국 S&P500 ETF 매수를 제안했어요. 투표해 주세요!')
@@ -283,6 +338,9 @@ export const actions = {
         retros: [],
         feed: [],
         ownedItems: [],
+        album: [],
+        levelSeen: 1,
+        createdAt: now(),
       }
       guild = addFeed(guild, '👋', `${s.user.nickname}님이 길드에 들어왔어요!`)
       return { ...s, guild }
@@ -303,13 +361,18 @@ export const actions = {
       const first = !s.quests[questId]?.done
       let ns: GameState = { ...s, quests: { ...s.quests, [questId]: { done: true, score: Math.max(score, s.quests[questId]?.score ?? 0), at: now() } } }
       if (first && ns.guild) {
-        let g = addFeed(ns.guild, '📘', `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요.`)
+        let g = addFeed(
+          { ...ns.guild, gold: ns.guild.gold + RULES.questReward },
+          '📘',
+          `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 금고 +${RULES.questReward}G`,
+        )
         if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! 공동 투자 제안과 ETF 숲이 열렸어요.')
         if (quest.unlocks) g = addFeed(g, '🔓', 'ETF 비교 도구가 해금됐어요.')
         ns = { ...ns, guild: g }
       }
       return ns
     })
+    markDaily('quest')
   },
 
   // F4: 이유 3칸 → AI 검토 → 통과하면 길드에 올라감
@@ -344,6 +407,7 @@ export const actions = {
   vote(proposalId: string, agree: boolean, reason?: string) {
     castVote(proposalId, me(state.guild!).id, agree, reason)
     scheduleBotVotes(proposalId)
+    markDaily('vote')
   },
 
   sell(proposalId: string) {
@@ -364,8 +428,50 @@ export const actions = {
     scheduleBotRetros(proposalId)
   },
 
-  writeMyRetro(proposalId: string, text: string) {
-    writeRetro(proposalId, me(state.guild!).id, text)
+  writeMyRetro(proposalId: string, parts: [string, string, string]) {
+    const text = `맞았던 것: ${parts[0]} / 빗나간 것: ${parts[1]} / 다음엔: ${parts[2]}`
+    writeRetro(proposalId, me(state.guild!).id, text, parts)
+  },
+
+  bathe(): string | null {
+    const g = state.guild!
+    if (g.gold < RULES.bathPrice) return '금고 골드가 부족해요.'
+    updateGuild((gg) => {
+      const cat = catNow(gg.cat)
+      return addFeed(
+        { ...gg, gold: gg.gold - RULES.bathPrice, cat: { ...cat, clean: 100, mood: Math.min(100, cat.mood + 5) } },
+        '🛁',
+        `${me(gg).nickname}님이 ${gg.cat.name}를 씻겨줬어요.`,
+      )
+    })
+    markDaily('care')
+    return null
+  },
+
+  claimDaily() {
+    set((s) => {
+      const d = s.daily
+      if (!s.guild || d.claimed || !(d.quest && d.vote && d.care)) return s
+      return {
+        ...s,
+        daily: { ...d, claimed: true },
+        guild: addFeed({ ...s.guild, gold: s.guild.gold + RULES.dailyReward }, '🎁', `오늘의 미션 완료 · 금고 +${RULES.dailyReward}G`),
+      }
+    })
+  },
+
+  ackLevel() {
+    updateGuild((g) => ({ ...g, levelSeen: g.cat.level }))
+  },
+
+  seePose(id: string) {
+    const g = state.guild
+    if (!g || g.album.includes(id)) return
+    updateGuild((gg) => ({ ...gg, album: [...gg.album, id] }))
+  },
+
+  finishTutorial() {
+    set((s) => ({ ...s, tutorialDone: true }))
   },
 
   buyItem(itemId: string): string | null {
@@ -388,6 +494,7 @@ export const actions = {
       }
       return ng
     })
+    if (item.kind === 'food') markDaily('care')
     return null
   },
 
@@ -408,16 +515,16 @@ export const actions = {
     })
   },
   reset() {
-    set(() => initial)
+    set(() => ({ ...initial, daily: freshDaily() }))
   },
 }
 
-function writeRetro(proposalId: string, authorId: string, text: string) {
+function writeRetro(proposalId: string, authorId: string, text: string, parts?: [string, string, string]) {
   updateGuild((g) => {
     const p = g.proposals.find((x) => x.id === proposalId)
     if (!p || g.retros.some((r) => r.proposalId === proposalId && r.authorId === authorId)) return g
     const role = p.proposerId === authorId ? 'proposer' : 'opponent'
-    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text }] }
+    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text, parts }] }
     return addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 돌아보기`)
   })
 }

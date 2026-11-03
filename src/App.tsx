@@ -9,6 +9,7 @@ import { GuildScreen } from './screens/GuildScreen'
 import { TabIcon } from './components/Icons'
 import { Gold } from './components/ui'
 import { Wordmark } from './components/Wordmark'
+import { LevelUp } from './components/LevelUp'
 
 export type Tab = 'home' | 'map' | 'invest' | 'shop' | 'guild'
 
@@ -57,7 +58,7 @@ export default function App() {
       </header>
       <main className="app-main">
         {tab === 'home' && <Home go={go} />}
-        {tab === 'map' && <MapScreen />}
+        {tab === 'map' && <MapScreen go={go} />}
         {tab === 'invest' && <Invest go={go} />}
         {tab === 'shop' && <Shop />}
         {tab === 'guild' && <GuildScreen />}
@@ -71,6 +72,7 @@ export default function App() {
           </button>
         ))}
       </nav>
+      {g.cat.level > (g.levelSeen ?? 1) && <LevelUp cat={g.cat} />}
     </div>
   )
 }

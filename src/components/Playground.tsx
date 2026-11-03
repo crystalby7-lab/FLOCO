@@ -5,7 +5,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
 import { CatFace, CatSprite, POSES, type Face, type Pose } from './CatView'
 
-export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy'; key: number } | null
+export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy' | 'bath'; key: number } | null
+
+// 실제 시각에 따라 방 분위기가 바뀐다
+export type TimeOfDay = 'morning' | 'day' | 'evening' | 'night'
+export function timeOfDay(h = new Date().getHours()): TimeOfDay {
+  if (h >= 6 && h < 11) return 'morning'
+  if (h >= 11 && h < 17) return 'day'
+  if (h >= 17 && h < 20) return 'evening'
+  return 'night'
+}
 
 const SPEED = 95 // px/s
 const SPOT = { box: 0.16, bed: 0.84, cushion: 0.2, window: 0.78 }
@@ -18,11 +27,15 @@ export function Playground({
   event,
   height = 300,
   catHeight = 120,
+  lines = [],
+  onPose,
 }: {
   cat: Cat
   event?: PlayEvent
   height?: number
   catHeight?: number
+  lines?: string[] // 고양이 혼잣말 후보
+  onPose?: (id: string) => void // 앨범 기록용
 }) {
   const room = useRef<HTMLDivElement>(null)
   const timer = useRef<number | undefined>(undefined)
@@ -35,11 +48,17 @@ export function Playground({
   const [bowl, setBowl] = useState(false)
   const [face, setFace] = useState<{ f: Face; key: number } | null>(null)
   const [hopping, setHopping] = useState(false)
+  const [talk, setTalk] = useState<string | null>(null)
+  const [bubbles, setBubbles] = useState(false)
   const level = useRef(cat.level)
+  const tod = timeOfDay()
+  const linesRef = useRef(lines)
+  linesRef.current = lines
 
   const has = (id: string) => cat.equipped.includes(id)
   const sleepy = cat.mood < 30
   const hungry = cat.hunger < 30
+  const dirty = (cat.clean ?? 80) < 35
   const unit = catHeight / 177 // 앉은 그림 높이 기준
   const width = () => room.current?.clientWidth ?? 360
 
@@ -80,6 +99,11 @@ export function Playground({
       if (has('cushion')) return walkTo(SPOT.cushion, () => stay('sleep', 14000))
       return stay('blanket', 12000)
     }
+    if (tod === 'night' && Math.random() < 0.35) {
+      if (has('bed')) return walkTo(SPOT.bed, () => stay('bed', rand(6000, 9000)))
+      if (has('cushion')) return walkTo(SPOT.cushion, () => stay('sleep', rand(6000, 9000)))
+      return stay('blanket', rand(5000, 8000))
+    }
     const r = Math.random()
     if (r < 0.58) {
       let tx = rand(0.14, 0.86)
@@ -95,6 +119,23 @@ export function Playground({
     if (r < 0.97 && has('cushion')) return walkTo(SPOT.cushion, () => stay('sleep', rand(5000, 8000)))
     return stay('side', rand(2000, 3500))
   }
+
+  // 포즈가 바뀌면 앨범에 기록 (옷 입고 앉아 있으면 옷 모습으로)
+  useEffect(() => {
+    const outfit = pose === 'sit' ? cat.equipped.find((e) => ['hoodie', 'beret', 'dino', 'duck', 'scarf'].includes(e)) : undefined
+    onPose?.(outfit ?? pose)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pose, cat.equipped.join()])
+
+  // 가끔 혼잣말
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (!linesRef.current.length || Math.random() < 0.35) return
+      setTalk(pick(linesRef.current))
+      window.setTimeout(() => setTalk(null), 3400)
+    }, 7000)
+    return () => window.clearInterval(id)
+  }, [])
 
   useEffect(() => {
     timer.current = window.setTimeout(() => (sleepy ? next() : walkTo(rand(0.2, 0.8), () => stay('sit', 2500))), 700)
@@ -119,6 +160,17 @@ export function Playground({
     const done = () => {
       say('happy')
       stay('sit', 2500)
+    }
+    if (event.type === 'bath') {
+      clear()
+      setWalking(false)
+      setBubbles(true)
+      stay('bath', 3600, () => {
+        setBubbles(false)
+        say('happy')
+        stay('sit', 2500)
+      })
+      return
     }
     if (event.type === 'feed') {
       setBowl(true)
@@ -152,11 +204,26 @@ export function Playground({
   const flip = (dir === 'left' && facing === 'right') || (dir === 'right' && facing === 'left')
 
   return (
-    <div className="room" ref={room} style={{ height }}>
+    <div className={`room tod-${tod}`} ref={room} style={{ height }}>
       <div className="room-wall">
         <div className="window" style={{ left: `${SPOT.window * 100}%` }} aria-hidden>
-          <span className="cloud c1" />
-          <span className="cloud c2" />
+          {tod === 'night' ? (
+            <>
+              <span className="moon" />
+              <span className="star s1" />
+              <span className="star s2" />
+              <span className="star s3" />
+            </>
+          ) : (
+            <>
+              <span className="sun" />
+              <span className="cloud c1" />
+              <span className="cloud c2" />
+            </>
+          )}
+        </div>
+        <div className="lamp" aria-hidden>
+          <i />
         </div>
         <div className="shelf" aria-hidden>
           <i className="b1" />
@@ -187,13 +254,30 @@ export function Playground({
         >
           <CatSprite cat={cat} pose={pose} unit={unit} />
         </span>
+        {dirty && !['bath'].includes(pose) && (
+          <span className="dust" aria-hidden>
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        {bubbles && (
+          <span className="soap" aria-hidden>
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        {talk && !face && !walking && <span className="say talk">{talk}</span>}
         {face && (
           <span key={face.key} className="reaction">
             <CatFace cat={cat} face={face.f} size={50} />
             <i className="heart" />
           </span>
         )}
-        {!face && hungry && !walking && <span className="say">배고파…</span>}
+        {!face && !talk && hungry && !walking && <span className="say">배고파…</span>}
+        {!face && !talk && !hungry && dirty && !walking && pose !== 'bath' && <span className="say">꼬질꼬질…</span>}
       </button>
     </div>
   )
