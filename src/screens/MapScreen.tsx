@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { actions, questsDone, RULES, unlocked, useGame } from '../store'
 import { QUESTS, TOOLS, type Quest } from '../data/quests'
-import { Sheet } from '../components/ui'
+import { Page } from '../components/Page'
 import { Lock } from '../components/Icons'
 import { ART } from '../components/CatView'
 import type { Tab } from '../App'
@@ -142,7 +142,7 @@ function QuestPlay({ quest, catName, onClose, onInvest }: { quest: Quest; catNam
   }
   const opensInvest = quest.id === 'v3'
   return (
-    <Sheet title={quest.title} onClose={onClose}>
+    <Page title={quest.title} sub={`${quest.region === 'village' ? '기초 마을' : 'ETF 숲'} · ${quest.type === 'judge' ? '판단 퀘스트' : '개념 + 퀴즈'}`} onExit={onClose} confirm={!reward}>
       {reward ? (
         <div className="quest-body center reward">
           <img className="reward-cat" src={ART.crown} alt="" />
@@ -172,7 +172,7 @@ function QuestPlay({ quest, catName, onClose, onInvest }: { quest: Quest; catNam
       ) : (
         <JudgeQuest quest={quest} onFinish={finish} />
       )}
-    </Sheet>
+    </Page>
   )
 }
 

@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { actions, majority, me, memberName, mustRetro, RULES, unlocked, useGame, vault } from '../store'
 import { changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
-import { Empty, Gold, Sheet } from '../components/ui'
+import { Empty, Gold } from '../components/ui'
+import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
 import { Avatar } from '../components/Avatar'
 import { ART } from '../components/CatView'
@@ -220,7 +221,7 @@ function TickerSheet({
   const data = history(code, day, span)
   const sw = swingOf(code)
   return (
-    <Sheet title={t.name} onClose={onClose}>
+    <Page title={t.name} sub="종목 자세히 보기" onExit={onClose}>
       <div className="tk-head">
         <div className="tk-price num">{priceOf(code, day).toLocaleString()}G</div>
         <div className="tk-changes">
@@ -266,7 +267,7 @@ function TickerSheet({
           이 종목으로 제안하기
         </button>
       )}
-    </Sheet>
+    </Page>
   )
 }
 
@@ -288,6 +289,7 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
   const needRetro = mustRetro(g, p, myId)
   const [open, setOpen] = useState((p.status === 'voting' && !myVote) || needRetro)
   const [opposing, setOpposing] = useState(false)
+  const [retroOpen, setRetroOpen] = useState(false)
   const [oppose, setOppose] = useState('')
   const yes = p.votes.filter((v) => v.agree).length
   const need = majority(g)
@@ -465,22 +467,42 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
                   )}
                 </div>
               ))}
-              {needRetro && <RetroForm g={g} p={p} />}
+              {needRetro && (
+                <button className="btn btn-primary btn-block" onClick={() => setRetroOpen(true)}>
+                  돌아보기 쓰기 · 경험치 +{RULES.exp.retro}
+                </button>
+              )}
             </div>
           )}
         </div>
       )}
+      {retroOpen && <RetroForm g={g} p={p} onClose={() => setRetroOpen(false)} />}
     </article>
   )
 }
 
-function RetroForm({ g, p }: { g: Guild; p: Proposal }) {
+function RetroForm({ g, p, onClose }: { g: Guild; p: Proposal; onClose: () => void }) {
   const [parts, setParts] = useState<[string, string, string]>(['', '', ''])
   const myId = me(g).id
   const mine = p.proposerId === myId ? p.reasons[0] : p.votes.find((v) => v.memberId === myId)?.reason
   const labels = ['내 이유 중 맞았던 것', '빗나간 것', '다음엔 이렇게']
+  const last = p.sellPrice ?? 0
+  const ret = p.buyPrice ? ((last - p.buyPrice) / p.buyPrice) * 100 : 0
   return (
-    <div className="retro-form">
+    <Page title="같이 돌아보기" sub={tickerOf(p.ticker).name} onExit={onClose} confirm>
+    <div className="retro-form page-form">
+      <div className="result-strip">
+        <div>
+          <small>산 가격</small>
+          <b className="num">{p.buyPrice?.toLocaleString()}</b>
+        </div>
+        <span className="arrow">→</span>
+        <div>
+          <small>판 가격</small>
+          <b className="num">{p.sellPrice?.toLocaleString()}</b>
+        </div>
+        <div className={`result-pct ${ret >= 0 ? 'up' : 'down'}`}>{pct(ret)}</div>
+      </div>
       <div className="retro-form-head">
         <img src={ART.face_calm} alt="" />
         <div>
@@ -508,10 +530,18 @@ function RetroForm({ g, p }: { g: Guild; p: Proposal }) {
           />
         </label>
       ))}
-      <button className="btn btn-primary btn-block" disabled={parts.some((x) => x.trim().length < 4)} onClick={() => actions.writeMyRetro(p.id, parts.map((x) => x.trim()) as [string, string, string])}>
+      <button
+        className="btn btn-primary btn-block"
+        disabled={parts.some((x) => x.trim().length < 4)}
+        onClick={() => {
+          actions.writeMyRetro(p.id, parts.map((x) => x.trim()) as [string, string, string])
+          onClose()
+        }}
+      >
         다 썼어요
       </button>
     </div>
+    </Page>
   )
 }
 
@@ -549,7 +579,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
   }
 
   return (
-    <Sheet title="친구들한테 제안하기" onClose={onClose}>
+    <Page title="친구들한테 제안하기" sub={`${step + 1}/4 · ${STEPS[step]}`} onExit={onClose} confirm={!result?.pass}>
       <ol className="stepper">
         {STEPS.map((l, i) => (
           <li key={l} className={i === step ? 'on' : i < step ? 'done' : ''}>
@@ -688,6 +718,6 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
           )}
         </div>
       )}
-    </Sheet>
+    </Page>
   )
 }

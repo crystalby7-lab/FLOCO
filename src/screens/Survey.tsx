@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { Survey as SurveyT } from '../types'
 import { QUESTIONS, typeOf, type Question } from '../data/survey'
 import { ART } from '../components/CatView'
+import { ConfirmDialog } from '../components/Page'
 
 type Answers = Partial<Record<Question['key'], string | string[]>>
 
@@ -12,6 +13,7 @@ export function Survey({ initial, onDone, onCancel }: { initial?: SurveyT; onDon
   const [a, setA] = useState<Answers>(() => (initial ? { ...initial } : {}))
   const [etc, setEtc] = useState(initial?.sourceEtc ?? '')
   const [result, setResult] = useState<SurveyT | null>(null)
+  const [asking, setAsking] = useState(false)
 
   if (result) {
     const t = typeOf(result)
@@ -66,7 +68,7 @@ export function Survey({ initial, onDone, onCancel }: { initial?: SurveyT; onDon
   return (
     <div className="survey">
       <div className="sv-top">
-        <button className="icon-btn" aria-label="이전" onClick={() => (i ? setI(i - 1) : onCancel?.())} disabled={!i && !onCancel}>
+        <button className="icon-btn" aria-label="이전" onClick={() => (i ? setI(i - 1) : onCancel && setAsking(true))} disabled={!i && !onCancel}>
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12.5 4 L6.5 10 L12.5 16" />
           </svg>
@@ -108,6 +110,9 @@ export function Survey({ initial, onDone, onCancel }: { initial?: SurveyT; onDon
       <button className="btn btn-primary btn-block" disabled={!ready} onClick={next}>
         {last ? '결과 보기' : '다음'}
       </button>
+      {asking && onCancel && (
+        <ConfirmDialog title="정말 종료하시겠습니까?" message="기록이 안 남습니다." ok="종료하기" cancel="계속하기" onOk={onCancel} onCancel={() => setAsking(false)} />
+      )}
     </div>
   )
 }
