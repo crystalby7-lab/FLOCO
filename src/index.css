@@ -3780,3 +3780,30 @@ button.list-row:active {
   color: var(--ink);
   text-align: left;
 }
+
+/* 로고: 고양이 얼굴 타일 */
+.wm-mark {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #cfe0f2;
+  overflow: hidden;
+  display: block;
+}
+.wm-mark img {
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 86%;
+  transform: translateX(-50%);
+  display: block;
+}
+.wordmark.lg .wm-mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+.wordmark.lg .wm-text {
+  font-size: 44px;
+}
