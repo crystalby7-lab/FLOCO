@@ -1,7 +1,7 @@
 // 처음 화면: 소개 3장 → 닉네임·학년 → 설문 6문항 → 길드 만들기 / 초대 코드로 참가 (F7)
 // 개인정보 원칙: 실명·연락처·학교명은 받지 않고 닉네임과 학년만 저장
 import { useState } from 'react'
-import { actions, useGame } from '../store'
+import { actions, isOnline, useGame } from '../store'
 import { Playground } from '../components/Playground'
 import { Wordmark } from '../components/Wordmark'
 import { ART } from '../components/CatView'
@@ -38,6 +38,8 @@ export function Onboarding() {
   const [guildName, setGuildName] = useState('')
   const [catName, setCatName] = useState('')
   const [code, setCode] = useState(inviteFromLink)
+  const [joining, setJoining] = useState(false)
+  const [joinErr, setJoinErr] = useState('')
 
   // 1) 소개
   if (!s.tutorialDone && !s.user) {
@@ -157,7 +159,7 @@ export function Onboarding() {
             <button className="btn btn-primary btn-block" disabled={!guildName.trim() || !catName.trim()} onClick={() => actions.createGuild(guildName.trim(), catName.trim())}>
               고양이 데려오기
             </button>
-            <p className="fineprint">지금은 테스트용 친구 하늘·도윤이 같이 들어와요.</p>
+            <p className="fineprint">친구가 들어오기 전까지 테스트용 친구 하늘·도윤이 같이 있어요.</p>
           </div>
         </>
       ) : (
@@ -166,10 +168,20 @@ export function Onboarding() {
             초대 코드
             <input id="invite-code" value={code} maxLength={6} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="6자리 코드" className="code-input" />
           </label>
-          <button className="btn btn-primary btn-block" disabled={code.trim().length < 4} onClick={() => actions.joinGuild(code.trim())}>
-            길드 참가하기
+          <button
+            className="btn btn-primary btn-block"
+            disabled={code.trim().length < 4 || joining}
+            onClick={async () => {
+              setJoining(true)
+              const err = await actions.joinGuild(code.trim())
+              setJoining(false)
+              setJoinErr(err ?? '')
+            }}
+          >
+            {joining ? '들어가는 중…' : '길드 참가하기'}
           </button>
-          <p className="fineprint">테스트 버전에선 어떤 코드든 연습 길드로 들어가요.</p>
+          {joinErr && <p className="form-err">{joinErr}</p>}
+          <p className="fineprint">{isOnline() ? '친구에게 받은 6자리 코드를 넣어요.' : '지금은 서버 연결이 안 돼서 연습 길드로 들어가요.'}</p>
         </div>
       )}
     </div>

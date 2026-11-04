@@ -9624,3 +9624,9 @@ body {
   width: 118%;
   top: 8%;
 }
+.form-err {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  text-align: center;
+}

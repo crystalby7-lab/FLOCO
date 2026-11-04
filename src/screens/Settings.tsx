@@ -7,6 +7,7 @@ import { ART } from '../components/CatView'
 import { Avatar } from '../components/Avatar'
 import { Survey } from './Survey'
 import { ProfileEditor } from './ProfileEditor'
+import { useSyncStatus } from '../sync'
 import type { Prefs } from '../types'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
@@ -22,6 +23,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
   const [toast, setToast] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
   const [editPic, setEditPic] = useState(false)
+  const sync = useSyncStatus()
   const t = u.survey ? typeOf(u.survey) : null
 
   const flash = (msg: string) => {
@@ -80,6 +82,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
           <Row label="고양이 이름" value={g.cat.name} onClick={() => setPage('cat')} />
           <Row label="길드 이름" value={g.name} onClick={() => setPage('guild')} />
           <Row label="초대 코드" value={g.code} />
+          <Row label="서버 연결" value={sync === 'online' ? '연결됨 · 친구와 실시간 공유' : sync === 'connecting' ? '연결 중…' : '혼자 모드 (이 기기에만 저장)'} />
         </Group>
 
         <Group title="알림" note="정식 버전에서 휴대폰 알림으로 와요. 지금은 설정만 저장돼요.">

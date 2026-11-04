@@ -88,6 +88,33 @@ function set(updater: (s: GameState) => GameState) {
   listeners.forEach((l) => l())
 }
 
+// ───────── 서버(Firebase) 연동용 ─────────
+// sync.ts가 로그인 uid를 알려주고, 원격 데이터를 넣고, 변경을 구독한다.
+let authUid: string | null = null
+export const getState = () => state
+export function subscribeState(l: () => void) {
+  listeners.add(l)
+  return () => {
+    listeners.delete(l)
+  }
+}
+export function applyRemote(patch: Partial<GameState>) {
+  set((s) => migrate({ ...s, ...patch }))
+}
+type Remote = { join: (code: string) => Promise<string | null> }
+let remote: Remote | null = null
+export function setRemote(r: Remote | null, uidFromAuth: string | null) {
+  remote = r
+  authUid = uidFromAuth
+  // 예전에 'me'로 저장된 데이터는 로그인 uid로 바꿔준다
+  if (uidFromAuth && state.user && state.user.id !== uidFromAuth) {
+    const old = state.user.id
+    const json = JSON.stringify(state).split(`"${old}"`).join(`"${uidFromAuth}"`)
+    set(() => migrate(JSON.parse(json)))
+  }
+}
+export const isOnline = () => remote !== null
+
 export function useGame(): GameState {
   return useSyncExternalStore(
     (l) => {
@@ -327,7 +354,7 @@ function castVote(proposalId: string, memberId: string, agree: boolean, reason?:
 
 export const actions = {
   createUser(nickname: string, grade: string) {
-    set((s) => ({ ...s, user: { id: 'me', nickname, grade, joinedAt: now() } }))
+    set((s) => ({ ...s, user: { id: authUid ?? 'me', nickname, grade, joinedAt: now() } }))
   },
 
   createGuild(guildName: string, catName: string) {
@@ -358,7 +385,9 @@ export const actions = {
     })
   },
 
-  joinGuild(code: string) {
+  // 서버에 연결돼 있으면 진짜 길드에 들어가고, 아니면 연습 길드
+  async joinGuild(code: string): Promise<string | null> {
+    if (remote) return remote.join(code.toUpperCase())
     set((s) => {
       if (!s.user) return s
       const members: Member[] = [...botMembers(), { id: s.user.id, nickname: s.user.nickname, isMe: true }]
@@ -383,6 +412,7 @@ export const actions = {
       guild = addFeed(guild, '👋', `${s.user.nickname}님이 길드에 들어왔어요!`)
       return { ...s, guild }
     })
+    return null
   },
 
   claimTraining() {
@@ -617,9 +647,10 @@ export const actions = {
   // 친구 응원 (하루 한 번)
   cheer(memberId: string): string | null {
     const g = state.guild!
-    if (g.cheers[memberId] === today()) return '오늘은 이미 응원했어요.'
+    const key = `${me(g).id}>${memberId}`
+    if (g.cheers[key] === today()) return '오늘은 이미 응원했어요.'
     updateGuild((gg) =>
-      addFeed({ ...gg, cheers: { ...gg.cheers, [memberId]: today() } }, '📣', `${me(gg).nickname}님이 ${memberName(gg, memberId)}님을 응원했어요.`),
+      addFeed({ ...gg, cheers: { ...gg.cheers, [key]: today() } }, '📣', `${me(gg).nickname}님이 ${memberName(gg, memberId)}님을 응원했어요.`),
     )
     return null
   },
@@ -648,7 +679,7 @@ export const actions = {
   nextDay() {
     set((s) => {
       const ns = { ...s, day: s.day + 1 }
-      return ns.guild ? { ...ns, guild: addFeed(ns.guild, '📅', `하루가 지났어요 (거래일 ${ns.day}).`) } : ns
+      return ns.guild ? { ...ns, guild: addFeed({ ...ns.guild, day: ns.day }, '📅', `하루가 지났어요 (거래일 ${ns.day}).`) } : ns
     })
   },
   reset() {
