@@ -1,42 +1,15 @@
-// 길드: 우리 길드 기록 · 친구들 · 고양이 앨범 · 초대 · 테스트 도구
+// 길드: 우리 길드 기록 · 이번 주 같이 할 일 · 친구들(응원) · 길드 한마디 · 초대
 import { useState } from 'react'
-import { useGame, vault } from '../store'
+import { actions, memberName, useGame, vault } from '../store'
 import { ART } from '../components/CatView'
-import { Avatar } from '../components/Avatar'
-
-// 앨범에 모을 수 있는 모습 (시트 그림 이름 → 이름표)
-const ALBUM: [string, string][] = [
-  ['sit', '얌전히 앉기'],
-  ['side', '옆 보기'],
-  ['walk', '산책'],
-  ['back', '창밖 구경'],
-  ['back2', '멍때리기'],
-  ['stretch', '기지개'],
-  ['lie', '쿨쿨 엎드리기'],
-  ['lielook', '누워서 쳐다보기'],
-  ['roll', '배 보이기'],
-  ['hug', '생선 인형'],
-  ['toy', '낚싯대 놀이'],
-  ['reach', '점프!'],
-  ['boba', '버블티'],
-  ['bath', '목욕'],
-  ['blanket', '이불 속'],
-  ['sleep', '방석 낮잠'],
-  ['box', '상자 속'],
-  ['bed', '동굴 침대'],
-  ['crown', '레벨 업'],
-  ['hoodie', '하늘 후드'],
-  ['beret', '베레모'],
-  ['dino', '공룡 옷'],
-  ['duck', '오리 옷'],
-  ['scarf', '빨간 목도리'],
-]
+import { Avatar, breedOf } from '../components/Avatar'
 
 export function GuildScreen() {
   const s = useGame()
   const g = s.guild!
   const [copied, setCopied] = useState(false)
-  const [zoom, setZoom] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+  const [toast, setToast] = useState('')
   const link = `${location.origin}${location.pathname}?invite=${g.code}`
   const v = vault(g, s.day)
 
@@ -66,7 +39,32 @@ export function GuildScreen() {
     retros: g.retros.filter((r) => r.authorId === m.id).length,
     opposes: g.proposals.reduce((n, p) => n + p.votes.filter((x) => x.memberId === m.id && !x.agree).length, 0),
   }))
-  const got = ALBUM.filter(([id]) => g.album.includes(id)).length
+
+  // 이번 주(최근 거래일 5일) 길드가 같이 한 것
+  const recent = g.proposals.filter((p) => p.createdDay >= s.day - 4)
+  const recentIds = new Set(recent.map((p) => p.id))
+  const week = Date.now() - 7 * 86_400_000
+  const wk = {
+    proposals: recent.length,
+    votes: recent.reduce((n, p) => n + p.votes.length, 0),
+    retros: g.retros.filter((r) => recentIds.has(r.proposalId)).length,
+    posts: g.board.filter((p) => p.at >= week).length,
+  }
+  const goals = [
+    { label: '제안 올리기', now: wk.proposals, goal: 2 },
+    { label: '의견 내기', now: wk.votes, goal: 6 },
+    { label: '같이 돌아보기', now: wk.retros, goal: 1 },
+    { label: '한마디 남기기', now: wk.posts, goal: 5 },
+  ]
+  const myId = g.members.find((m) => m.isMe)!.id
+  const flash = (t: string) => {
+    setToast(t)
+    setTimeout(() => setToast(''), 1600)
+  }
+  const ago = (at: number) => {
+    const m = Math.floor((Date.now() - at) / 60000)
+    return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`
+  }
 
   return (
     <div className="tab-panel">
@@ -100,7 +98,7 @@ export function GuildScreen() {
       <ul className="members">
         {people.map(({ m, proposals, retros, opposes }) => (
           <li key={m.id}>
-            <Avatar g={g} id={m.id} size={42} />
+            <img className="member-cat" src={ART[breedOf(g, m.id)]} alt="" />
             <div className="grow">
               <b>
                 {m.nickname}
@@ -113,28 +111,75 @@ export function GuildScreen() {
                 <span>돌아보기 {retros}</span>
               </div>
             </div>
+            {!m.isMe && (
+              <button
+                className={`cheer-btn ${g.cheers[m.id] === new Date().toISOString().slice(0, 10) ? 'done' : ''}`}
+                onClick={() => {
+                  const err = actions.cheer(m.id)
+                  flash(err ?? `${m.nickname}에게 응원을 보냈어요`)
+                }}
+              >
+                <img src={ART.i_heart} alt="" />
+                응원
+              </button>
+            )}
           </li>
         ))}
       </ul>
 
-      <div className="section-head">
-        <h2>{g.cat.name} 앨범</h2>
-        <span className="pill">
-          {got}/{ALBUM.length}
-        </span>
-      </div>
-      <p className="fineprint album-note">방에서 한 번이라도 본 모습이 모여요. 옷을 입히고, 가구를 두고, 돌보면 더 많이 볼 수 있어요.</p>
-      <div className="album">
-        {ALBUM.map(([id, label]) => {
-          const has = g.album.includes(id)
-          return (
-            <button key={id} className={`album-cell ${has ? '' : 'locked'}`} disabled={!has} onClick={() => setZoom(id)}>
-              <img src={ART[id]} alt="" />
-              <small>{has ? label : '???'}</small>
-            </button>
-          )
-        })}
-      </div>
+      <section className="card week-card">
+        <div className="card-row">
+          <h3 className="card-title">이번 주 같이 할 일</h3>
+          <span className="small sub">거래일 5일</span>
+        </div>
+        {goals.map((x) => (
+          <div key={x.label} className="week-row">
+            <span>{x.label}</span>
+            <div className="bar grow">
+              <div style={{ width: `${Math.min(100, (x.now / x.goal) * 100)}%` }} />
+            </div>
+            <b className={x.now >= x.goal ? 'ok' : ''}>
+              {Math.min(x.now, x.goal)}/{x.goal}
+            </b>
+          </div>
+        ))}
+      </section>
+
+      <section className="card board">
+        <h3 className="card-title">길드 한마디</h3>
+        <form
+          className="board-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!draft.trim()) return
+            actions.postBoard(draft)
+            setDraft('')
+          }}
+        >
+          <input value={draft} maxLength={60} onChange={(e) => setDraft(e.target.value)} placeholder="친구들에게 한마디 (60자)" />
+          <button className="btn btn-primary btn-sm" disabled={!draft.trim()}>
+            올리기
+          </button>
+        </form>
+        <ul className="board-list">
+          {g.board.slice(0, 8).map((p) => (
+            <li key={p.id}>
+              <Avatar g={g} id={p.memberId} size={34} />
+              <div className="grow">
+                <div className="board-meta">
+                  <b>{memberName(g, p.memberId)}</b>
+                  <small>{ago(p.at)}</small>
+                </div>
+                <p>{p.text}</p>
+              </div>
+              <button className={`heart-btn ${p.hearts.includes(myId) ? 'on' : ''}`} onClick={() => actions.heartPost(p.id)} aria-label="좋아요">
+                <img src={ART.i_heart} alt="" />
+                {p.hearts.length > 0 && <small>{p.hearts.length}</small>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="card invite">
         <div className="card-title">친구 부르기</div>
@@ -146,14 +191,7 @@ export function GuildScreen() {
       </section>
 
 
-      {zoom && (
-        <div className="levelup-bg" onClick={() => setZoom(null)}>
-          <div className="zoom">
-            <img src={ART[zoom]} alt="" />
-            <b>{ALBUM.find(([id]) => id === zoom)?.[1]}</b>
-          </div>
-        </div>
-      )}
+      <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )
 }

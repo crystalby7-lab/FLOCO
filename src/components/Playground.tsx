@@ -3,7 +3,7 @@
 // 밥·간식·장난감을 주면 반응하고, 누르면 배를 보이며 뒹군다. 레벨이 오르면 왕관.
 import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
-import { CatFace, CatSprite, POSES, type Face, type Pose } from './CatView'
+import { ART, CatSprite, OUTFITS, POSES, type Face, type Pose } from './CatView'
 
 export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy' | 'bath'; key: number } | null
 
@@ -17,6 +17,8 @@ export function timeOfDay(h = new Date().getHours()): TimeOfDay {
 }
 
 const SPEED = 95 // px/s
+// 표정 반응 → 시트의 말풍선
+const BB: Record<Face, string> = { happy: 'bb_heart', calm: 'bb_dots', wow: 'bb_bang', sad: 'bb_mess', mad: 'bb_mess', sleepy: 'bb_zzz' }
 const SPOT = { box: 0.16, bed: 0.84, cushion: 0.2, window: 0.78 }
 
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
@@ -128,7 +130,7 @@ export function Playground({
 
   // 포즈가 바뀌면 앨범에 기록 (옷 입고 앉아 있으면 옷 모습으로)
   useEffect(() => {
-    const outfit = pose === 'sit' ? cat.equipped.find((e) => ['hoodie', 'beret', 'dino', 'duck', 'scarf'].includes(e)) : undefined
+    const outfit = pose === 'sit' ? cat.equipped.find((e) => OUTFITS.includes(e)) : undefined
     onPose?.(outfit ?? pose)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pose, cat.equipped.join()])
@@ -253,39 +255,51 @@ export function Playground({
             <i />
           </span>
         )}
-        {ask && !face && !walking && <span className="ask-mark">?</span>}
-        {talk && !ask && !face && !walking && <span className="say talk">{talk}</span>}
-        {face && (
-          <span key={face.key} className="reaction">
-            <CatFace cat={cat} face={face.f} size={50} />
-            <i className="heart" />
-          </span>
-        )}
-        {!face && !talk && hungry && !walking && <span className="say">배고파…</span>}
-        {!face && !talk && !hungry && dirty && !walking && pose !== 'bath' && <span className="say">꼬질꼬질…</span>}
+        {(() => {
+          // 머리 위 말풍선 (캐릭터 시트 그림): 반응 > 질문 > 혼잣말 > 상태
+          if (face) return <img key={face.key} className="mood-bb pop" src={ART[BB[face.f]]} alt="" />
+          if (walking) return null
+          if (ask) return <img className="mood-bb ask" src={ART.bb_q} alt="물어볼 게 있어요" />
+          if (talk) return <span className="say talk">{talk}</span>
+          if (['sleep', 'bed', 'blanket'].includes(pose)) return <img className="mood-bb" src={ART.bb_zzz} alt="자는 중" />
+          if (hungry)
+            return (
+              <span className="mood-bb need" aria-label="배고파요">
+                <img src={ART.bb_empty} alt="" />
+                <img className="in" src={ART.i_bowl} alt="" />
+              </span>
+            )
+          if (dirty && pose !== 'bath') return <img className="mood-bb" src={ART.bb_mess} alt="씻고 싶어요" />
+          return null
+        })()}
       </button>
     </div>
   )
 }
 
-// 장소별 배경 (잠긴 장소 미리보기에도 쓴다)
+// 장소별 배경 (잠긴 장소 미리보기에도 쓴다). 소품은 캐릭터 시트 그림을 쓴다.
+const Spr = ({ n, c, style }: { n: string; c: string; style?: React.CSSProperties }) => <img className={`spr ${c}`} src={ART[n]} alt="" aria-hidden style={style} />
+
 export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
   const night = tod === 'night'
+  const sky = night ? <Spr n="bg_moon" c="sky-moon" /> : <Spr n="bg_sun" c="sky-sun" />
   if (place === 'yard')
     return (
       <>
         <div className="room-wall" />
-        <span className={night ? 'moon' : 'sun'} style={{ left: '78%', top: 70 }} aria-hidden />
-        <span className="cloud c1" aria-hidden />
-        <span className="cloud c2" aria-hidden />
-        <div className="tree" aria-hidden>
-          <i />
+        {sky}
+        <Spr n="bg_cloud" c="sky-cloud c1" />
+        <Spr n="bg_cloud" c="sky-cloud c2" />
+        <div className="spr-fence" aria-hidden>
+          <img src={ART.bg_fence} alt="" />
+          <img src={ART.bg_fence} alt="" />
+          <img src={ART.bg_fence} alt="" />
         </div>
-        <div className="fence" aria-hidden />
+        <Spr n="bg_bush" c="yard-bush l" />
+        <Spr n="bg_bush2" c="yard-bush r" />
         <div className="room-floor" />
-        <span className="flower f1" aria-hidden />
-        <span className="flower f2" aria-hidden />
-        <span className="flower f3" aria-hidden />
+        <Spr n="bg_flowers" c="yard-flowers" />
+        <Spr n="bg_flower" c="yard-flower" />
         {!night && <span className="butterfly" aria-hidden />}
       </>
     )
@@ -309,14 +323,16 @@ export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
         </div>
         <div className="rail" aria-hidden />
         <div className="room-floor" />
+        <Spr n="bg_plant1" c="roof-plant l" />
+        <Spr n="bg_plant2" c="roof-plant r" />
       </>
     )
   if (place === 'beach')
     return (
       <>
         <div className="room-wall" />
-        <span className={night ? 'moon' : 'sun'} style={{ left: '72%', top: 80 }} aria-hidden />
-        <span className="cloud c1" aria-hidden />
+        {sky}
+        <Spr n="bg_cloud" c="sky-cloud c1" />
         <div className="sea" aria-hidden>
           <i />
         </div>
@@ -328,33 +344,15 @@ export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
   return (
     <>
       <div className="room-wall">
-        <div className="window" style={{ left: `${SPOT.window * 100}%` }} aria-hidden>
-          {night ? (
-            <>
-              <span className="moon" />
-              <span className="star s1" />
-              <span className="star s2" />
-              <span className="star s3" />
-            </>
-          ) : (
-            <>
-              <span className="sun" />
-              <span className="cloud c1" />
-              <span className="cloud c2" />
-            </>
-          )}
-        </div>
+        <Spr n="bg_window" c={`room-window ${night ? 'night' : ''}`} style={{ left: `${SPOT.window * 100}%` }} />
         <div className="lamp" aria-hidden>
           <i />
-        </div>
-        <div className="shelf" aria-hidden>
-          <i className="b1" />
-          <i className="b2" />
-          <i className="b3" />
         </div>
       </div>
       <div className="room-floor" />
       <div className="rug" aria-hidden />
+      <Spr n="bg_tower" c="room-tower" />
+      <Spr n="bg_plant3" c="room-plant" />
     </>
   )
 }

@@ -1,5 +1,6 @@
 // 플로코 고양이 — 보영이 그린 캐릭터 시트에서 자른 그림
 import type { Cat } from '../types'
+import { SHOP } from '../data/shop'
 
 // src/assets/cat/*.png 를 이름으로 불러온다
 const files = import.meta.glob('../assets/cat/*.png', { eager: true, import: 'default' }) as Record<string, string>
@@ -31,7 +32,7 @@ export const POSES = {
 } as const
 export type Pose = keyof typeof POSES
 
-export const OUTFITS = ['hoodie', 'beret', 'dino', 'duck', 'scarf']
+export const OUTFITS = SHOP.filter((i) => i.slot === 'outfit').map((i) => i.id)
 export const outfitOf = (cat: Cat) => cat.equipped.find((e) => OUTFITS.includes(e))
 
 export type Face = 'calm' | 'happy' | 'wow' | 'sad' | 'mad' | 'sleepy'

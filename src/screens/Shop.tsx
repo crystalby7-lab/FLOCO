@@ -13,11 +13,6 @@ const ICON: Record<string, string> = {
   toy: ART.i_yarn,
   boba: ART.i_boba,
   bath: ART.i_duck,
-  hoodie: ART.hoodie,
-  beret: ART.beret,
-  dino: ART.dino,
-  duck: ART.duck,
-  scarf: ART.scarf,
   box: ART.i_box,
   cushion: ART.i_pillow,
   bed: ART.i_bed,
@@ -50,7 +45,7 @@ export function Shop() {
                   <Backdrop place={item.id} tod={timeOfDay()} />
                 </div>
               ) : (
-                <div className="shop-ico">{ICON[item.id] ? <img src={ICON[item.id]} alt="" /> : ItemIcon[item.id]}</div>
+                <div className="shop-ico">{ICON[item.id] ?? ART[item.id] ? <img src={ICON[item.id] ?? ART[item.id]} alt="" /> : ItemIcon[item.id]}</div>
               )}
               <b>{item.name}</b>
               {item.desc && <small className="muted">{item.desc}</small>}

@@ -41,7 +41,7 @@ const CARE: { id: Care; label: string; art: string; msg: string }[] = [
   { id: 'boba', label: '버블티', art: 'i_boba', msg: '버블티를 줬어요' },
   { id: 'bath', label: '목욕', art: 'i_duck', msg: '보글보글 목욕 중' },
 ]
-const WEAR_ART: Record<string, string> = { hoodie: 'hoodie', beret: 'beret', dino: 'dino', duck: 'duck', scarf: 'scarf', box: 'i_box', cushion: 'i_pillow', bed: 'i_bed' }
+const WEAR_ART: Record<string, string> = { box: 'i_box', cushion: 'i_pillow', bed: 'i_bed' }
 
 export function Home({ go }: { go: (t: Tab) => void }) {
   useTick()
@@ -365,7 +365,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
                     const on = cat.equipped.includes(id)
                     return (
                       <button key={id} className={`closet-item ${on ? 'on' : ''}`} onClick={() => actions.toggleEquip(id)}>
-                        <img src={ART[WEAR_ART[id]]} alt="" />
+                        <img src={ART[WEAR_ART[id] ?? id]} alt="" />
                         <b>{it.name}</b>
                         <small>{on ? (it.slot === 'room' ? '두는 중' : '입는 중') : it.slot === 'room' ? '두기' : '입히기'}</small>
                       </button>

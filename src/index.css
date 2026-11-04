@@ -8678,3 +8678,310 @@ body {
   z-index: 0;
   bottom: calc(100% - 16px);
 }
+
+/* 고양이 머리 위 말풍선 (시트 그림) */
+.mood-bb {
+  position: absolute;
+  bottom: calc(100% - 6px);
+  left: 58%;
+  height: 40px;
+  width: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 4px rgba(30, 70, 120, 0.2));
+  animation: bob 2s ease-in-out infinite;
+  z-index: 3;
+}
+.mood-bb.ask {
+  height: 44px;
+  pointer-events: auto;
+}
+.mood-bb.pop {
+  height: 46px;
+  animation: bb-pop 1.9s var(--ease) forwards;
+}
+@keyframes bb-pop {
+  0% { transform: scale(0.3) translateY(10px); opacity: 0; }
+  20% { transform: scale(1.1); opacity: 1; }
+  30% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateY(-10px); opacity: 0; }
+}
+.mood-bb.need {
+  height: 46px;
+  width: 48px;
+  display: block;
+}
+.mood-bb.need img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.mood-bb.need img.in {
+  inset: 9px 11px 15px;
+  width: auto;
+  height: auto;
+  max-width: 26px;
+  max-height: 22px;
+  margin: auto;
+}
+.ask-mark {
+  display: none;
+}
+
+/* 배경 소품 (시트 그림) */
+.spr {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+.room-window {
+  top: 34px;
+  height: 104px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 6px 10px rgba(30, 70, 120, 0.18));
+}
+.room-window.night {
+  filter: brightness(0.86) saturate(0.85) hue-rotate(10deg) drop-shadow(0 6px 10px rgba(30, 70, 120, 0.18));
+}
+.room-tower {
+  left: 4%;
+  bottom: 22%;
+  height: 92px;
+  z-index: 1;
+}
+.room-plant {
+  right: 4%;
+  bottom: 18%;
+  height: 70px;
+  z-index: 1;
+}
+.sky-sun {
+  right: 14%;
+  top: 40px;
+  height: 52px;
+  animation: sway 8s ease-in-out infinite;
+}
+.sky-moon {
+  right: 16%;
+  top: 46px;
+  height: 36px;
+}
+.sky-cloud {
+  height: 34px;
+  opacity: 0.95;
+  animation: drift-wide 26s linear infinite;
+}
+.sky-cloud.c1 { top: 70px; left: 6%; }
+.sky-cloud.c2 { top: 112px; left: 46%; height: 26px; animation-delay: -13s; }
+@keyframes drift-wide {
+  0% { transform: translateX(-30px); }
+  50% { transform: translateX(40px); }
+  100% { transform: translateX(-30px); }
+}
+.spr-fence {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  bottom: 27%;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  pointer-events: none;
+}
+.spr-fence img {
+  height: 52px;
+  width: auto;
+}
+.yard-bush {
+  bottom: 24%;
+  height: 52px;
+}
+.yard-bush.l { left: -18px; }
+.yard-bush.r { right: -16px; }
+.yard-flowers {
+  left: 10%;
+  bottom: 6%;
+  height: 34px;
+  z-index: 1;
+}
+.yard-flower {
+  right: 12%;
+  bottom: 12%;
+  height: 30px;
+  z-index: 1;
+}
+.roof-plant {
+  bottom: 18%;
+  height: 50px;
+  z-index: 1;
+}
+.roof-plant.l { left: 5%; }
+.roof-plant.r { right: 6%; }
+.place-yard .fence,
+.place-yard .tree,
+.place-yard .flower,
+.room-wall .window,
+.room-wall .shelf {
+  display: none;
+}
+.shop-place .spr { transform: scale(0.45); transform-origin: bottom center; }
+.shop-place .spr-fence img { height: 26px; }
+.shop-place .sky-sun,
+.shop-place .sky-moon { top: 6px; transform: scale(0.5); transform-origin: top right; }
+.shop-place .sky-cloud { top: 10px !important; }
+
+/* 친구 품종 아바타 */
+.breed-av {
+  display: inline-block;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #eef4fb;
+  position: relative;
+  border: 0;
+}
+.breed-av img {
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  width: 150%;
+  max-width: none;
+  transform: translateX(-50%);
+}
+
+/* 길드: 친구 · 응원 · 이번 주 · 한마디 */
+.members li {
+  align-items: center;
+}
+.member-cat {
+  width: 48px;
+  height: 52px;
+  object-fit: contain;
+  flex: none;
+}
+.cheer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: #fdeef1;
+  color: #d4566e;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+  flex: none;
+}
+.cheer-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.cheer-btn.done {
+  background: #f1f4f8;
+  color: var(--muted);
+}
+.cheer-btn.done img {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.week-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.week-row > span {
+  width: 96px;
+  flex: none;
+}
+.week-row b {
+  width: 34px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--sub);
+}
+.week-row b.ok {
+  color: var(--mint);
+}
+.board-form {
+  display: flex;
+  gap: 8px;
+}
+.board-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: #f7faff;
+}
+.board-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.board-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+.board-list li:last-child {
+  border-bottom: 0;
+}
+.board-meta {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.board-meta b {
+  font-size: 13px;
+  font-weight: 800;
+}
+.board-meta small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.board-list p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 2px;
+  word-break: keep-all;
+}
+.heart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  padding: 4px;
+  flex: none;
+}
+.heart-btn img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.45;
+  transition: transform 0.15s var(--ease);
+}
+.heart-btn.on img {
+  filter: none;
+  opacity: 1;
+  transform: scale(1.12);
+}
+.heart-btn small {
+  font-size: 12px;
+  font-weight: 800;
+  color: #d4566e;
+}
+.album,
+.album-note {
+  display: none;
+}

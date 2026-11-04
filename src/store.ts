@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { Cat, Daily, GameState, Guild, Member, Prefs, Proposal, AiResult, Survey } from './types'
+import type { Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
 import { itemOf } from './data/shop'
@@ -53,6 +53,8 @@ function migrate(raw: Partial<GameState>): GameState {
       ...g,
       album: g.album ?? [],
       inventory: g.inventory ?? {},
+      board: g.board ?? seedBoard(g.members),
+      cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
       cat: { ...g.cat, clean: g.cat.clean ?? 80 },
@@ -168,6 +170,13 @@ export const majority = (g: Guild) => Math.floor(g.members.length / 2) + 1
 
 function updateGuild(fn: (g: Guild, s: GameState) => Guild) {
   set((s) => (s.guild ? { ...s, guild: fn(s.guild, s) } : s))
+}
+
+// 데모 친구들이 먼저 남겨둔 한마디
+function seedBoard(members: Member[]): Post[] {
+  const bots = members.filter((m) => m.isBot)
+  const lines = ['이번 주엔 ETF 숲까지 가보자!', '주니 밥 내가 줬어 ㅎㅎ', '제안 올리기 전에 수수료 꼭 확인하기']
+  return bots.map((m, i) => ({ id: uid(), memberId: m.id, text: lines[i % lines.length], at: Date.now() - (i + 1) * 3_600_000, hearts: [] }))
 }
 
 function addFeed(g: Guild, icon: string, text: string): Guild {
@@ -334,6 +343,8 @@ export const actions = {
         feed: [],
         ownedItems: [],
         inventory: { feed: 2, toy: 1 },
+        board: seedBoard(members),
+        cheers: {},
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -359,6 +370,8 @@ export const actions = {
         feed: [],
         ownedItems: [],
         inventory: { feed: 2, toy: 1 },
+        board: seedBoard(members),
+        cheers: {},
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -559,6 +572,28 @@ export const actions = {
       )
     })
     markDaily('care')
+    return null
+  },
+
+  // 길드 한마디
+  postBoard(text: string) {
+    const t = text.trim().slice(0, 60)
+    if (!t) return
+    updateGuild((g) => ({ ...g, board: [{ id: uid(), memberId: me(g).id, text: t, at: Date.now(), hearts: [] }, ...g.board].slice(0, 30) }))
+  },
+  heartPost(id: string) {
+    updateGuild((g) => {
+      const my = me(g).id
+      return { ...g, board: g.board.map((p) => (p.id !== id ? p : { ...p, hearts: p.hearts.includes(my) ? p.hearts.filter((x) => x !== my) : [...p.hearts, my] })) }
+    })
+  },
+  // 친구 응원 (하루 한 번)
+  cheer(memberId: string): string | null {
+    const g = state.guild!
+    if (g.cheers[memberId] === today()) return '오늘은 이미 응원했어요.'
+    updateGuild((gg) =>
+      addFeed({ ...gg, cheers: { ...gg.cheers, [memberId]: today() } }, '📣', `${me(gg).nickname}님이 ${memberName(gg, memberId)}님을 응원했어요.`),
+    )
     return null
   },
 
