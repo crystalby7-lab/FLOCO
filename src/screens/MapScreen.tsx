@@ -140,7 +140,10 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                         )}
                         {st === 'now' && <span className="pulse" aria-hidden />}
                       </button>
-                      <span className={`spot-label ${off > 0 ? 'left' : 'right'}`}>{q.title}</span>
+                      <span className={`spot-label ${off > 0 ? 'left' : 'right'} ${st}`}>
+                        <small>{st === 'done' ? '완료' : st === 'locked' ? '잠김' : q.type === 'judge' ? '판단 퀘스트' : '개념 + 퀴즈'}</small>
+                        <b>{q.title}</b>
+                      </span>
                       {open && (
                         <div className="spot-pop" onClick={(e) => e.stopPropagation()}>
                           <b>{q.title}</b>

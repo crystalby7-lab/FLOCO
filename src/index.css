@@ -8406,3 +8406,60 @@ body {
   display: grid;
   place-items: center;
 }
+
+/* 지도 퀘스트 이름표 다시 */
+.spot-label {
+  width: auto;
+  max-width: 148px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 9px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px -10px rgba(30, 70, 120, 0.55);
+  text-align: left !important;
+  font-family: var(--font);
+  letter-spacing: -0.01em;
+  word-spacing: 0;
+  white-space: normal;
+  word-break: keep-all;
+}
+.spot-label.right {
+  left: 80px;
+}
+.spot-label.left {
+  right: 80px;
+}
+.spot-label small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.spot-label b {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.spot-label.now small {
+  color: var(--blue);
+}
+.spot-label.done small {
+  color: var(--mint);
+}
+.spot-label.locked {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+}
+.spot-label.locked b {
+  color: var(--muted);
+}
+.spot-label {
+  width: max-content;
+  max-width: 150px;
+}
+.spot-label b {
+  text-wrap: balance;
+}
