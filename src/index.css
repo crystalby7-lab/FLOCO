@@ -8463,3 +8463,81 @@ body {
 .spot-label b {
   text-wrap: balance;
 }
+
+/* 고양이 질문: 장면 위 말풍선 창 */
+.ask-pop {
+  position: absolute;
+  z-index: 6;
+  left: 14px;
+  right: 14px;
+  top: 96px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 12px 12px 12px 14px;
+  box-shadow: 0 14px 30px -14px rgba(30, 70, 120, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pop-in 0.25s var(--ease);
+}
+.ask-pop::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+  border-radius: 3px;
+}
+.ask-pop-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.ask-pop-head img {
+  flex: none;
+  border-radius: 50%;
+  background: #eef4fb;
+}
+.ask-pop-head p {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--ink);
+  padding-top: 5px;
+}
+.ask-pop-x {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f4f8;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+.ask-pop-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ask-pop-choices button {
+  border: 0;
+  background: #eaf1fb;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 999px;
+  transition: transform 0.12s;
+}
+.ask-pop-choices button:active {
+  transform: scale(0.95);
+}
+.ask-pop .ask-gain {
+  align-self: flex-end;
+}

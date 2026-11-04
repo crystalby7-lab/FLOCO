@@ -188,6 +188,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             </div>
           ))}
         </div>
+        {asking && <CatAsk cat={cat} ask={asking} onClose={() => setAsking(null)} />}
         {slide > 0 && (
           <button className="place-arrow prev" onClick={() => goSlide(slide - 1)} aria-label={PLACES[slide - 1].name}>
             <Chevron />
@@ -397,7 +398,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </div>
         </div>
       )}
-      {asking && <CatAsk cat={cat} ask={asking} onClose={() => setAsking(null)} />}
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )
@@ -407,43 +407,37 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () => void }) {
   const [pick, setPick] = useState<number | null>(null)
   const c = pick === null ? null : ask.choices[pick]
+  useEffect(() => {
+    if (!c) return
+    const t = window.setTimeout(onClose, 3200)
+    return () => window.clearTimeout(t)
+  }, [c, onClose])
   return (
-    <div className="ask-layer" onClick={() => c && onClose()}>
-      <div className="ask-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className={`ask-cat ${c ? 'react' : ''}`}>
-          <CatFace cat={cat} face={c?.face ?? 'calm'} size={86} />
-        </div>
-        <div className="ask-bubble" key={pick ?? -1}>
-          <small>{cat.name}</small>
-          <p>{c ? c.reply : ask.q}</p>
-        </div>
-        {c ? (
-          <>
-            <span className="ask-gain">기분 +5</span>
-            <button className="btn btn-primary btn-block" onClick={onClose}>
-              좋아
-            </button>
-          </>
-        ) : (
-          <div className="ask-choices">
-            {ask.choices.map((ch, i) => (
-              <button
-                key={ch.t}
-                className="ask-choice"
-                onClick={() => {
-                  setPick(i)
-                  actions.answerCat()
-                }}
-              >
-                {ch.t}
-              </button>
-            ))}
-            <button className="ask-later" onClick={onClose}>
-              나중에 대답할게
-            </button>
-          </div>
-        )}
+    <div className="ask-pop" key={pick ?? -1}>
+      <div className="ask-pop-head">
+        <CatFace cat={cat} face={c?.face ?? 'calm'} size={34} />
+        <p>{c ? c.reply : ask.q}</p>
+        <button className="ask-pop-x" onClick={onClose} aria-label="닫기">
+          ×
+        </button>
       </div>
+      {c ? (
+        <span className="ask-gain">기분 +5</span>
+      ) : (
+        <div className="ask-pop-choices">
+          {ask.choices.map((ch, i) => (
+            <button
+              key={ch.t}
+              onClick={() => {
+                setPick(i)
+                actions.answerCat()
+              }}
+            >
+              {ch.t}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
