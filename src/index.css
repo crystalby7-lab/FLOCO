@@ -6789,3 +6789,886 @@ body {
 .sb-logo .wm-mark {
   background: #cfe0f2;
 }
+
+/* ═══════════ v5 — 일기장 소품 걷어내고, 고양이가 화면에 같이 사는 느낌 ═══════════ */
+:root {
+  --paper: #cfe0f2;
+  --paper-2: #ffffff;
+  --sky-deep: #b9d0ea;
+  --card-shadow: 0 1px 2px rgba(30, 70, 120, 0.06), 0 12px 28px -18px rgba(30, 70, 120, 0.5);
+  --blue: #2f6bd8;
+  --blue-dark: #2457b6;
+  --honey: #f2b84b;
+  --pinkc: #f08ca0;
+  --mint: #45b88a;
+}
+.app,
+.lesson,
+.layer,
+.survey,
+.sheet {
+  background-color: var(--paper);
+  background-image: none;
+}
+.lesson::before,
+.tape,
+.stamp-good,
+.scribble,
+.here,
+.trail-cat {
+  display: none !important;
+}
+.stats-bar,
+.layer-head {
+  background: var(--paper);
+  border-bottom: 0;
+}
+.tabbar {
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  border-top: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 24px -16px rgba(30, 70, 120, 0.45);
+  overflow: visible;
+}
+.tab-btn,
+.tab-btn.active {
+  border-top: 0;
+  border-radius: 14px;
+  background: transparent;
+}
+.tab-btn.active .tab-icon svg {
+  color: var(--blue);
+}
+.tab-btn.active {
+  color: var(--blue);
+}
+.sb-stat.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sb-stat.streak b {
+  color: var(--ink);
+}
+
+/* 공통 카드 */
+.live .card,
+.paper,
+.note-card {
+  background: #fff;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
+  transform: none;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+.card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.card-title.small {
+  font-size: 15px;
+}
+
+/* ── 홈: 방이 화면에 그대로 이어진다 ── */
+.home.live {
+  padding-top: 0;
+  gap: 14px;
+}
+.scene {
+  position: relative;
+  margin: 0 -18px;
+  padding-top: 0;
+}
+.scene-head {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 20px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.scene-date {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+}
+.scene-head h1 {
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.25;
+  margin-top: 2px;
+}
+.scene-head p {
+  font-size: 13px;
+  color: var(--sub);
+}
+.lv-chip {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -8px rgba(47, 107, 216, 0.9);
+}
+.scene .room {
+  border-radius: 0;
+  height: 330px !important;
+}
+.scene .room-wall,
+.scene.tod-morning .room-wall,
+.scene.tod-day .room-wall {
+  background: linear-gradient(var(--paper), #dce9f6 70%);
+}
+.scene.tod-evening .room-wall {
+  background: linear-gradient(#d9d7ee, #f0dfe2);
+}
+.scene.tod-night .room-wall {
+  background: linear-gradient(#a9bcdc, #c7d3ea);
+}
+.scene .room-floor {
+  height: 30%;
+  background: linear-gradient(#eaf2fb, var(--paper));
+  border-top-left-radius: 50% 26px;
+  border-top-right-radius: 50% 26px;
+}
+.scene.tod-night .room-floor {
+  background: linear-gradient(#d5dff0, var(--paper));
+}
+.scene .rug {
+  background: #fff;
+  box-shadow: inset 0 0 0 6px #f3f7fc;
+  opacity: 0.9;
+}
+.scene .window {
+  top: 92px;
+  box-shadow: inset 0 0 0 4px #fff, 0 6px 16px -10px rgba(30, 70, 120, 0.6);
+}
+.scene .shelf,
+.scene .lamp {
+  top: 96px;
+}
+.scene-status {
+  position: relative;
+  z-index: 3;
+  margin: -64px 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.status-line {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: var(--ink);
+}
+.pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.pill {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-radius: 14px;
+  padding: 7px 9px;
+  box-shadow: 0 6px 14px -10px rgba(30, 70, 120, 0.6);
+}
+.pill span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+}
+.pill i {
+  height: 6px;
+  background: #eaf0f7;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pill em {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s var(--ease);
+}
+.pill.honey em { background: var(--honey); }
+.pill.pink em { background: var(--pinkc); }
+.pill.mint em { background: var(--mint); }
+.pill b {
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 18px;
+  text-align: right;
+}
+.pill.low {
+  animation: nudge 1.6s ease-in-out infinite;
+}
+.pill.low b {
+  color: var(--red);
+}
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.care-dock {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 12px 8px 10px;
+  box-shadow: var(--card-shadow);
+}
+.care-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  transition: transform 0.15s var(--ease);
+}
+.care-btn:active {
+  transform: scale(0.9);
+}
+.care-face {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: #eef4fb;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.care-face img {
+  height: 44px;
+  transition: transform 0.2s var(--ease);
+}
+.care-btn:hover .care-face img {
+  transform: translateY(-3px) rotate(-4deg);
+}
+.care-btn b {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.care-btn small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.exp-card {
+  padding: 14px 18px !important;
+  gap: 6px !important;
+}
+.exp-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sub);
+}
+.exp-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 카드 위에 고양이가 걸터앉아 있다 */
+.next-card {
+  margin-top: 26px;
+  gap: 6px !important;
+}
+.next-card .perch {
+  position: absolute;
+  right: 20px;
+  top: -40px;
+  height: 52px;
+  pointer-events: none;
+  animation: perch-breathe 3.2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes perch-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.035); }
+}
+.next-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+}
+.next-card h2 {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--ink);
+  padding-right: 64px;
+}
+.next-quote {
+  font-size: 14px;
+  color: var(--sub);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.next-card .btn {
+  margin-top: 8px;
+}
+
+.checklist {
+  background-image: none !important;
+}
+.checklist .count {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue);
+}
+.mission-bar {
+  position: relative;
+  height: 8px;
+  background: #eaf0f7;
+  border-radius: 4px;
+  margin: 18px 0 4px;
+}
+.mission-bar > div {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 4px;
+  transition: width 0.8s var(--ease);
+}
+.mission-bar img {
+  position: absolute;
+  bottom: 4px;
+  height: 30px;
+  transform: translateX(-50%) scaleX(-1);
+  transition: left 0.8s var(--ease);
+  animation: trot 0.5s steps(2) infinite;
+}
+@keyframes trot {
+  50% { margin-bottom: 2px; }
+}
+.todo {
+  border-bottom: 1px solid #eef2f7;
+  padding: 12px 0;
+}
+.checklist li:last-child .todo {
+  border-bottom: 0;
+}
+.todo .box {
+  border-radius: 50%;
+  border: 2px solid var(--line-dark);
+  transform: none;
+}
+.todo.done .box {
+  background: var(--mint);
+  border-color: var(--mint);
+  color: #fff;
+}
+.todo-text {
+  font-size: 15px;
+  font-weight: 600;
+}
+.todo.done .todo-text {
+  text-decoration: none;
+  color: var(--muted);
+}
+.todo .go {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.train {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 14px !important;
+}
+.train-art {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #eef4fb;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: none;
+}
+.train-art img {
+  height: 46px;
+}
+.train-art img.jog {
+  animation: jog 0.55s ease-in-out infinite;
+}
+@keyframes jog {
+  50% { transform: translateY(-3px); }
+}
+
+.journal ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.journal ul::before {
+  display: none;
+}
+.journal li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef2f7;
+  background: none;
+}
+.journal li:last-child {
+  border-bottom: 0;
+}
+.j-dot {
+  position: static;
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--line-dark);
+}
+.j-dot.moss { background: var(--mint); }
+.j-dot.berry { background: var(--red); }
+.j-dot.honey { background: var(--honey); }
+.j-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.j-time {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+/* ── 탭바 위 고양이 ── */
+.tab-cat {
+  position: absolute;
+  bottom: calc(100% - 6px);
+  transform: translateX(-50%);
+  transition-property: left;
+  transition-timing-function: linear;
+  background: none;
+  border: 0;
+  padding: 0;
+  z-index: 5;
+  line-height: 0;
+}
+.tab-cat img {
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(30, 70, 120, 0.18));
+}
+.tab-cat.walking img {
+  animation: trot 0.36s steps(2) infinite;
+}
+.tab-cat.hop {
+  animation: tc-hop 0.45s var(--ease);
+}
+@keyframes tc-hop {
+  40% { margin-bottom: 16px; }
+}
+.tab-cat .zz {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+  line-height: 1;
+  animation: zz 2s ease-in-out infinite;
+}
+@keyframes zz {
+  0% { opacity: 0; transform: translate(0, 4px); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translate(6px, -10px); }
+}
+
+/* ── 지도 ── */
+.d-head h1 {
+  font-size: 25px;
+  font-weight: 800;
+}
+.d-date {
+  color: var(--blue);
+  font-weight: 800;
+}
+.map-progress {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0 4px;
+}
+.map-progress > div {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 4px;
+}
+.tag-label,
+.tag-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border: 0;
+  border-radius: 999px;
+}
+.tag-btn::before {
+  display: none;
+}
+.chapter-head {
+  background: #fff;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
+  transform: none;
+}
+.ch-no {
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 999px;
+  background: #eaf1fb;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 10px;
+  transform: none;
+}
+.chapter-head h2 {
+  font-size: 19px;
+  font-weight: 800;
+}
+.ch-progress {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sub);
+}
+.trail-line path {
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 10;
+  stroke-dasharray: none;
+  stroke-linecap: round;
+  fill: none;
+}
+.chapter.locked .trail-line path {
+  stroke: rgba(255, 255, 255, 0.5);
+}
+.spot {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+  color: var(--sub);
+  box-shadow: 0 8px 18px -10px rgba(30, 70, 120, 0.7);
+}
+.spot-no {
+  font-size: 22px;
+  font-weight: 800;
+}
+.spot.now {
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+}
+.spot.now .pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 3px solid var(--blue);
+  opacity: 0.5;
+  animation: pulse 1.8s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes pulse {
+  from { transform: scale(0.9); opacity: 0.6; }
+  to { transform: scale(1.35); opacity: 0; }
+}
+.spot.done {
+  background: var(--mint);
+  color: #fff;
+  border: 0;
+}
+.spot.locked {
+  background: #e8eef5;
+  color: var(--muted);
+  box-shadow: none;
+  border: 0;
+}
+.spot-label {
+  font-size: 14px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 9px;
+  border-radius: 10px;
+}
+.spot-cat {
+  position: absolute;
+  bottom: -2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.spot-cat.right {
+  left: calc(100% + 4px);
+}
+.spot-cat.left {
+  right: calc(100% + 4px);
+}
+.spot-cat img {
+  height: 62px;
+  animation: perch-breathe 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.spot-cat.left img {
+  transform: scaleX(-1);
+  animation: none;
+}
+.spot-cat-say {
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px -6px rgba(30, 70, 120, 0.6);
+  margin-bottom: 2px;
+  animation: bob 2.2s ease-in-out infinite;
+}
+@keyframes bob {
+  50% { transform: translateY(-3px); }
+}
+.spot-row:has(.spot-cat) .spot-label {
+  visibility: visible;
+}
+.spot-pop {
+  background: #fff;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 16px 34px -14px rgba(30, 70, 120, 0.6);
+  transform: none;
+}
+.spot-pop b {
+  font-size: 17px;
+  font-weight: 800;
+}
+.note-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* ── 레슨 ── */
+.paper-page,
+.ls-body {
+  padding-left: 20px;
+}
+.ls-bar {
+  background: rgba(255, 255, 255, 0.7);
+}
+.ls-bar > div {
+  background: var(--blue);
+  border-radius: 6px;
+}
+.ls-page {
+  font-size: 14px;
+  font-weight: 800;
+}
+.ls-kicker {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+}
+.ls-bubble,
+.ls-bubble::before,
+.ls-opt,
+.ls-card,
+.ls-story {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  background: #fff;
+}
+.ls-bubble::before {
+  border-radius: 0;
+  box-shadow: none;
+}
+.ls-points li {
+  background: #fff;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-shadow: var(--card-shadow);
+}
+.ls-num {
+  border: 0;
+  background: #eaf1fb;
+  color: var(--blue);
+  transform: none;
+  font-size: 14px;
+  font-weight: 800;
+}
+.ls-points b {
+  background: none;
+  color: var(--blue);
+}
+.ls-opt.sel,
+.ls-card.sel {
+  box-shadow: 0 0 0 2.5px var(--blue), var(--card-shadow);
+  background: #f2f7ff;
+}
+.ls-opt.right,
+.ls-card.right {
+  background: #e7f6ef;
+  box-shadow: 0 0 0 2.5px var(--mint);
+}
+.ls-opt.wrong,
+.ls-card.wrong {
+  background: #fdecec;
+  box-shadow: 0 0 0 2.5px var(--red);
+}
+.ls-opt.wrong span:last-child {
+  text-decoration: none;
+}
+.ls-teacher img {
+  transition: transform 0.2s;
+}
+.ls-teacher.cheer img {
+  animation: cheer 0.6s var(--ease) 2;
+}
+.ls-teacher.oops img {
+  animation: oops 0.45s ease-in-out;
+}
+@keyframes cheer {
+  40% { transform: translateY(-14px) rotate(-6deg); }
+}
+@keyframes oops {
+  25% { transform: translateX(-6px) rotate(-4deg); }
+  75% { transform: translateX(6px) rotate(4deg); }
+}
+.ls-foot {
+  border-top: 0;
+}
+.ls-foot.feedback {
+  margin: 0;
+  border: 0;
+  border-radius: 26px 26px 0 0;
+  padding: 20px 18px calc(16px + var(--safe-b));
+  animation: sheet-up 0.3s var(--ease);
+}
+.ls-foot.good {
+  background: #e7f6ef;
+}
+.ls-foot.bad {
+  background: #fdecec;
+}
+.ls-foot.good .fb-head b {
+  color: #2a8a63;
+}
+@keyframes sheet-up {
+  from { transform: translateY(40px); opacity: 0; }
+}
+.fb-head b {
+  font-size: 20px !important;
+  font-weight: 800;
+}
+.fb-head img {
+  border: 0;
+  background: #fff;
+}
+.ls-result .reward-cat {
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--card-shadow);
+  animation: pop-in 0.5s var(--ease), perch-breathe 3s 0.5s ease-in-out infinite;
+}
+.ls-result .reward-cat.gray {
+  background: #e8eef5;
+}
+.ls-result .reward-cat img {
+  width: 140px;
+}
+.ls-result h1 {
+  font-size: 26px;
+  font-weight: 800;
+}
+.receipt {
+  background: #fff;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+}
+.receipt li i {
+  border: 0;
+}
+.ls-unlock {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue);
+  background: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+/* 다른 탭에 남은 일기장 느낌 정리 */
+.paper.lined,
+.reasons li,
+.ls-story,
+.ls-points li {
+  background-image: none;
+}
+.postit,
+.polaroid {
+  transform: none;
+}
+.calm .tab-cat,
+.calm .spot-cat img,
+.calm .perch {
+  animation: none;
+}
+.scene .shelf {
+  display: none;
+}
+.scene-status {
+  margin: 4px 18px 0;
+}
+.ls-opt.wrong,
+.ls-opt.wrong * {
+  text-decoration: none !important;
+}

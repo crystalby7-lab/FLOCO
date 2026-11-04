@@ -1,5 +1,5 @@
-// 탐험 일지 (F1·F2·F3): 일기장에 손으로 그린 지도. 장 = 지역, 칸 = 퀘스트.
-// 끝낸 칸에는 스티커가 붙고, 오늘 할 칸에는 연필 동그라미와 '오늘 여기!' 메모가 있다.
+// 플로월드 지도 (F1·F2·F3): 장 = 지역, 점 = 퀘스트.
+// 고양이가 지금 할 퀘스트 옆에 앉아서 기다리고, 끝낸 퀘스트에는 체크가 찍힌다.
 import { useEffect, useRef, useState } from 'react'
 import { questsDone, RULES, unlocked, useGame } from '../store'
 import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
@@ -12,7 +12,6 @@ import type { Tab } from '../App'
 const CHAPTER = { village: 1, forest: 2, city: 3, port: 4 } as const
 const OFFSETS = [-40, 50, -10, 64, -56, 18, -30, 46]
 const ROW = 124
-const STICKERS = ['face_happy', 'face_calm', 'face_wow', 'face_sleepy', 'face_happy', 'face_calm']
 
 type NodeState = 'done' | 'now' | 'open' | 'locked'
 
@@ -36,12 +35,15 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   let n = 0
 
   return (
-    <div className="tab-panel diary path-panel" onClick={() => setPopup(null)}>
+    <div className="tab-panel live path-panel" onClick={() => setPopup(null)}>
       <header className="d-head">
-        <span className="d-date">플로월드 탐험 일지</span>
-        <h1 className="hand">
-          {doneN}칸 채웠어요 <small>/ {QUESTS.length}칸</small>
+        <span className="d-date">플로월드</span>
+        <h1>
+          퀘스트 {doneN} <small>/ {QUESTS.length}</small>
         </h1>
+        <div className="map-progress">
+          <div style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
+        </div>
         <div className="tool-tags">
           {Object.entries(TOOLS).map(([id, t]) => (
             <span key={id} className={`tag-label ${tools.has(id) ? 'on' : ''}`} title={t.desc}>
@@ -69,10 +71,9 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
         return (
           <section key={r.id} className={`chapter ch-${r.id} ${isLocked ? 'locked' : ''}`}>
             <div className="chapter-head">
-              <span className="tape" aria-hidden />
-              <span className="ch-no hand">{CHAPTER[r.id]}장</span>
+              <span className="ch-no">{CHAPTER[r.id]}장</span>
               <div className="grow">
-                <h2 className="hand">{r.name}</h2>
+                <h2>{r.name}</h2>
                 <p>{isLocked && r.id === 'forest' ? '기초 마을을 다 채우면 열려요' : r.desc}</p>
               </div>
               {qs.length > 0 ? (
@@ -93,7 +94,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                 </span>
               )}
             </div>
-            {qs.length > 0 && <div className="ch-progress hand">{done}/{qs.length}칸</div>}
+            {qs.length > 0 && <div className="ch-progress">{done}/{qs.length}</div>}
 
             {qs.length > 0 && (
               <div className="ch-trail" style={{ height: H }}>
@@ -113,11 +114,9 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                       ref={st === 'now' ? nowRef : undefined}
                     >
                       {st === 'now' && (
-                        <span className={`here hand ${off > 0 ? 'left' : 'right'}`}>
-                          오늘 여기!
-                          <svg viewBox="0 0 60 30" aria-hidden>
-                            <path d={off > 0 ? 'M58 6 C40 4 22 10 8 24 M8 24 L10 13 M8 24 L19 22' : 'M2 6 C20 4 38 10 52 24 M52 24 L50 13 M52 24 L41 22'} />
-                          </svg>
+                        <span className={`spot-cat ${off > 0 ? 'right' : 'left'}`} aria-hidden>
+                          <span className="spot-cat-say">여기부터!</span>
+                          <img src={ART.sit} alt="" />
                         </span>
                       )}
                       <button
@@ -131,25 +130,20 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                         style={{ ['--tilt' as string]: `${(qi % 2 ? 1 : -1) * (3 + (qi % 3) * 2)}deg` }}
                       >
                         {st === 'done' ? (
-                          <span className="spot-sticker">
-                            <img src={ART[STICKERS[qi % STICKERS.length]]} alt="" />
-                          </span>
+                          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <path d="M5 12.5 L10 17.5 L19 7" />
+                          </svg>
                         ) : st === 'locked' ? (
                           <Lock size={20} />
                         ) : (
-                          <span className="spot-no hand">{qi + 1}</span>
+                          <span className="spot-no">{qi + 1}</span>
                         )}
-                        {st === 'now' && (
-                          <svg className="scribble" viewBox="0 0 100 100" aria-hidden>
-                            <path d="M50 6 C78 4 96 26 94 52 C92 80 70 96 46 94 C20 92 4 72 6 48 C8 24 26 8 54 10 C70 12 84 20 90 30" />
-                          </svg>
-                        )}
+                        {st === 'now' && <span className="pulse" aria-hidden />}
                       </button>
                       <span className={`spot-label ${off > 0 ? 'left' : 'right'}`}>{q.title}</span>
                       {open && (
                         <div className="spot-pop" onClick={(e) => e.stopPropagation()}>
-                          <span className="tape" aria-hidden />
-                          <b className="hand">{q.title}</b>
+                          <b>{q.title}</b>
                           <small>
                             {q.type === 'judge' ? '판단 퀘스트 · 상황 4개' : '개념 노트 + 퀴즈 3문제'}
                             {q.unlocks ? ' · 도구 해금' : ''}
@@ -168,8 +162,6 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                     </div>
                   )
                 })}
-                {r.id === 'village' && <img className="trail-cat" src={ART.walk} alt="" />}
-                {r.id === 'forest' && !isLocked && <img className="trail-cat right" src={ART.lielook} alt="" />}
               </div>
             )}
           </section>
@@ -198,9 +190,9 @@ function Guide({ region, onClose }: { region: string; onClose: () => void }) {
   return (
     <Page title={`${r.name} 개념 노트`} sub="이 장에서 배우는 것" onExit={onClose}>
       {qs.map((q) => (
-        <section key={q.id} className="note-card paper lined">
+        <section key={q.id} className="note-card card">
           <small>{q.title}</small>
-          <h3 className="hand">{q.card ? q.card.title : '투자와 도박을 가르는 질문'}</h3>
+          <h3>{q.card ? q.card.title : '투자와 도박을 가르는 질문'}</h3>
           <ul>
             {(q.card
               ? q.card.points
