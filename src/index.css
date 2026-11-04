@@ -8398,3 +8398,11 @@ body {
 .place-arrow.prev svg {
   transform: scaleX(-1);
 }
+.closet-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}

@@ -203,8 +203,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             <span className="status-line">
               {cat.name}는 {status}
             </span>
-            <button className="closet-btn" onClick={() => setCloset(true)}>
-              옷장
+            <button className="closet-btn" onClick={() => setCloset(true)} aria-label="옷장">
+              <Hanger />
             </button>
           </div>
           <div className="pills">
@@ -473,6 +473,15 @@ function Chevron() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M9 5 L16 12 L9 19" />
+    </svg>
+  )
+}
+
+function Hanger() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9.5 7.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.8" />
+      <path d="M12 12 3.6 17.4c-.9.6-.5 2 .6 2h15.6c1.1 0 1.5-1.4.6-2L12 12Z" />
     </svg>
   )
 }
