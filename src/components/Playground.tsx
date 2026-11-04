@@ -279,79 +279,82 @@ export function Playground({
 // 장소별 배경 (잠긴 장소 미리보기에도 쓴다). 소품은 캐릭터 시트 그림을 쓴다.
 const Spr = ({ n, c, style }: { n: string; c: string; style?: React.CSSProperties }) => <img className={`spr ${c}`} src={ART[n]} alt="" aria-hidden style={style} />
 
-export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
-  const night = tod === 'night'
-  const sky = night ? <Spr n="bg_moon" c="sky-moon" /> : <Spr n="bg_sun" c="sky-sun" />
-  if (place === 'yard')
-    return (
-      <>
-        <div className="room-wall" />
-        {sky}
-        <Spr n="bg_cloud" c="sky-cloud c1" />
-        <Spr n="bg_cloud" c="sky-cloud c2" />
-        <div className="spr-fence" aria-hidden>
-          <img src={ART.bg_fence} alt="" />
-          <img src={ART.bg_fence} alt="" />
-          <img src={ART.bg_fence} alt="" />
-        </div>
-        <Spr n="bg_bush" c="yard-bush l" />
-        <Spr n="bg_bush2" c="yard-bush r" />
-        <div className="room-floor" />
-        <Spr n="bg_flowers" c="yard-flowers" />
-        <Spr n="bg_flower" c="yard-flower" />
-        {!night && <span className="butterfly" aria-hidden />}
-      </>
-    )
-  if (place === 'rooftop')
-    return (
-      <>
-        <div className="room-wall" />
-        <span className={night ? 'moon' : 'sun low'} style={{ left: '30%', top: 96 }} aria-hidden />
-        <div className="city" aria-hidden>
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-          <i />
-        </div>
-        <div className="lights" aria-hidden>
-          {Array.from({ length: 9 }, (_, i) => (
-            <i key={i} />
-          ))}
-        </div>
-        <div className="rail" aria-hidden />
-        <div className="room-floor" />
-        <Spr n="bg_plant1" c="roof-plant l" />
-        <Spr n="bg_plant2" c="roof-plant r" />
-      </>
-    )
-  if (place === 'beach')
-    return (
-      <>
-        <div className="room-wall" />
-        {sky}
-        <Spr n="bg_cloud" c="sky-cloud c1" />
-        <div className="sea" aria-hidden>
-          <i />
-        </div>
-        <div className="room-floor" />
-        <span className="shell" aria-hidden />
-        <div className="parasol" aria-hidden />
-      </>
-    )
+// 시간대 조명: 아침은 따뜻하게, 저녁은 노을빛, 밤은 어둡게 (실내는 스탠드 불빛)
+function Light({ tod, lamp }: { tod: TimeOfDay; lamp?: boolean }) {
   return (
     <>
-      <div className="room-wall">
-        <Spr n="bg_window" c={`room-window ${night ? 'night' : ''}`} style={{ left: `${SPOT.window * 100}%` }} />
-        <div className="lamp" aria-hidden>
-          <i />
-        </div>
-      </div>
-      <div className="room-floor" />
+      <div className={`tod-light ${tod}`} aria-hidden />
+      {lamp && <div className={`lamp-glow ${tod}`} aria-hidden />}
+    </>
+  )
+}
+
+const PHOTO: Record<string, (night: boolean) => string> = {
+  yard: () => 'sc_country',
+  rooftop: (n) => (n ? 'sc_night' : 'sc_sunset'),
+  beach: () => 'sc_beach',
+  cherry: () => 'sc_cherry',
+  snow: () => 'sc_snow',
+}
+
+export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
+  const night = tod === 'night'
+  if (PHOTO[place]) {
+    const photo = PHOTO[place](night)
+    return (
+      <>
+        <img className="scene-photo" src={ART[photo]} alt="" aria-hidden />
+        <div className="photo-ground" aria-hidden />
+        {place === 'yard' && (
+          <>
+            <div className="spr-fence" aria-hidden>
+              <img src={ART.bg_fence} alt="" />
+              <img src={ART.bg_fence} alt="" />
+              <img src={ART.bg_fence} alt="" />
+            </div>
+            <Spr n="bg_flowers" c="yard-flowers" />
+            <Spr n="bg_flower" c="yard-flower" />
+            {!night && <span className="butterfly" aria-hidden />}
+          </>
+        )}
+        {place === 'rooftop' && (
+          <>
+            <div className="rail" aria-hidden />
+            <Spr n="bg_plant1" c="roof-plant l" />
+            <Spr n="bg_plant2" c="roof-plant r" />
+          </>
+        )}
+        {place === 'cherry' && (
+          <div className="petals" aria-hidden>
+            {Array.from({ length: 8 }, (_, i) => (
+              <i key={i} />
+            ))}
+          </div>
+        )}
+        {place === 'snow' && (
+          <div className="snowfall" aria-hidden>
+            {Array.from({ length: 14 }, (_, i) => (
+              <i key={i} />
+            ))}
+          </div>
+        )}
+        {photo !== 'sc_night' && <Light tod={tod} />}
+      </>
+    )
+  }
+  // 거실: 가랜드·창문·장식장·소파·스탠드·화분 + 스탠드 불빛
+  return (
+    <>
+      <div className="room-wall living" />
+      <Spr n="f_bunting" c="lv-bunting" />
+      <Spr n="bg_window" c={`room-window ${night ? 'night' : ''}`} style={{ left: `${SPOT.window * 100}%` }} />
+      <Spr n="f_cabinet" c="lv-cabinet" />
+      <Spr n="f_sofa" c="lv-sofa" />
+      <div className="room-floor living" />
       <div className="rug" aria-hidden />
-      <Spr n="bg_tower" c="room-tower" />
-      <Spr n="bg_plant3" c="room-plant" />
+      <Spr n="f_lamp" c="lv-lamp" />
+      <Spr n="bg_plant3" c="lv-plant" />
+      <Light tod={tod} lamp />
     </>
   )
 }

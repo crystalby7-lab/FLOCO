@@ -298,11 +298,11 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
 const PRAISE = ['맞았어요!', '좋아요, 정확해요!', '바로 그거예요!', '훌륭해요!']
 const pickPraise = (i: number) => PRAISE[i % PRAISE.length]
 
-// 문제를 내는 고양이: 가만히 있지 않고 포즈를 바꿔가며 묻고, 정답이면 뛰고 오답이면 우산 쓰고 시무룩
+// 문제를 내는 고양이: 같은 모습으로 살랑살랑 움직이며 묻고, 정답이면 뛰고 오답이면 우산 쓰고 시무룩
 const FRAMES = {
-  concept: ['t_wave', 't_happy', 't_think', 't_sprout'],
-  idle: ['t_think', 't_wave', 't_sprout', 't_think'],
-  right: ['t_jump', 't_happy'],
+  concept: ['t_wave'],
+  idle: ['t_wave'],
+  right: ['t_jump'],
   wrong: ['t_rain'],
 } as const
 

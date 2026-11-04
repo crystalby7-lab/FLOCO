@@ -43,9 +43,11 @@ export const SHOP: ShopItem[] = [
   { id: 'cushion', name: '체크 방석', kind: 'deco', price: 1000, slot: 'room', desc: '방석에서 낮잠 자요' },
   { id: 'bed', name: '동굴 침대', kind: 'deco', price: 2200, slot: 'room', desc: '졸리면 들어가요' },
   // 테마(장소): 홈에서 옆으로 넘기면 나오는 곳. 사면 고양이가 거기서도 놀아요.
-  { id: 'yard', name: '마당', kind: 'place', price: 3000, desc: '잔디밭에서 나비를 쫓아요' },
-  { id: 'rooftop', name: '옥상', kind: 'place', price: 5000, desc: '노을 보면서 바람 쐬요' },
-  { id: 'beach', name: '바닷가', kind: 'place', price: 8000, desc: '파도 소리 들으며 낮잠 자요' },
+  { id: 'yard', name: '마당', kind: 'place', price: 3000, desc: '언덕 아래 잔디밭에서 나비를 쫓아요' },
+  { id: 'rooftop', name: '옥상', kind: 'place', price: 5000, desc: '노을과 야경을 보며 바람 쐬요' },
+  { id: 'beach', name: '바닷가', kind: 'place', price: 8000, desc: '등대 앞에서 파도 소리 들어요' },
+  { id: 'cherry', name: '벚꽃길', kind: 'place', price: 6000, desc: '꽃잎 날리는 길을 산책해요' },
+  { id: 'snow', name: '눈 마을', kind: 'place', price: 7000, desc: '눈 쌓인 마을에서 뒹굴어요' },
 ]
 
 // 홈에서 옆으로 넘기는 순서. 방은 처음부터 있어요.
@@ -54,6 +56,8 @@ export const PLACES = [
   { id: 'yard', name: '마당' },
   { id: 'rooftop', name: '옥상' },
   { id: 'beach', name: '바닷가' },
+  { id: 'cherry', name: '벚꽃길' },
+  { id: 'snow', name: '눈 마을' },
 ] as const
 export type PlaceId = (typeof PLACES)[number]['id']
 

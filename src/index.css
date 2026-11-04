@@ -8988,3 +8988,364 @@ body {
 .scene-status {
   margin-top: -52px;
 }
+
+/* ═══════════ v5.4 — 사진 배경 · 거실 꾸미기 · 조명 ═══════════ */
+.scene-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 62%;
+  filter: saturate(1.05);
+}
+.photo-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.18));
+}
+.scene .place-yard .spr-fence,
+.place-yard .spr-fence {
+  bottom: 18%;
+}
+.place-yard .yard-flowers { bottom: 4%; }
+.place-rooftop .rail { bottom: 14%; }
+.place-rooftop .roof-plant { bottom: 8%; }
+
+/* 벚꽃잎 · 눈 */
+.petals i,
+.snowfall i {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 6px;
+  border-radius: 60% 0 60% 0;
+  background: #f8c4d4;
+  opacity: 0.9;
+  animation: fall 7s linear infinite;
+}
+.snowfall i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  animation-duration: 9s;
+}
+.petals i:nth-child(1), .snowfall i:nth-child(1) { left: 6%; animation-delay: 0s; }
+.petals i:nth-child(2), .snowfall i:nth-child(2) { left: 18%; animation-delay: -2.2s; }
+.petals i:nth-child(3), .snowfall i:nth-child(3) { left: 31%; animation-delay: -4.6s; }
+.petals i:nth-child(4), .snowfall i:nth-child(4) { left: 44%; animation-delay: -1.1s; }
+.petals i:nth-child(5), .snowfall i:nth-child(5) { left: 57%; animation-delay: -5.4s; }
+.petals i:nth-child(6), .snowfall i:nth-child(6) { left: 70%; animation-delay: -3.3s; }
+.petals i:nth-child(7), .snowfall i:nth-child(7) { left: 82%; animation-delay: -6.1s; }
+.petals i:nth-child(8), .snowfall i:nth-child(8) { left: 93%; animation-delay: -0.6s; }
+.snowfall i:nth-child(9) { left: 12%; animation-delay: -7.2s; }
+.snowfall i:nth-child(10) { left: 25%; animation-delay: -8.1s; }
+.snowfall i:nth-child(11) { left: 50%; animation-delay: -6.6s; }
+.snowfall i:nth-child(12) { left: 63%; animation-delay: -2.9s; }
+.snowfall i:nth-child(13) { left: 76%; animation-delay: -4.1s; }
+.snowfall i:nth-child(14) { left: 88%; animation-delay: -5.8s; }
+@keyframes fall {
+  0% { transform: translate(0, 0) rotate(0); }
+  50% { transform: translate(14px, 170px) rotate(160deg); }
+  100% { transform: translate(-6px, 345px) rotate(320deg); opacity: 0.2; }
+}
+
+/* 거실 */
+.room-wall.living {
+  background: linear-gradient(#f4f1fb, #e8eefa 62%, #dfe7f6) !important;
+}
+.room-wall.living::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 30%;
+  height: 26px;
+  background: linear-gradient(#e6ddd3, #ddd2c6);
+  opacity: 0.55;
+}
+.tod-night .room-wall.living {
+  background: linear-gradient(#5d6690, #6e77a0 62%, #79819f) !important;
+}
+.tod-evening .room-wall.living {
+  background: linear-gradient(#f6e3dc, #efdcd8 62%, #e6d6d6) !important;
+}
+.room-floor.living {
+  height: 30% !important;
+  background: linear-gradient(#efe4d6, #e6d8c6) !important;
+  border-radius: 0 !important;
+}
+.tod-night .room-floor.living {
+  background: linear-gradient(#a99c92, #9b8f86) !important;
+}
+.lv-bunting {
+  left: 8%;
+  top: 6px;
+  width: 52%;
+  height: auto;
+  opacity: 0.95;
+}
+.lv-cabinet {
+  left: 3%;
+  bottom: 27%;
+  height: 118px;
+}
+.lv-sofa {
+  left: 21%;
+  bottom: 25%;
+  height: 58px;
+}
+.lv-lamp {
+  left: 47%;
+  bottom: 26%;
+  height: 86px;
+}
+.lv-plant {
+  right: 3%;
+  bottom: 22%;
+  height: 62px;
+  z-index: 1;
+}
+.room-tower,
+.room-plant,
+.room-wall .lamp,
+.lamp {
+  display: none;
+}
+
+/* 조명 */
+.tod-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.tod-light.morning { background: linear-gradient(120deg, rgba(255, 228, 180, 0.22), transparent 60%); }
+.tod-light.day { background: transparent; }
+.tod-light.evening { background: linear-gradient(rgba(255, 160, 120, 0.18), rgba(140, 90, 160, 0.16)); }
+.tod-light.night { background: rgba(30, 40, 90, 0.34); }
+.lamp-glow {
+  position: absolute;
+  left: calc(47% + 14px);
+  bottom: calc(26% + 70px);
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, 50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle, rgba(255, 214, 140, 0.55), rgba(255, 214, 140, 0.18) 40%, transparent 68%);
+  mix-blend-mode: screen;
+  animation: flicker 5s ease-in-out infinite;
+}
+.lamp-glow.day { opacity: 0.25; }
+.lamp-glow.morning { opacity: 0.35; }
+.lamp-glow.evening { opacity: 0.8; }
+.lamp-glow.night { opacity: 1; }
+@keyframes flicker {
+  50% { filter: brightness(0.92); }
+}
+.cat-actor { z-index: 2; }
+
+/* ═══════════ 우리 마을 ═══════════ */
+.town-card {
+  position: relative;
+  overflow: hidden;
+  padding: 0 !important;
+  border: 0;
+  text-align: left;
+  min-height: 150px;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.tc-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tc-row {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 14px 10px 0;
+}
+.tc-row img {
+  height: 64px;
+}
+.tc-row img.ghost {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+.tc-text {
+  position: relative;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tc-text b {
+  font-size: 16px;
+  font-weight: 800;
+}
+.tc-text small {
+  font-size: 12px;
+  color: var(--sub);
+}
+.town-gold {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+.town-map {
+  position: relative;
+  height: 520px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+.town-sky {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: center 30%;
+}
+.town-ground {
+  position: absolute;
+  inset: 120px 0 0;
+  background: linear-gradient(#bfe3a5, #a7d78c 40%, #9bcf82);
+  border-radius: 50% 50% 0 0 / 40px 40px 0 0;
+}
+.town-road {
+  position: absolute;
+  left: 50%;
+  top: 150px;
+  bottom: -10px;
+  width: 46px;
+  transform: translateX(-50%) perspective(300px) rotateX(30deg);
+  background: repeating-linear-gradient(#e9dfcf 0 22px, #f3ecdf 22px 30px);
+  border-radius: 20px 20px 0 0;
+  opacity: 0.85;
+}
+.town-slot {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  border: 0;
+  background: none;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 70px;
+  min-height: 40px;
+}
+.town-slot img {
+  width: auto;
+  max-width: 120px;
+  filter: drop-shadow(0 6px 6px rgba(40, 80, 40, 0.25));
+  animation: pop-in 0.35s var(--ease);
+}
+.town-slot .plot {
+  width: 66px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  margin-bottom: -10px;
+}
+.town-slot.on .plot {
+  background: rgba(47, 107, 216, 0.3);
+  border-color: var(--blue);
+}
+.town-slot.on img {
+  filter: drop-shadow(0 0 6px rgba(47, 107, 216, 0.9));
+}
+.town-cat {
+  position: absolute;
+  bottom: 14px;
+  height: 40px;
+  z-index: 40;
+  animation: town-walk 18s linear infinite;
+}
+@keyframes town-walk {
+  0% { left: 100%; transform: scaleX(1); }
+  49% { left: -14%; transform: scaleX(1); }
+  50% { left: -14%; transform: scaleX(-1); }
+  99% { left: 100%; transform: scaleX(-1); }
+  100% { left: 100%; transform: scaleX(1); }
+}
+.town-sheet {
+  position: sticky;
+  bottom: 0;
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 12px;
+  box-shadow: 0 -8px 24px -14px rgba(30, 70, 120, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 60;
+  animation: sheet-up 0.25s var(--ease);
+}
+.town-sheet.small {
+  align-items: center;
+}
+.town-sheet .row {
+  display: flex;
+  gap: 8px;
+}
+.town-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-height: 290px;
+  overflow-y: auto;
+}
+.town-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  background: #f3f7fc;
+  border-radius: 16px;
+  padding: 8px 4px;
+}
+.town-item:disabled {
+  opacity: 0.45;
+}
+.ti-art {
+  height: 62px;
+  display: flex;
+  align-items: flex-end;
+}
+.ti-art img {
+  max-height: 62px;
+  max-width: 90px;
+  object-fit: contain;
+}
+.town-item b {
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}

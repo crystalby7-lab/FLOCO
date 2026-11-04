@@ -68,6 +68,7 @@ export type Guild = {
   inventory: Record<string, number> // 상점에서 사서 아직 안 준 먹이·장난감 개수
   board: Post[] // 길드 한마디 게시판
   cheers: Record<string, string> // 친구별 마지막으로 응원한 날짜 (하루 한 번)
+  town: (string | null)[] // 우리 마을 땅 (칸마다 지은 것)
   album: string[] // 한 번이라도 본 고양이 모습
   levelSeen: number // 레벨업 축하를 본 마지막 레벨
   createdAt: number

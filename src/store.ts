@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react'
 import type { Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
+import { TOWN_SLOTS, townItem } from './data/town'
 import { itemOf } from './data/shop'
 import { reviewReasons } from './aiReview'
 
@@ -55,6 +56,7 @@ function migrate(raw: Partial<GameState>): GameState {
       inventory: g.inventory ?? {},
       board: g.board ?? seedBoard(g.members),
       cheers: g.cheers ?? {},
+      town: g.town ?? Array(TOWN_SLOTS).fill(null),
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
       cat: { ...g.cat, clean: g.cat.clean ?? 80 },
@@ -345,6 +347,7 @@ export const actions = {
         inventory: { feed: 2, toy: 1 },
         board: seedBoard(members),
         cheers: {},
+        town: Array(TOWN_SLOTS).fill(null),
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -372,6 +375,7 @@ export const actions = {
         inventory: { feed: 2, toy: 1 },
         board: seedBoard(members),
         cheers: {},
+        town: Array(TOWN_SLOTS).fill(null),
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -573,6 +577,25 @@ export const actions = {
     })
     markDaily('care')
     return null
+  },
+
+  // 우리 마을 짓기 / 치우기
+  buildTown(slot: number, id: string): string | null {
+    const g = state.guild!
+    const it = townItem(id)!
+    if (g.town[slot]) return '이미 지은 땅이에요.'
+    if (g.gold < it.price) return '금고 골드가 부족해요.'
+    updateGuild((gg) =>
+      addFeed(
+        { ...gg, gold: gg.gold - it.price, town: gg.town.map((x, i) => (i === slot ? id : x)) },
+        '🏠',
+        `${me(gg).nickname}님이 마을에 ${it.name}을(를) 지었어요.`,
+      ),
+    )
+    return null
+  },
+  clearTown(slot: number) {
+    updateGuild((g) => ({ ...g, town: g.town.map((x, i) => (i === slot ? null : x)) }))
   },
 
   // 길드 한마디

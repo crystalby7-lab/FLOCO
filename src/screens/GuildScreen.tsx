@@ -3,12 +3,14 @@ import { useState } from 'react'
 import { actions, memberName, useGame, vault } from '../store'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
+import { Town } from './Town'
 
 export function GuildScreen() {
   const s = useGame()
   const g = s.guild!
   const [copied, setCopied] = useState(false)
   const [draft, setDraft] = useState('')
+  const [town, setTown] = useState(false)
   const [toast, setToast] = useState('')
   const link = `${location.origin}${location.pathname}?invite=${g.code}`
   const v = vault(g, s.day)
@@ -84,6 +86,20 @@ export function GuildScreen() {
           <small className="sub">우리가 같이 쓴 이유와 돌아보기로 자랐어요</small>
         </div>
       </section>
+
+      <button className="card town-card" onClick={() => setTown(true)}>
+        <img className="tc-bg" src={ART.sc_country} alt="" />
+        <div className="tc-row">
+          {g.town.filter(Boolean).slice(0, 4).map((id, i) => (
+            <img key={i} src={ART[id!]} alt="" />
+          ))}
+          {g.town.filter(Boolean).length === 0 && <img src={ART.t_navy} alt="" className="ghost" />}
+        </div>
+        <div className="tc-text">
+          <b>우리 마을 꾸미기</b>
+          <small>{g.town.filter(Boolean).length}/12칸 지었어요 · 같이 골드 모아서 지어요 ›</small>
+        </div>
+      </button>
 
       <div className="stat-grid">
         {stats.map((x) => (
@@ -192,6 +208,7 @@ export function GuildScreen() {
 
 
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
+      {town && <Town onClose={() => setTown(false)} />}
     </div>
   )
 }
