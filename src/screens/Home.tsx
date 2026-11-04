@@ -189,11 +189,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
               <Hanger />
             </button>
           </div>
-          <div className="pills">
-            <Pill label="배부름" value={cat.hunger} tone="honey" />
-            <Pill label="기분" value={cat.mood} tone="pink" />
-            <Pill label="청결" value={cat.clean ?? 80} tone="mint" />
-          </div>
         </div>
       </section>
 
@@ -419,19 +414,6 @@ function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () => void
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function Pill({ label, value, tone }: { label: string; value: number; tone: string }) {
-  const v = Math.round(value)
-  return (
-    <div className={`pill ${tone} ${v < 30 ? 'low' : ''}`}>
-      <span>{label}</span>
-      <i>
-        <em style={{ width: `${v}%` }} />
-      </i>
-      <b>{v}</b>
     </div>
   )
 }

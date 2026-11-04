@@ -259,8 +259,7 @@ export function Playground({
           // 머리 위 말풍선 (캐릭터 시트 그림): 반응 > 질문 > 혼잣말 > 상태
           if (face) return <img key={face.key} className="mood-bb pop" src={ART[BB[face.f]]} alt="" />
           if (walking) return null
-          if (ask) return <img className="mood-bb ask" src={ART.bb_q} alt="물어볼 게 있어요" />
-          if (talk) return <span className="say talk">{talk}</span>
+          if (talk && !ask) return <span className="say talk">{talk}</span>
           if (['sleep', 'bed', 'blanket'].includes(pose)) return <img className="mood-bb" src={ART.bb_zzz} alt="자는 중" />
           if (hungry)
             return (

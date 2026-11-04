@@ -8985,3 +8985,6 @@ body {
 .album-note {
   display: none;
 }
+.scene-status {
+  margin-top: -52px;
+}
