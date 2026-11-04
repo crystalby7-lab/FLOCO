@@ -102,7 +102,10 @@ export type User = {
   grade: string
   joinedAt: number
   survey?: Survey
+  avatar?: AvatarLook // 프로필 사진 꾸미기
 }
+
+export type AvatarLook = { art: string; bg: string; sticker?: string }
 
 export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number }
 

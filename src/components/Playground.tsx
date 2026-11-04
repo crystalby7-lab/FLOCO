@@ -342,19 +342,18 @@ export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
       </>
     )
   }
-  // 거실: 가랜드·창문·장식장·소파·스탠드·화분 + 스탠드 불빛
+  // 거실: 고양이 시트 그림만 (창문·캣타워·화분·발바닥 방석) + 창문 햇빛
   return (
     <>
       <div className="room-wall living" />
-      <Spr n="f_bunting" c="lv-bunting" />
       <Spr n="bg_window" c={`room-window ${night ? 'night' : ''}`} style={{ left: `${SPOT.window * 100}%` }} />
-      <Spr n="f_cabinet" c="lv-cabinet" />
-      <Spr n="f_sofa" c="lv-sofa" />
+      {!night && <div className={`window-beam ${tod}`} aria-hidden />}
       <div className="room-floor living" />
       <div className="rug" aria-hidden />
-      <Spr n="f_lamp" c="lv-lamp" />
+      <Spr n="bg_tower" c="lv-tower" />
       <Spr n="bg_plant3" c="lv-plant" />
-      <Light tod={tod} lamp />
+      <Spr n="bg_cushion" c="lv-cushion" />
+      <Light tod={tod} />
     </>
   )
 }

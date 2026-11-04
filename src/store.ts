@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
+import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
 import { TOWN_SLOTS, townItem } from './data/town'
@@ -514,6 +514,10 @@ export const actions = {
 
   saveSurvey(survey: Survey) {
     set((s) => (s.user ? { ...s, user: { ...s.user, survey } } : s))
+  },
+
+  setAvatar(avatar: AvatarLook) {
+    set((s) => (s.user ? { ...s, user: { ...s.user, avatar } } : s))
   },
 
   updateProfile(nickname: string, grade: string) {

@@ -1,7 +1,8 @@
-// 플로월드 지도 (F1·F2·F3): 장 = 지역, 점 = 퀘스트.
-// 고양이가 지금 할 퀘스트 옆에 앉아서 기다리고, 끝낸 퀘스트에는 체크가 찍힌다.
+// 플로월드 지도 (F1·F2·F3): 장 = 마을 구역, 퀘스트 = 건물.
+// 퀘스트를 끝낼 때마다 그 건물이 잠금 해제되어 마을이 하나씩 지어진다.
+// 고양이는 지금 지을 건물 옆에서 기다린다.
 import { useEffect, useRef, useState } from 'react'
-import { questsDone, RULES, unlocked, useGame } from '../store'
+import { questsDone, unlocked, useGame } from '../store'
 import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
 import { Page } from '../components/Page'
 import { Book, Lock } from '../components/Icons'
@@ -11,7 +12,12 @@ import type { Tab } from '../App'
 
 const CHAPTER = { village: 1, forest: 2, city: 3, port: 4 } as const
 const OFFSETS = [-40, 50, -10, 64, -56, 18, -30, 46]
-const ROW = 124
+const ROW = 150
+// 퀘스트마다 지어지는 건물 (마을 시트 그림)
+const BUILD: Record<string, string> = { v1: 't_navy', v2: 't_bluehouse', v3: 't_cafe', f1: 't_greenhouse', f2: 't_dome', f3: 't_church' }
+// 아직 준비 중인 구역에 미리 보이는 잠긴 건물
+const PREVIEW: Record<string, string[]> = { city: ['t_pink', 't_bluecat', 't_school'], port: ['t_clock', 't_shop', 't_stadium'] }
+const TREES = ['t_tree', 't_sakura', 't_pine']
 
 type NodeState = 'done' | 'now' | 'open' | 'locked'
 
@@ -37,9 +43,9 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   return (
     <div className="tab-panel live path-panel" onClick={() => setPopup(null)}>
       <header className="d-head">
-        <span className="d-date">플로월드</span>
+        <span className="d-date">플로월드 마을</span>
         <h1>
-          퀘스트 {doneN} <small>/ {QUESTS.length}</small>
+          지은 건물 {doneN} <small>/ {QUESTS.length}</small>
         </h1>
         <div className="map-progress">
           <div style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
@@ -94,7 +100,19 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                 </span>
               )}
             </div>
-            {qs.length > 0 && <div className="ch-progress">{done}/{qs.length}</div>}
+            {qs.length > 0 && (
+              <div className={`ch-progress ${done === qs.length ? 'complete' : ''}`}>{done === qs.length ? `${r.name} 완성!` : `건물 ${done}/${qs.length}`}</div>
+            )}
+            {qs.length === 0 && PREVIEW[r.id] && (
+              <div className="ch-preview" aria-hidden>
+                {PREVIEW[r.id].map((b) => (
+                  <span key={b}>
+                    <img src={ART[b]} alt="" />
+                    <Lock size={14} />
+                  </span>
+                ))}
+              </div>
+            )}
 
             {qs.length > 0 && (
               <div className="ch-trail" style={{ height: H }}>
@@ -129,19 +147,22 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                         }}
                         style={{ ['--tilt' as string]: `${(qi % 2 ? 1 : -1) * (3 + (qi % 3) * 2)}deg` }}
                       >
-                        {st === 'done' ? (
-                          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                            <path d="M5 12.5 L10 17.5 L19 7" />
-                          </svg>
-                        ) : st === 'locked' ? (
-                          <Lock size={20} />
-                        ) : (
-                          <span className="spot-no">{qi + 1}</span>
-                        )}
+                        <img className="spot-bld" src={ART[BUILD[q.id] ?? 't_navy']} alt="" />
+                        <span className="spot-badge">
+                          {st === 'done' ? (
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                              <path d="M5 12.5 L10 17.5 L19 7" />
+                            </svg>
+                          ) : st === 'locked' ? (
+                            <Lock size={12} />
+                          ) : (
+                            qi + 1
+                          )}
+                        </span>
                         {st === 'now' && <span className="pulse" aria-hidden />}
                       </button>
                       <span className={`spot-label ${off > 0 ? 'left' : 'right'} ${st}`}>
-                        <small>{st === 'done' ? '완료' : st === 'locked' ? '잠김' : q.type === 'judge' ? '판단 퀘스트' : '개념 + 퀴즈'}</small>
+                        <small>{st === 'done' ? '지었어요' : st === 'locked' ? '잠김' : st === 'now' ? '퀘스트를 깨면 지어져요' : q.type === 'judge' ? '판단 퀘스트' : '개념 + 퀴즈'}</small>
                         <b>{q.title}</b>
                       </span>
                       {open && (
@@ -158,13 +179,23 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                               setLesson(q)
                             }}
                           >
-                            {st === 'done' ? '다시 펼쳐 보기' : `시작하기 · +${RULES.questReward}G`}
+                            {st === 'done' ? '다시 펼쳐 보기' : `퀘스트 시작 · 건물 짓기`}
                           </button>
                         </div>
                       )}
                     </div>
                   )
                 })}
+                {qs.map((_, i) => (
+                  <img
+                    key={'tree' + i}
+                    className="trail-tree"
+                    src={ART[TREES[(i + CHAPTER[r.id]) % TREES.length]]}
+                    alt=""
+                    aria-hidden
+                    style={{ top: 40 + i * ROW + 70, left: `calc(50% + ${-pts[i].x * 1.9}px)` }}
+                  />
+                ))}
               </div>
             )}
           </section>

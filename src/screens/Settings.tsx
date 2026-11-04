@@ -6,6 +6,7 @@ import { Sheet } from '../components/ui'
 import { ART } from '../components/CatView'
 import { Avatar } from '../components/Avatar'
 import { Survey } from './Survey'
+import { ProfileEditor } from './ProfileEditor'
 import type { Prefs } from '../types'
 
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
@@ -20,6 +21,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
   const [page, setPage] = useState<Page>(null)
   const [toast, setToast] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
+  const [editPic, setEditPic] = useState(false)
   const t = u.survey ? typeOf(u.survey) : null
 
   const flash = (msg: string) => {
@@ -54,8 +56,11 @@ export function Settings({ onClose }: { onClose: () => void }) {
       </header>
 
       <div className="layer-body">
-        <button className="profile-card" onClick={() => setPage('profile')}>
-          <Avatar g={g} id={u.id} size={56} />
+        <button className="profile-card" onClick={() => setEditPic(true)}>
+          <span className="pc-av">
+            <Avatar g={g} id={u.id} size={56} />
+            <i className="pc-edit">꾸미기</i>
+          </span>
           <div className="grow">
             <b>{u.nickname}</b>
             <small>
@@ -66,6 +71,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
         </button>
 
         <Group title="나">
+          <Row label="프로필 사진 꾸미기" value="고양이·배경·스티커" onClick={() => setEditPic(true)} />
           <Row label="닉네임·학년" value={`${u.nickname} · ${u.grade}`} onClick={() => setPage('profile')} />
           <Row label="처음 설문 답변" value={t?.name ?? '없음'} onClick={() => setPage('answers')} />
         </Group>
@@ -222,6 +228,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
       )}
 
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
+      {editPic && <ProfileEditor onClose={() => setEditPic(false)} />}
     </div>
   )
 }
