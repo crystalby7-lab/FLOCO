@@ -8,19 +8,19 @@ import { ItemIcon } from '../components/Icons'
 import { ART } from '../components/CatView'
 
 const ICON: Record<string, string> = {
-  snack: ART.hug,
-  boba: ART.boba,
-  toy: ART.toy,
-  bath: ART.bath,
-  feed: ART.side,
+  feed: ART.i_bowl,
+  snack: ART.i_fish,
+  toy: ART.i_yarn,
+  boba: ART.i_boba,
+  bath: ART.i_duck,
   hoodie: ART.hoodie,
   beret: ART.beret,
   dino: ART.dino,
   duck: ART.duck,
   scarf: ART.scarf,
-  box: ART.box,
-  cushion: ART.sleep,
-  bed: ART.bed,
+  box: ART.i_box,
+  cushion: ART.i_pillow,
+  bed: ART.i_bed,
 }
 
 export function Shop() {

@@ -6,7 +6,8 @@ import { MapScreen } from './screens/MapScreen'
 import { Invest } from './screens/Invest'
 import { Shop } from './screens/Shop'
 import { GuildScreen } from './screens/GuildScreen'
-import { Coin, Flame, TabIcon } from './components/Icons'
+import { Coin, TabIcon } from './components/Icons'
+import { ART } from './components/CatView'
 import { TabCat } from './components/TabCat'
 import logoFace from './assets/logo-face.png'
 import { LevelUp } from './components/LevelUp'
@@ -57,17 +58,17 @@ export default function App() {
           </span>
         </button>
         <div className="sb-stats">
-          <span className={`sb-stat streak ${streakNow(s) ? '' : 'off'}`} title="연속 출석">
-            <Flame size={18} off={!streakNow(s)} />
+          <span className={`sb-chip ${streakNow(s) ? '' : 'off'}`} title="연속 출석">
+            <img src={ART.i_paw} alt="" />
             <b>{streakNow(s)}일</b>
           </span>
-          <span className="sb-stat gold-stat" title="길드 금고">
+          <span className="sb-chip" title="길드 금고">
             <Coin size={20} />
             <b>{g.gold.toLocaleString()}</b>
           </span>
-          <span className="sb-stat lv" title="고양이 레벨">
-            <i>Lv</i>
-            <b>{g.cat.level}</b>
+          <span className="sb-chip" title="고양이 레벨">
+            <img src={ART.i_star} alt="" />
+            <b>Lv.{g.cat.level}</b>
           </span>
         </div>
         <button className="icon-btn gear" aria-label="설정" onClick={() => setSettings(true)}>

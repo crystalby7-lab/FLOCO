@@ -105,12 +105,20 @@ export const ItemIcon: Record<string, ReactElement> = {
   ),
 }
 
+// 캐릭터 시트와 같은 결: 연한 갈색 선 + 파스텔 채움, 가운데 발바닥
 export function Coin({ size = 18 }: { size?: number }) {
   return (
     <svg viewBox="0 0 20 20" width={size} height={size} aria-hidden>
-      <circle cx="10" cy="10" r="8.5" fill="#F6CF6B" stroke="#3B2F29" strokeWidth="1.6" />
-      <circle cx="10" cy="10" r="5.2" fill="none" stroke="#D9A93E" strokeWidth="1.4" />
-      <path d="M7.5 6.5 L9 10 L7.5 13.5 M12.5 6.5 L11 10 L12.5 13.5" stroke="#B9862A" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <circle cx="10" cy="10.4" r="8.4" fill="#f3d58a" />
+      <circle cx="10" cy="9.6" r="8.4" fill="#ffe9a8" stroke="#9a8a80" strokeWidth="1.3" />
+      <circle cx="10" cy="9.6" r="5.6" fill="none" stroke="#f1c968" strokeWidth="1.1" />
+      <g fill="#e6b24e">
+        <ellipse cx="10" cy="11.2" rx="2.3" ry="1.8" />
+        <circle cx="7.4" cy="8.4" r="0.95" />
+        <circle cx="9.1" cy="7.2" r="0.95" />
+        <circle cx="10.9" cy="7.2" r="0.95" />
+        <circle cx="12.6" cy="8.4" r="0.95" />
+      </g>
     </svg>
   )
 }

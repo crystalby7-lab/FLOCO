@@ -179,7 +179,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
           <>
             <p className="ls-kicker">오늘의 개념</p>
             <div className="ls-teacher">
-              <img src={ART.sit} alt="" />
+              <TeacherCat mood="concept" />
               <div className="ls-bubble">{quest.card!.title}</div>
             </div>
             <ul className="ls-points">
@@ -199,8 +199,8 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
         {step.kind === 'quiz' && (
           <>
             <p className="ls-kicker">알맞은 답을 골라요</p>
-            <div className={`ls-teacher small ${checked ? (correct ? 'cheer' : 'oops') : ''}`}>
-              <img src={ART[checked ? (correct ? 'face_happy' : 'face_sad') : 'face_calm']} alt="" />
+            <div className="ls-teacher">
+              <TeacherCat mood={checked ? (correct ? 'right' : 'wrong') : 'idle'} />
               <div className="ls-bubble">{quest.quiz![step.i].q}</div>
             </div>
             <div className="ls-options">
@@ -220,7 +220,10 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
         {step.kind === 'judge' && (
           <>
             <p className="ls-kicker">투자일까, 도박일까?</p>
-            <div className="ls-story">{quest.situations![step.i].text}</div>
+            <div className="ls-teacher">
+              <TeacherCat mood={checked ? (correct ? 'right' : 'wrong') : 'idle'} />
+              <div className="ls-bubble">{quest.situations![step.i].text}</div>
+            </div>
             <div className="ls-pair">
               {(
                 [
@@ -262,7 +265,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
       ) : (
         <div className={`ls-foot feedback ${correct ? 'good' : 'bad'}`}>
           <div className="fb-head">
-            <img src={correct ? ART.face_happy : ART.face_sad} alt="" />
+            <img src={correct ? ART.t_happy : ART.t_rain} alt="" />
             <div>
               <b>{correct ? pickPraise(idx) : '여기 다시 보자'}</b>
               {!correct && step.kind === 'quiz' && <span className="fb-ans">정답: {quest.quiz![step.i].options[quest.quiz![step.i].answer]}</span>}
@@ -294,3 +297,27 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
 
 const PRAISE = ['맞았어요!', '좋아요, 정확해요!', '바로 그거예요!', '훌륭해요!']
 const pickPraise = (i: number) => PRAISE[i % PRAISE.length]
+
+// 문제를 내는 고양이: 가만히 있지 않고 포즈를 바꿔가며 묻고, 정답이면 뛰고 오답이면 우산 쓰고 시무룩
+const FRAMES = {
+  concept: ['t_wave', 't_happy', 't_think', 't_sprout'],
+  idle: ['t_think', 't_wave', 't_sprout', 't_think'],
+  right: ['t_jump', 't_happy'],
+  wrong: ['t_rain'],
+} as const
+
+function TeacherCat({ mood }: { mood: keyof typeof FRAMES }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    setI(0)
+    const id = window.setInterval(() => setI((x) => x + 1), mood === 'right' ? 900 : 1700)
+    return () => window.clearInterval(id)
+  }, [mood])
+  const f = FRAMES[mood]
+  const name = f[i % f.length]
+  return (
+    <span className={`teacher-cat ${mood}`}>
+      <img key={name + mood} src={ART[name]} alt="" />
+    </span>
+  )
+}

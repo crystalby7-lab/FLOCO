@@ -35,13 +35,13 @@ const feedTone = (icon: string) =>
 
 type Care = 'feed' | 'snack' | 'toy' | 'boba' | 'bath'
 const CARE: { id: Care; label: string; art: string; msg: string }[] = [
-  { id: 'feed', label: '밥', art: 'side', msg: '밥 그릇을 놓았어요' },
-  { id: 'snack', label: '간식', art: 'hug', msg: '생선 인형을 줬어요' },
-  { id: 'toy', label: '장난감', art: 'toy', msg: '장난감을 흔들었어요' },
-  { id: 'boba', label: '버블티', art: 'boba', msg: '버블티를 줬어요' },
-  { id: 'bath', label: '목욕', art: 'bath', msg: '보글보글 목욕 중' },
+  { id: 'feed', label: '밥', art: 'i_bowl', msg: '밥 그릇을 놓았어요' },
+  { id: 'snack', label: '간식', art: 'i_fish', msg: '생선 인형을 줬어요' },
+  { id: 'toy', label: '장난감', art: 'i_yarn', msg: '장난감을 흔들었어요' },
+  { id: 'boba', label: '버블티', art: 'i_boba', msg: '버블티를 줬어요' },
+  { id: 'bath', label: '목욕', art: 'i_duck', msg: '보글보글 목욕 중' },
 ]
-const WEAR_ART: Record<string, string> = { hoodie: 'hoodie', beret: 'beret', dino: 'dino', duck: 'duck', scarf: 'scarf', box: 'box', cushion: 'sleep', bed: 'bed' }
+const WEAR_ART: Record<string, string> = { hoodie: 'hoodie', beret: 'beret', dino: 'dino', duck: 'duck', scarf: 'scarf', box: 'i_box', cushion: 'i_pillow', bed: 'i_bed' }
 
 export function Home({ go }: { go: (t: Tab) => void }) {
   useTick()
