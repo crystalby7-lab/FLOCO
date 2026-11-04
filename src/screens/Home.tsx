@@ -32,7 +32,6 @@ const timeAgo = (at: number) => {
 const feedTone = (icon: string) =>
   ['✅', '📈', '🎉', '🔓', '✨', '🎁'].includes(icon) ? 'moss' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'berry' : ['💡', '👍', '📘'].includes(icon) ? 'honey' : ''
 
-const GREETING = { morning: '좋은 아침이에요', day: '오후도 힘내요', evening: '오늘 하루 어땠어요?', night: '조용한 밤이에요' }
 
 type Care = 'feed' | 'snack' | 'toy' | 'boba' | 'bath'
 const CARE: { id: Care; label: string; art: string; msg: string }[] = [
@@ -63,10 +62,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
   const nextQuest = QUESTS.find((q) => !s.quests[q.id]?.done && (q.region === 'village' || unlocked(s).has('invest')))
-  const days = Math.max(1, Math.floor((Date.now() - g.createdAt) / 86_400_000) + 1)
 
-  const status =
-    cat.hunger < 30 ? '배가 고프대요' : (cat.clean ?? 80) < 35 ? '씻고 싶대요' : cat.mood < 30 ? '조금 시무룩해요' : cat.mood >= 75 ? '기분이 최고예요' : tod === 'night' ? '졸린 눈을 비벼요' : '느긋하게 쉬고 있어요'
 
   // 고양이 혼잣말: 지금 길드 상황에서 뽑는다
   const lines: string[] = [
@@ -129,22 +125,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const p = waiting[0]
   const r = retros[0]
 
-  const now = new Date()
-  const dateLabel = `${now.getMonth() + 1}월 ${now.getDate()}일 ${'일월화수목금토'[now.getDay()]}요일`
 
   return (
     <div className="tab-panel home live">
       <section className={`scene tod-${tod}`}>
-        <header className="scene-head">
-          <div>
-            <span className="scene-date">{dateLabel}</span>
-            <h1>{GREETING[tod]}</h1>
-            <p>
-              {g.name} · 함께한 지 {days}일째
-            </p>
-          </div>
-          <span className="lv-chip">Lv.{cat.level}</span>
-        </header>
         <div className="places" ref={track} onScroll={onScroll}>
           {PLACES.map((pl, i) => (
             <div key={pl.id} className="place-slide">
@@ -201,9 +185,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         )}
         <div className="scene-status">
           <div className="status-row">
-            <span className="status-line">
-              {cat.name}는 {status}
-            </span>
             <button className="closet-btn" onClick={() => setCloset(true)} aria-label="옷장">
               <Hanger />
             </button>

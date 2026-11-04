@@ -8541,3 +8541,9 @@ body {
 .ask-pop .ask-gain {
   align-self: flex-end;
 }
+/* 인사·상태 문구 제거 후 방 배치 */
+.scene .window { top: 46px; }
+.scene .lamp { top: 0; }
+.ask-pop { top: 40px; }
+.status-row { justify-content: flex-end; }
+.scene-status { margin-top: -20px; }
