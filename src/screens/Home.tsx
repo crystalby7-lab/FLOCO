@@ -90,33 +90,43 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const p = waiting[0]
   const r = retros[0]
 
+  const now = new Date()
+  const dateLabel = `${now.getMonth() + 1}월 ${now.getDate()}일 ${'일월화수목금토'[now.getDay()]}요일`
+
   return (
-    <div className="tab-panel home">
-      <div className="today-hero">
-        <div className="th-day">
+    <div className="tab-panel home diary">
+      <header className="d-head">
+        <span className="d-date">{dateLabel}</span>
+        <h1 className="hand">{GREETING[tod]}</h1>
+        <p className="d-sub">
           {g.name} · 함께한 지 {days}일째
+        </p>
+      </header>
+
+      <figure className="polaroid">
+        <span className="tape tl" aria-hidden />
+        <span className="tape tr" aria-hidden />
+        <div className="polaroid-photo">
+          <Playground cat={cat} event={ev} lines={s.prefs.chatter ? lines : []} onPose={actions.seePose} height={280} catHeight={118} />
+          <span className="tap-hint">{cat.name}를 눌러보세요</span>
         </div>
-        <h1 className="th-title">
-          {GREETING[tod]}
-          <br />
-          <span className="th-sub">{cat.name}는 {status}</span>
-        </h1>
-      </div>
+        <figcaption>
+          <span className="hand">
+            {cat.name}는 {status}
+          </span>
+          <span className="lv-sticker">Lv.{cat.level}</span>
+        </figcaption>
+      </figure>
 
-      <div className="bleed room-wrap">
-        <Playground cat={cat} event={ev} lines={s.prefs.chatter ? lines : []} onPose={actions.seePose} height={300} catHeight={124} />
-        <span className="lv-tag">Lv.{cat.level}</span>
-        <span className="tap-hint">{cat.name}를 눌러보세요</span>
-      </div>
-
-      <section className="card status-card">
+      <section className="paper">
+        <h3 className="paper-title">오늘의 {cat.name}</h3>
         <div className="meters three">
           <Meter label="배부름" value={cat.hunger} />
           <Meter label="기분" value={cat.mood} tone="pinkish" />
           <Meter label="청결" value={cat.clean ?? 80} tone="mint" />
         </div>
         <div className="exp-line">
-          <span className="sub small">경험치</span>
+          <span className="small sub">경험치</span>
           <div className="bar grow">
             <div style={{ width: `${(cat.exp / RULES.expPerLevel) * 100}%` }} />
           </div>
@@ -124,11 +134,13 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             {cat.exp}/{RULES.expPerLevel}
           </span>
         </div>
-        <p className="exp-note">경험치는 이유를 쓰고, 걱정을 말하고, 같이 돌아볼 때만 올라요</p>
+        <p className="margin-note">경험치는 이유를 쓰고, 걱정을 말하고, 같이 돌아볼 때만 올라요</p>
         <div className="care-row">
-          {CARE.map((c) => (
-            <button key={c.id} className="care" onClick={() => care(c)}>
-              <img src={ART[c.art]} alt="" />
+          {CARE.map((c, i) => (
+            <button key={c.id} className="care sticker" style={{ ['--tilt' as string]: `${[-4, 3, -2, 4, -3][i]}deg` }} onClick={() => care(c)}>
+              <span className="sticker-face">
+                <img src={ART[c.art]} alt="" />
+              </span>
               <b>{c.label}</b>
               <small>{c.price}G</small>
             </button>
@@ -136,75 +148,77 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </div>
       </section>
 
-      {/* 지금 할 일: 고양이 얼굴이 카드 위로 고개를 내민다 */}
-      <section className="q-card">
+      <section className="postit">
+        <span className="tape" aria-hidden />
         <div className="peek" aria-hidden>
-          <CatFace cat={cat} size={96} />
+          <CatFace cat={cat} size={84} />
         </div>
         {p ? (
           <>
-            <div className="q-label">친구가 의견을 기다려요</div>
-            <div className="q-text">
-              {memberName(g, p.proposerId)}님이 {tickerOf(p.ticker).name}를 사자고 했어요
+            <div className="postit-label">친구가 의견을 기다려요</div>
+            <div className="postit-text hand">
+              {memberName(g, p.proposerId)}가 {tickerOf(p.ticker).name}를 사자고 했어요
             </div>
-            <p className="q-quote">"{p.reasons[0]}"</p>
-            <button className="btn btn-honey btn-block q-btn" onClick={() => go('invest')}>
-              이유 보고 의견 내기
+            <p className="postit-quote">"{p.reasons[0]}"</p>
+            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
+              이유 읽고 의견 쓰기
             </button>
           </>
         ) : r ? (
           <>
-            <div className="q-label">같이 돌아볼 차례예요</div>
-            <div className="q-text">{tickerOf(r.ticker).name}, 내 판단은 어땠을까요?</div>
-            <button className="btn btn-honey btn-block q-btn" onClick={() => go('invest')}>
-              돌아보기 쓰기 · 경험치 +{RULES.exp.retro}
+            <div className="postit-label">돌아볼 차례예요</div>
+            <div className="postit-text hand">{tickerOf(r.ticker).name}, 내 판단은 어땠을까?</div>
+            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
+              빨간 펜으로 돌아보기 · +{RULES.exp.retro}
             </button>
           </>
         ) : nextQuest ? (
           <>
-            <div className="q-label">다음 퀘스트</div>
-            <div className="q-text">{nextQuest.title}</div>
-            <p className="q-quote">{nextQuest.summary} · 완료하면 금고 +{RULES.questReward}G</p>
-            <button className="btn btn-honey btn-block q-btn" onClick={() => go('map')}>
-              지도에서 시작하기
+            <div className="postit-label">오늘 배울 것</div>
+            <div className="postit-text hand">{nextQuest.title}</div>
+            <p className="postit-quote">
+              {nextQuest.summary} · 끝내면 금고 +{RULES.questReward}G
+            </p>
+            <button className="btn btn-primary btn-block" onClick={() => go('map')}>
+              지도 펼치기
             </button>
           </>
         ) : (
           <>
-            <div className="q-label">오늘은 여유로워요</div>
-            <div className="q-text">새로운 투자 아이디어가 있다면 길드에 제안해 보세요</div>
-            <button className="btn btn-honey btn-block q-btn" onClick={() => go('invest')}>
-              제안하러 가기
+            <div className="postit-label">오늘은 여유로워요</div>
+            <div className="postit-text hand">새 투자 아이디어를 일기에 적어볼까요?</div>
+            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
+              투자 일기 쓰기
             </button>
           </>
         )}
       </section>
 
-      <section className="card mission">
-        <div className="mission-head">
-          <h3>오늘의 미션</h3>
-          <span className="pill">{doneCount}/3</span>
+      <section className="paper lined checklist">
+        <div className="paper-row">
+          <h3 className="paper-title">오늘 할 일</h3>
+          <span className="hand count">{doneCount}/3</span>
         </div>
-        <ul className="mission-list">
+        <ul>
           {missions.map((m) => (
             <li key={m.label}>
-              <button className={`mission-row ${m.done ? 'done' : ''}`} onClick={m.go} disabled={m.done}>
-                <span className="check">{m.done && <Tick />}</span>
-                <span className="grow">{m.label}</span>
-                {!m.done && <span className="go">하러 가기</span>}
+              <button className={`todo ${m.done ? 'done' : ''}`} onClick={m.go} disabled={m.done}>
+                <span className="box">{m.done && <Tick />}</span>
+                <span className="grow todo-text">{m.label}</span>
+                {!m.done && <span className="go">하러 가기 ›</span>}
               </button>
             </li>
           ))}
         </ul>
         <button className="btn btn-primary btn-block" disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
-          {d.claimed ? '오늘 보상을 받았어요' : `다 하면 금고 +${RULES.dailyReward}G`}
+          {d.claimed ? '오늘 도장 받았어요' : `다 하면 출석 도장 · +${RULES.dailyReward}G`}
         </button>
       </section>
 
-      <section className="card tight train">
+      <section className="paper train">
         <img className="train-art" src={ART[train.full ? 'stretch' : 'walk']} alt="" />
         <div className="grow">
-          <h3>혼자 하는 훈련</h3>
+          <h3 className="paper-title small">혼자 하는 훈련</h3>
           <p className="sub small">
             {train.full ? '보상이 가득 찼어요' : `한 시간에 ${RULES.goldPerHour}G · 최대 ${RULES.trainCapHours}시간`}
           </p>
@@ -217,18 +231,18 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      <div className="section-head">
-        <h2>길드 소식</h2>
-      </div>
-      <ul className="list feed">
-        {g.feed.slice(0, 10).map((f) => (
-          <li key={f.id} className="list-row">
-            <span className={`feed-dot ${feedTone(f.icon)}`} />
-            <span className="row-text">{f.text}</span>
-            <span className="val tiny">{timeAgo(f.at)}</span>
-          </li>
-        ))}
-      </ul>
+      <section className="paper journal">
+        <h3 className="paper-title">길드 일지</h3>
+        <ul>
+          {g.feed.slice(0, 10).map((f) => (
+            <li key={f.id}>
+              <span className="j-time">{timeAgo(f.at)}</span>
+              <span className={`j-dot ${feedTone(f.icon)}`} />
+              <span className="j-text">{f.text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>

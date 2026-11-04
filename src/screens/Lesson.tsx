@@ -106,25 +106,32 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
     return (
       <div className="lesson">
         <div className="ls-result">
-          <img className="ls-result-art" src={done ? ART.crown : ART.blanket} alt="" />
-          <h1 className={done ? 'ok' : 'retry'}>{done ? '퀘스트 완료!' : '조금만 더 해볼까요?'}</h1>
-          <p className="ls-result-sub">{done ? `${g.cat.name}가 뿌듯해해요` : `${total}문제 중 2문제 이상 맞히면 통과예요`}</p>
-          <div className="ls-tiles">
-            <div className="ls-tile gold">
-              <small>금고</small>
-              <b>{done && first ? `+${RULES.questReward}` : '+0'}</b>
-            </div>
-            <div className={`ls-tile ${acc >= 67 ? 'green' : 'red'}`}>
-              <small>정답률</small>
-              <b>{acc}%</b>
-            </div>
-            <div className="ls-tile blue">
-              <small>걸린 시간</small>
-              <b>{done ? `${mm}:${ss}` : '-'}</b>
-            </div>
+          <div className={`reward-sticker ${done ? '' : 'gray'}`}>
+            <img src={done ? ART.crown : ART.blanket} alt="" />
           </div>
-          {done && first && quest.unlocks && <p className="ls-unlock">ETF 비교 도구가 열렸어요</p>}
-          {done && first && quest.id === 'v3' && <p className="ls-unlock">같이 투자와 ETF 숲이 열렸어요</p>}
+          <h1 className="hand">{done ? '스티커를 받았어요!' : '이번 장은 다시 써볼까요?'}</h1>
+          <p className="ls-result-sub">{done ? `탐험 일지에 붙여둘게요 · ${g.cat.name}가 뿌듯해해요` : `${total}문제 중 2문제 이상 맞히면 스티커를 받아요`}</p>
+          <ul className="receipt">
+            <li>
+              <span>금고</span>
+              <i />
+              <b className="gold-ink">{done && first ? `+${RULES.questReward}G` : '+0G'}</b>
+            </li>
+            <li>
+              <span>맞힌 문제</span>
+              <i />
+              <b>
+                {score}/{total} ({acc}%)
+              </b>
+            </li>
+            <li>
+              <span>걸린 시간</span>
+              <i />
+              <b>{done ? `${mm}분 ${ss}초` : '-'}</b>
+            </li>
+          </ul>
+          {done && first && quest.unlocks && <p className="ls-unlock hand">ETF 비교 도구가 열렸어요</p>}
+          {done && first && quest.id === 'v3' && <p className="ls-unlock hand">같이 투자 · ETF 숲이 열렸어요</p>}
         </div>
         <div className="ls-foot plain">
           {done ? (
@@ -162,12 +169,16 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
         <div className="ls-bar">
           <div style={{ width: `${Math.max(4, progress * 100)}%` }} />
         </div>
+        <span className="ls-page hand">
+          {idx + 1}/{steps.length}쪽
+        </span>
       </header>
 
-      <main className="ls-body" key={idx}>
+      <main className="ls-body paper-page" key={idx}>
+        {checked && correct && <div className="stamp-good hand" aria-hidden>참<br />잘했어요</div>}
         {step.kind === 'concept' && (
           <>
-            <p className="ls-kicker">새로운 개념</p>
+            <p className="ls-kicker hand">오늘의 개념 노트</p>
             <div className="ls-teacher">
               <img src={ART.sit} alt="" />
               <div className="ls-bubble">{quest.card!.title}</div>
@@ -188,7 +199,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
 
         {step.kind === 'quiz' && (
           <>
-            <p className="ls-kicker">알맞은 답을 골라요</p>
+            <p className="ls-kicker hand">알맞은 답에 형광펜을 칠해요</p>
             <div className="ls-teacher small">
               <img src={ART.face_calm} alt="" />
               <div className="ls-bubble">{quest.quiz![step.i].q}</div>
@@ -209,7 +220,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
 
         {step.kind === 'judge' && (
           <>
-            <p className="ls-kicker">투자일까, 도박일까?</p>
+            <p className="ls-kicker hand">투자일까, 도박일까?</p>
             <div className="ls-story">{quest.situations![step.i].text}</div>
             <div className="ls-pair">
               {(
@@ -240,7 +251,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
       {step.kind === 'concept' ? (
         <div className="ls-foot">
           <button className="btn btn-primary btn-block" onClick={next}>
-            계속
+            다 읽었어요
           </button>
         </div>
       ) : !checked ? (
@@ -251,10 +262,11 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
         </div>
       ) : (
         <div className={`ls-foot feedback ${correct ? 'good' : 'bad'}`}>
+          <span className="tape" aria-hidden />
           <div className="fb-head">
             <img src={correct ? ART.face_happy : ART.face_sad} alt="" />
             <div>
-              <b>{correct ? pickPraise(idx) : '아쉬워요'}</b>
+              <b className="hand">{correct ? pickPraise(idx) : '여기 다시 보자'}</b>
               {!correct && step.kind === 'quiz' && <span className="fb-ans">정답: {quest.quiz![step.i].options[quest.quiz![step.i].answer]}</span>}
               {!correct && step.kind === 'judge' && (
                 <span className="fb-ans">{quest.situations![step.i].answer === 'invest' ? '투자에 가까워요' : '도박에 가까워요'}</span>
@@ -262,8 +274,8 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
             </div>
           </div>
           <p className="fb-why">{step.kind === 'quiz' ? quest.quiz![step.i].why : quest.situations![step.i].why}</p>
-          <button className={`btn btn-block ${correct ? 'btn-green' : 'btn-red'}`} onClick={next}>
-            {correct ? '계속' : '알겠어요'}
+          <button className="btn btn-primary btn-block" onClick={next}>
+            {correct ? '다음 쪽' : '알겠어요'}
           </button>
         </div>
       )}
@@ -282,5 +294,5 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
   )
 }
 
-const PRAISE = ['정답이에요!', '좋아요!', '맞아요!', '훌륭해요!']
+const PRAISE = ['맞았어요!', '좋아요, 정확해요!', '바로 그거예요!', '훌륭해요!']
 const pickPraise = (i: number) => PRAISE[i % PRAISE.length]

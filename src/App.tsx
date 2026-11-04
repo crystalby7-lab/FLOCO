@@ -6,7 +6,7 @@ import { MapScreen } from './screens/MapScreen'
 import { Invest } from './screens/Invest'
 import { Shop } from './screens/Shop'
 import { GuildScreen } from './screens/GuildScreen'
-import { Coin, Flame, TabIcon } from './components/Icons'
+import { Coin, TabIcon } from './components/Icons'
 import logoFace from './assets/logo-face.png'
 import { LevelUp } from './components/LevelUp'
 import { Settings } from './screens/Settings'
@@ -57,8 +57,8 @@ export default function App() {
         </button>
         <div className="sb-stats">
           <span className={`sb-stat streak ${streakNow(s) ? '' : 'off'}`} title="연속 출석">
-            <Flame size={22} off={!streakNow(s)} />
-            <b>{streakNow(s)}</b>
+            <i className="mini-stamp">출석</i>
+            <b>{streakNow(s)}일</b>
           </span>
           <span className="sb-stat gold-stat" title="길드 금고">
             <Coin size={20} />
