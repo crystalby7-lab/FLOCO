@@ -8361,3 +8361,40 @@ body {
 .place-next {
   top: 150px;
 }
+/* 장소는 화살표로만 넘긴다 (손으로 밀기 X) */
+.places {
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+.place-prev,
+.place-next,
+.place-nav {
+  display: none;
+}
+.place-arrow {
+  position: absolute;
+  z-index: 4;
+  top: 165px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 14px -8px rgba(30, 70, 120, 0.7);
+  transition: transform 0.15s var(--ease);
+}
+.place-arrow:active {
+  transform: scale(0.9);
+}
+.place-arrow.next {
+  right: 10px;
+}
+.place-arrow.prev {
+  left: 10px;
+}
+.place-arrow.prev svg {
+  transform: scaleX(-1);
+}

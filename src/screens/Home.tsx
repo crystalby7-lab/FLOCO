@@ -188,26 +188,14 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             </div>
           ))}
         </div>
-        <div className="place-nav">
-          {PLACES.map((pl, i) => (
-            <button key={pl.id} className={`place-dot ${i === slide ? 'on' : ''}`} onClick={() => goSlide(i)} aria-label={pl.name}>
-              {i === slide ? (
-                <>
-                  {!owns(pl.id) && <Lock size={10} />}
-                  {pl.name}
-                </>
-              ) : null}
-            </button>
-          ))}
-        </div>
         {slide > 0 && (
-          <button className="place-prev" onClick={() => goSlide(slide - 1)}>
-            ‹ {PLACES[slide - 1].name}
+          <button className="place-arrow prev" onClick={() => goSlide(slide - 1)} aria-label={PLACES[slide - 1].name}>
+            <Chevron />
           </button>
         )}
         {slide < PLACES.length - 1 && (
-          <button className="place-next" onClick={() => goSlide(slide + 1)}>
-            {PLACES[slide + 1].name} ›
+          <button className="place-arrow next" onClick={() => goSlide(slide + 1)} aria-label={PLACES[slide + 1].name}>
+            <Chevron />
           </button>
         )}
         <div className="scene-status">
@@ -477,6 +465,14 @@ function Tick() {
   return (
     <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 8.5 L6.5 12 L13 4.5" />
+    </svg>
+  )
+}
+
+function Chevron() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M9 5 L16 12 L9 19" />
     </svg>
   )
 }
