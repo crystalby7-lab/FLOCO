@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
-import { Playground } from '../components/Playground'
+import { Backdrop, Playground, timeOfDay } from '../components/Playground'
 import { ItemIcon } from '../components/Icons'
 import { ART } from '../components/CatView'
 
@@ -32,7 +32,7 @@ export function Shop() {
     setTimeout(() => setMsg(''), 1500)
   }
 
-  const section = (kind: 'food' | 'deco', title: string) => (
+  const section = (kind: 'food' | 'deco' | 'place', title: string) => (
     <>
       <h2 className="section-title">{title}</h2>
       <div className="shop-grid">
@@ -41,7 +41,13 @@ export function Shop() {
           const on = g.cat.equipped.includes(item.id)
           return (
             <div key={item.id} className={`shop-item ${on ? 'equipped' : ''}`}>
-              <div className="shop-ico">{ICON[item.id] ? <img src={ICON[item.id]} alt="" /> : ItemIcon[item.id]}</div>
+              {kind === 'place' ? (
+                <div className={`shop-place room tod-${timeOfDay()} place-${item.id}`}>
+                  <Backdrop place={item.id} tod={timeOfDay()} />
+                </div>
+              ) : (
+                <div className="shop-ico">{ICON[item.id] ? <img src={ICON[item.id]} alt="" /> : ItemIcon[item.id]}</div>
+              )}
               <b>{item.name}</b>
               {item.desc && <small className="muted">{item.desc}</small>}
               {item.effect && (
@@ -50,7 +56,9 @@ export function Shop() {
                   {item.effect.mood ? `기분 +${item.effect.mood}` : ''}
                 </small>
               )}
-              {owned ? (
+              {owned && kind === 'place' ? (
+                <span className="owned-tag">열림 · 홈에서 옆으로 넘겨요</span>
+              ) : owned ? (
                 <button className={`btn small ${on ? 'primary' : ''}`} onClick={() => actions.toggleEquip(item.id)}>
                   {on ? (item.slot === 'room' ? '두는 중' : '입는 중') : item.slot === 'room' ? '두기' : '입히기'}
                 </button>
@@ -80,6 +88,7 @@ export function Shop() {
       {msg && <p className="toast-inline">{msg}</p>}
       {section('food', '돌보기')}
       {section('deco', '옷·가구')}
+      {section('place', '테마')}
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
   )

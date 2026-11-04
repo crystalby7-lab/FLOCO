@@ -21,6 +21,7 @@ export const RULES = {
   bathPrice: 80,
   questReward: 200, // 퀘스트 첫 완료 시 금고 골드 (레벨은 근거·돌아보기로만)
   dailyReward: 300, // 오늘의 미션 3개 완료 보상
+  talksPerDay: 3, // 고양이 질문에 답하면 기분 +5 (하루 3번)
   floor: 10, // 손실이 나도, 오래 안 들어와도 고양이는 이 아래로 안 떨어짐
   expPerLevel: 100,
   exp: { proposalPass: 15, opposeReason: 5, retro: 30 },
@@ -520,7 +521,7 @@ export const actions = {
     const g = state.guild!
     const item = itemOf(itemId)!
     if (g.gold < item.price) return '금고 골드가 부족해요.'
-    if (item.kind === 'deco' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
+    if (item.kind !== 'food' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
     updateGuild((gg) => {
       let cat = catNow(gg.cat)
       let ng: Guild = { ...gg, gold: gg.gold - item.price }
@@ -532,12 +533,23 @@ export const actions = {
         }
         ng = addFeed({ ...ng, cat }, '🍽', `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`)
       } else {
-        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, '🛍', `${item.name}을(를) 샀어요.`)
+        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, item.kind === 'place' ? '🔓' : '🛍', item.kind === 'place' ? `${me(gg).nickname}님이 ${item.name} 테마를 열었어요.` : `${item.name}을(를) 샀어요.`)
       }
       return ng
     })
     if (item.kind === 'food') markDaily('care')
     return null
+  },
+
+  // 고양이 질문에 답하기 (하루 3번까지 기분이 올라요)
+  answerCat() {
+    set((s) => {
+      const d = s.daily.date === today() ? s.daily : freshDaily()
+      const talks = (d.talks ?? 0) + 1
+      if (!s.guild || talks > RULES.talksPerDay) return { ...s, daily: { ...d, talks } }
+      const cat = catNow(s.guild.cat)
+      return { ...s, daily: { ...d, talks }, guild: { ...s.guild, cat: { ...cat, mood: Math.min(100, cat.mood + 5) } } }
+    })
   },
 
   toggleEquip(itemId: string) {

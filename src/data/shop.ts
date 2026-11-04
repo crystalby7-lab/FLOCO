@@ -5,7 +5,7 @@
 export type ShopItem = {
   id: string
   name: string
-  kind: 'food' | 'deco'
+  kind: 'food' | 'deco' | 'place'
   price: number
   effect?: { hunger?: number; mood?: number }
   slot?: 'outfit' | 'room' // 옷은 한 번에 하나, 가구는 여러 개
@@ -25,6 +25,19 @@ export const SHOP: ShopItem[] = [
   { id: 'box', name: '종이 상자', kind: 'deco', price: 600, slot: 'room', desc: '가끔 들어가서 놀아요' },
   { id: 'cushion', name: '체크 방석', kind: 'deco', price: 1000, slot: 'room', desc: '방석에서 낮잠 자요' },
   { id: 'bed', name: '동굴 침대', kind: 'deco', price: 2200, slot: 'room', desc: '졸리면 들어가요' },
+  // 테마(장소): 홈에서 옆으로 넘기면 나오는 곳. 사면 고양이가 거기서도 놀아요.
+  { id: 'yard', name: '마당', kind: 'place', price: 3000, desc: '잔디밭에서 나비를 쫓아요' },
+  { id: 'rooftop', name: '옥상', kind: 'place', price: 5000, desc: '노을 보면서 바람 쐬요' },
+  { id: 'beach', name: '바닷가', kind: 'place', price: 8000, desc: '파도 소리 들으며 낮잠 자요' },
 ]
+
+// 홈에서 옆으로 넘기는 순서. 방은 처음부터 있어요.
+export const PLACES = [
+  { id: 'room', name: '방' },
+  { id: 'yard', name: '마당' },
+  { id: 'rooftop', name: '옥상' },
+  { id: 'beach', name: '바닷가' },
+] as const
+export type PlaceId = (typeof PLACES)[number]['id']
 
 export const itemOf = (id: string) => SHOP.find((s) => s.id === id)

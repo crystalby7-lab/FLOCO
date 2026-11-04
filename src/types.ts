@@ -98,7 +98,7 @@ export type User = {
   survey?: Survey
 }
 
-export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean }
+export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number }
 
 export type GameState = {
   version: number

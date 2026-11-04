@@ -1,10 +1,15 @@
 // 홈: 길드 고양이 방 · 상태 · 돌보기 · 지금 할 일 · 오늘의 미션 · 자동 훈련 (F7·F8) · 길드 소식
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, today, trainingAvailable, unlocked, useGame, vault } from '../store'
 import { changePct, tickerOf } from '../data/market'
 import { QUESTS } from '../data/quests'
-import { ART } from '../components/CatView'
-import { Playground, timeOfDay, type PlayEvent } from '../components/Playground'
+import { ART, CatFace } from '../components/CatView'
+import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
+import { ConfirmDialog } from '../components/Page'
+import { Lock } from '../components/Icons'
+import { itemOf, PLACES } from '../data/shop'
+import { pickAsk, type Ask } from '../data/catTalk'
+import type { Cat } from '../types'
 import { Gold } from '../components/ui'
 import type { Tab } from '../App'
 
@@ -49,6 +54,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const tod = timeOfDay()
   const [toast, setToast] = useState('')
   const [ev, setEv] = useState<PlayEvent>(null)
+  const [slide, setSlide] = useState(0)
+  const [buying, setBuying] = useState<string | null>(null)
+  const [asking, setAsking] = useState<Ask | null>(null)
+  const track = useRef<HTMLDivElement>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
@@ -79,7 +88,29 @@ export function Home({ go }: { go: (t: Tab) => void }) {
     setTimeout(() => setToast(''), 1800)
   }
 
-  const d = s.daily.date === today() ? s.daily : { quest: false, vote: false, care: false, claimed: false }
+  const d = s.daily.date === today() ? s.daily : { quest: false, vote: false, care: false, claimed: false, talks: 0 }
+  const talks = d.talks ?? 0
+  const hasAsk = talks < RULES.talksPerDay
+  const owns = (id: string) => id === 'room' || g.ownedItems.includes(id)
+
+  const onScroll = () => {
+    const el = track.current
+    if (el) setSlide(Math.round(el.scrollLeft / el.clientWidth))
+  }
+  const goSlide = (i: number) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: 'smooth' })
+
+  const buyPlace = (id: string) => {
+    const err = actions.buyItem(id)
+    setBuying(null)
+    setToast(err ?? `${itemOf(id)!.name} 테마가 열렸어요!`)
+    setTimeout(() => setToast(''), 1800)
+  }
+
+  const tapCat = () => {
+    if (!hasAsk) return false
+    setAsking(pickAsk(s, talks))
+    return true
+  }
   const missions = [
     { done: d.quest, label: '퀘스트 하나 배우기', go: () => go('map') },
     { done: d.vote, label: '친구 제안에 의견 내기', go: () => go('invest') },
@@ -106,7 +137,66 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </div>
           <span className="lv-chip">Lv.{cat.level}</span>
         </header>
-        <Playground cat={cat} event={ev} lines={s.prefs.chatter ? lines : []} onPose={actions.seePose} height={300} catHeight={124} />
+        <div className="places" ref={track} onScroll={onScroll}>
+          {PLACES.map((pl, i) => (
+            <div key={pl.id} className="place-slide">
+              {owns(pl.id) ? (
+                i === slide ? (
+                  <Playground
+                    cat={cat}
+                    event={ev}
+                    lines={s.prefs.chatter ? lines : []}
+                    onPose={actions.seePose}
+                    height={330}
+                    catHeight={124}
+                    place={pl.id}
+                    ask={hasAsk}
+                    onTapCat={tapCat}
+                  />
+                ) : (
+                  <div className={`room tod-${tod} place-${pl.id}`} style={{ height: 330 }}>
+                    <Backdrop place={pl.id} tod={tod} />
+                  </div>
+                )
+              ) : (
+                <div className={`room tod-${tod} place-${pl.id} locked`} style={{ height: 330 }}>
+                  <Backdrop place={pl.id} tod={tod} />
+                  <div className="lock-veil">
+                    <span className="lock-ico">
+                      <Lock size={18} />
+                    </span>
+                    <b>{pl.name}</b>
+                    <small>{itemOf(pl.id)?.desc}</small>
+                    <button className="btn btn-primary btn-sm" onClick={() => setBuying(pl.id)}>
+                      잠금 해제 · {itemOf(pl.id)!.price.toLocaleString()}G
+                    </button>
+                  </div>
+                  <span className="lock-cat" aria-hidden>
+                    <span className="say">가보고 싶다…</span>
+                    <img src={ART.back} alt="" />
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="place-nav">
+          {PLACES.map((pl, i) => (
+            <button key={pl.id} className={`place-dot ${i === slide ? 'on' : ''}`} onClick={() => goSlide(i)} aria-label={pl.name}>
+              {i === slide ? (
+                <>
+                  {!owns(pl.id) && <Lock size={10} />}
+                  {pl.name}
+                </>
+              ) : null}
+            </button>
+          ))}
+        </div>
+        {slide < PLACES.length - 1 && (
+          <button className="place-next" onClick={() => goSlide(slide + 1)}>
+            {PLACES[slide + 1].name} ›
+          </button>
+        )}
         <div className="scene-status">
           <span className="status-line">
             {cat.name}는 {status}
@@ -243,7 +333,63 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </ul>
       </section>
 
+      {buying && (
+        <ConfirmDialog
+          title={`${itemOf(buying)!.name} 테마를 열까요?`}
+          message={`길드 금고에서 ${itemOf(buying)!.price.toLocaleString()}G를 써요. 길드 모두가 같이 쓸 수 있어요.`}
+          ok="열기"
+          cancel="다음에"
+          onOk={() => buyPlace(buying)}
+          onCancel={() => setBuying(null)}
+        />
+      )}
+      {asking && <CatAsk cat={cat} ask={asking} onClose={() => setAsking(null)} />}
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
+    </div>
+  )
+}
+
+// 고양이가 먼저 묻는 질문 (일방형): 고르면 한마디 하고 끝
+function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () => void }) {
+  const [pick, setPick] = useState<number | null>(null)
+  const c = pick === null ? null : ask.choices[pick]
+  return (
+    <div className="ask-layer" onClick={() => c && onClose()}>
+      <div className="ask-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className={`ask-cat ${c ? 'react' : ''}`}>
+          <CatFace cat={cat} face={c?.face ?? 'calm'} size={86} />
+        </div>
+        <div className="ask-bubble" key={pick ?? -1}>
+          <small>{cat.name}</small>
+          <p>{c ? c.reply : ask.q}</p>
+        </div>
+        {c ? (
+          <>
+            <span className="ask-gain">기분 +5</span>
+            <button className="btn btn-primary btn-block" onClick={onClose}>
+              좋아
+            </button>
+          </>
+        ) : (
+          <div className="ask-choices">
+            {ask.choices.map((ch, i) => (
+              <button
+                key={ch.t}
+                className="ask-choice"
+                onClick={() => {
+                  setPick(i)
+                  actions.answerCat()
+                }}
+              >
+                {ch.t}
+              </button>
+            ))}
+            <button className="ask-later" onClick={onClose}>
+              나중에 대답할게
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

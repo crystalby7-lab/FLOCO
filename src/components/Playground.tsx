@@ -29,6 +29,9 @@ export function Playground({
   catHeight = 120,
   lines = [],
   onPose,
+  place = 'room',
+  ask = false,
+  onTapCat,
 }: {
   cat: Cat
   event?: PlayEvent
@@ -36,6 +39,9 @@ export function Playground({
   catHeight?: number
   lines?: string[] // 고양이 혼잣말 후보
   onPose?: (id: string) => void // 앨범 기록용
+  place?: string // 방·마당·옥상·바닷가
+  ask?: boolean // 고양이가 물어볼 게 있으면 머리 위에 ? 말풍선
+  onTapCat?: () => boolean // true를 돌려주면 기본 반응(뒹굴기) 대신 그쪽에서 처리
 }) {
   const room = useRef<HTMLDivElement>(null)
   const timer = useRef<number | undefined>(undefined)
@@ -111,7 +117,7 @@ export function Playground({
       return walkTo(tx, () => stay(pick<Pose>(['sit', 'sit', 'side', 'lielook', 'stretch']), rand(2600, 4500)))
     }
     if (r < 0.66) return stay('sit', rand(2500, 4000))
-    if (r < 0.72) return walkTo(SPOT.window, () => stay(pick<Pose>(['back', 'back2']), rand(3000, 4500)))
+    if (r < 0.72) return walkTo(place === 'room' ? SPOT.window : rand(0.2, 0.8), () => stay(pick<Pose>(['back', 'back2']), rand(3000, 4500)))
     if (r < 0.77) return stay('stretch', 2400)
     if (r < 0.83) return stay(pick<Pose>(['lie', 'lielook']), rand(3500, 6000))
     if (r < 0.89 && has('box')) return walkTo(SPOT.box, () => stay('box', rand(4000, 6000)))
@@ -188,6 +194,11 @@ export function Playground({
   }, [event?.key])
 
   const tap = () => {
+    if (onTapCat?.()) {
+      setHopping(true)
+      window.setTimeout(() => setHopping(false), 460)
+      return
+    }
     if (walking) return
     setHopping(true)
     window.setTimeout(() => setHopping(false), 460)
@@ -204,35 +215,8 @@ export function Playground({
   const flip = (dir === 'left' && facing === 'right') || (dir === 'right' && facing === 'left')
 
   return (
-    <div className={`room tod-${tod}`} ref={room} style={{ height }}>
-      <div className="room-wall">
-        <div className="window" style={{ left: `${SPOT.window * 100}%` }} aria-hidden>
-          {tod === 'night' ? (
-            <>
-              <span className="moon" />
-              <span className="star s1" />
-              <span className="star s2" />
-              <span className="star s3" />
-            </>
-          ) : (
-            <>
-              <span className="sun" />
-              <span className="cloud c1" />
-              <span className="cloud c2" />
-            </>
-          )}
-        </div>
-        <div className="lamp" aria-hidden>
-          <i />
-        </div>
-        <div className="shelf" aria-hidden>
-          <i className="b1" />
-          <i className="b2" />
-          <i className="b3" />
-        </div>
-      </div>
-      <div className="room-floor" />
-      <div className="rug" aria-hidden />
+    <div className={`room tod-${tod} place-${place}`} ref={room} style={{ height }}>
+      <Backdrop place={place} tod={tod} />
       {bowl && (
         <svg className="room-bowl" style={{ left: '74%' }} viewBox="0 0 60 30" aria-hidden>
           <path d="M4 10 h52 a26 18 0 0 1 -52 0 Z" fill="#C9DCEF" stroke="#8a7b74" strokeWidth="2.5" />
@@ -269,7 +253,8 @@ export function Playground({
             <i />
           </span>
         )}
-        {talk && !face && !walking && <span className="say talk">{talk}</span>}
+        {ask && !face && !walking && <span className="ask-mark">?</span>}
+        {talk && !ask && !face && !walking && <span className="say talk">{talk}</span>}
         {face && (
           <span key={face.key} className="reaction">
             <CatFace cat={cat} face={face.f} size={50} />
@@ -280,5 +265,96 @@ export function Playground({
         {!face && !talk && !hungry && dirty && !walking && pose !== 'bath' && <span className="say">꼬질꼬질…</span>}
       </button>
     </div>
+  )
+}
+
+// 장소별 배경 (잠긴 장소 미리보기에도 쓴다)
+export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
+  const night = tod === 'night'
+  if (place === 'yard')
+    return (
+      <>
+        <div className="room-wall" />
+        <span className={night ? 'moon' : 'sun'} style={{ left: '78%', top: 70 }} aria-hidden />
+        <span className="cloud c1" aria-hidden />
+        <span className="cloud c2" aria-hidden />
+        <div className="tree" aria-hidden>
+          <i />
+        </div>
+        <div className="fence" aria-hidden />
+        <div className="room-floor" />
+        <span className="flower f1" aria-hidden />
+        <span className="flower f2" aria-hidden />
+        <span className="flower f3" aria-hidden />
+        {!night && <span className="butterfly" aria-hidden />}
+      </>
+    )
+  if (place === 'rooftop')
+    return (
+      <>
+        <div className="room-wall" />
+        <span className={night ? 'moon' : 'sun low'} style={{ left: '30%', top: 96 }} aria-hidden />
+        <div className="city" aria-hidden>
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+        <div className="lights" aria-hidden>
+          {Array.from({ length: 9 }, (_, i) => (
+            <i key={i} />
+          ))}
+        </div>
+        <div className="rail" aria-hidden />
+        <div className="room-floor" />
+      </>
+    )
+  if (place === 'beach')
+    return (
+      <>
+        <div className="room-wall" />
+        <span className={night ? 'moon' : 'sun'} style={{ left: '72%', top: 80 }} aria-hidden />
+        <span className="cloud c1" aria-hidden />
+        <div className="sea" aria-hidden>
+          <i />
+        </div>
+        <div className="room-floor" />
+        <span className="shell" aria-hidden />
+        <div className="parasol" aria-hidden />
+      </>
+    )
+  return (
+    <>
+      <div className="room-wall">
+        <div className="window" style={{ left: `${SPOT.window * 100}%` }} aria-hidden>
+          {night ? (
+            <>
+              <span className="moon" />
+              <span className="star s1" />
+              <span className="star s2" />
+              <span className="star s3" />
+            </>
+          ) : (
+            <>
+              <span className="sun" />
+              <span className="cloud c1" />
+              <span className="cloud c2" />
+            </>
+          )}
+        </div>
+        <div className="lamp" aria-hidden>
+          <i />
+        </div>
+        <div className="shelf" aria-hidden>
+          <i className="b1" />
+          <i className="b2" />
+          <i className="b3" />
+        </div>
+      </div>
+      <div className="room-floor" />
+      <div className="rug" aria-hidden />
+    </>
   )
 }
