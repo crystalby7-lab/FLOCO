@@ -63,6 +63,7 @@ export type Guild = {
   retros: Retro[]
   feed: FeedItem[]
   ownedItems: string[]
+  inventory: Record<string, number> // 상점에서 사서 아직 안 준 먹이·장난감 개수
   album: string[] // 한 번이라도 본 고양이 모습
   levelSeen: number // 레벨업 축하를 본 마지막 레벨
   createdAt: number

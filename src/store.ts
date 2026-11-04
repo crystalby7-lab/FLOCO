@@ -52,6 +52,7 @@ function migrate(raw: Partial<GameState>): GameState {
     s.guild = {
       ...g,
       album: g.album ?? [],
+      inventory: g.inventory ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
       cat: { ...g.cat, clean: g.cat.clean ?? 80 },
@@ -332,6 +333,7 @@ export const actions = {
         retros: [],
         feed: [],
         ownedItems: [],
+        inventory: { feed: 2, toy: 1 },
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -356,6 +358,7 @@ export const actions = {
         retros: [],
         feed: [],
         ownedItems: [],
+        inventory: { feed: 2, toy: 1 },
         album: [],
         levelSeen: 1,
         createdAt: now(),
@@ -517,27 +520,45 @@ export const actions = {
     set((s) => ({ ...s, prefs: { ...s.prefs, [key]: value } }))
   },
 
+  // 상점에서 사기: 먹이·장난감은 보관함 개수만 늘고, 홈에서 '주기'를 눌러야 고양이가 받는다
   buyItem(itemId: string): string | null {
     const g = state.guild!
     const item = itemOf(itemId)!
     if (g.gold < item.price) return '금고 골드가 부족해요.'
     if (item.kind !== 'food' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
     updateGuild((gg) => {
-      let cat = catNow(gg.cat)
-      let ng: Guild = { ...gg, gold: gg.gold - item.price }
-      if (item.kind === 'food') {
-        cat = {
-          ...cat,
-          hunger: Math.min(100, cat.hunger + (item.effect?.hunger ?? 0)),
-          mood: Math.min(100, cat.mood + (item.effect?.mood ?? 0)),
-        }
-        ng = addFeed({ ...ng, cat }, '🍽', `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`)
-      } else {
-        ng = addFeed({ ...ng, ownedItems: [...ng.ownedItems, itemId] }, item.kind === 'place' ? '🔓' : '🛍', item.kind === 'place' ? `${me(gg).nickname}님이 ${item.name} 테마를 열었어요.` : `${item.name}을(를) 샀어요.`)
-      }
-      return ng
+      const ng: Guild = { ...gg, gold: gg.gold - item.price }
+      if (item.kind === 'food') return { ...ng, inventory: { ...ng.inventory, [itemId]: (ng.inventory[itemId] ?? 0) + 1 } }
+      return addFeed(
+        { ...ng, ownedItems: [...ng.ownedItems, itemId] },
+        item.kind === 'place' ? '🔓' : '🛍',
+        item.kind === 'place' ? `${me(gg).nickname}님이 ${item.name} 테마를 열었어요.` : `${me(gg).nickname}님이 ${item.name}을(를) 샀어요.`,
+      )
     })
-    if (item.kind === 'food') markDaily('care')
+    return null
+  },
+
+  // 홈에서 주기: 보관함에서 하나 꺼내 고양이에게
+  giveItem(itemId: string): string | null {
+    const g = state.guild!
+    const item = itemOf(itemId)!
+    if ((g.inventory[itemId] ?? 0) <= 0) return '보관함에 없어요. 상점에서 사 와요.'
+    updateGuild((gg) => {
+      const cat = catNow(gg.cat)
+      const e = item.effect ?? {}
+      const ncat = {
+        ...cat,
+        hunger: Math.min(100, cat.hunger + (e.hunger ?? 0)),
+        mood: Math.min(100, cat.mood + (e.mood ?? 0)),
+        clean: e.clean ? Math.min(100, (cat.clean ?? 80) + e.clean) : cat.clean,
+      }
+      return addFeed(
+        { ...gg, cat: ncat, inventory: { ...gg.inventory, [itemId]: (gg.inventory[itemId] ?? 0) - 1 } },
+        itemId === 'bath' ? '🛁' : '🍽',
+        itemId === 'bath' ? `${me(gg).nickname}님이 ${gg.cat.name}를 씻겨줬어요.` : `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`,
+      )
+    })
+    markDaily('care')
     return null
   },
 

@@ -8209,3 +8209,155 @@ body {
 .lock-cat img {
   height: 70px;
 }
+
+/* ═══════════ v5.2 — 보관함에서 주기 · 옷장 · 뒤로 가기 ═══════════ */
+.place-prev {
+  position: absolute;
+  z-index: 4;
+  left: 12px;
+  top: 214px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--blue);
+  padding: 6px 10px;
+  box-shadow: 0 4px 10px -6px rgba(30, 70, 120, 0.6);
+}
+.care-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.care-face {
+  position: relative;
+  overflow: visible;
+}
+.care-face img {
+  border-radius: 18px;
+}
+.care-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+}
+.care-btn.empty .care-count {
+  background: #c9d3df;
+}
+.care-btn.empty img {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+}
+.care-btn.on .care-face {
+  background: #dfeafb;
+  box-shadow: 0 0 0 2.5px var(--blue);
+}
+.give-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 10px 10px 10px 16px;
+  box-shadow: var(--card-shadow);
+  animation: pop-in 0.25s var(--ease);
+}
+.give-bar span {
+  display: flex;
+  flex-direction: column;
+}
+.give-bar b {
+  font-size: 15px;
+  font-weight: 800;
+}
+.give-bar small {
+  font-size: 12px;
+  color: var(--sub);
+}
+.give-shop {
+  background: #eaf1fb;
+  color: var(--blue);
+  border: 0;
+}
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.closet-btn {
+  pointer-events: auto;
+  background: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--blue);
+  box-shadow: 0 4px 10px -6px rgba(30, 70, 120, 0.6);
+}
+.ask-sheet.closet {
+  align-items: stretch;
+  padding-top: 20px;
+}
+.closet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.closet-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #f3f7fc;
+  border: 0;
+  border-radius: 16px;
+  padding: 10px 6px;
+}
+.closet-item img {
+  height: 60px;
+}
+.closet-item b {
+  font-size: 13px;
+  font-weight: 800;
+}
+.closet-item small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.closet-item.on {
+  background: #e3eefc;
+  box-shadow: 0 0 0 2.5px var(--blue);
+}
+.shop-item {
+  position: relative;
+}
+.have-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  z-index: 1;
+}
+.place-prev,
+.place-next {
+  top: 150px;
+}

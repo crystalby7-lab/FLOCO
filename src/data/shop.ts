@@ -7,7 +7,7 @@ export type ShopItem = {
   name: string
   kind: 'food' | 'deco' | 'place'
   price: number
-  effect?: { hunger?: number; mood?: number }
+  effect?: { hunger?: number; mood?: number; clean?: number }
   slot?: 'outfit' | 'room' // 옷은 한 번에 하나, 가구는 여러 개
   desc?: string
 }
@@ -17,6 +17,7 @@ export const SHOP: ShopItem[] = [
   { id: 'snack', name: '생선 인형 간식', kind: 'food', price: 180, effect: { hunger: 15, mood: 25 } },
   { id: 'boba', name: '버블티', kind: 'food', price: 200, effect: { hunger: 10, mood: 30 } },
   { id: 'toy', name: '낚싯대 장난감', kind: 'food', price: 150, effect: { mood: 30 } },
+  { id: 'bath', name: '거품 목욕', kind: 'food', price: 80, effect: { clean: 100, mood: 5 } },
   { id: 'hoodie', name: '하늘 후드', kind: 'deco', price: 1200, slot: 'outfit' },
   { id: 'beret', name: '베레모 세트', kind: 'deco', price: 1500, slot: 'outfit' },
   { id: 'dino', name: '공룡 옷', kind: 'deco', price: 1800, slot: 'outfit' },
@@ -33,7 +34,7 @@ export const SHOP: ShopItem[] = [
 
 // 홈에서 옆으로 넘기는 순서. 방은 처음부터 있어요.
 export const PLACES = [
-  { id: 'room', name: '방' },
+  { id: 'room', name: '거실' },
   { id: 'yard', name: '마당' },
   { id: 'rooftop', name: '옥상' },
   { id: 'beach', name: '바닷가' },

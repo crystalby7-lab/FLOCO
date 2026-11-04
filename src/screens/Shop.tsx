@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
-import { Backdrop, Playground, timeOfDay } from '../components/Playground'
+import { Backdrop, timeOfDay } from '../components/Playground'
 import { ItemIcon } from '../components/Icons'
 import { ART } from '../components/CatView'
 
@@ -11,6 +11,8 @@ const ICON: Record<string, string> = {
   snack: ART.hug,
   boba: ART.boba,
   toy: ART.toy,
+  bath: ART.bath,
+  feed: ART.side,
   hoodie: ART.hoodie,
   beret: ART.beret,
   dino: ART.dino,
@@ -28,7 +30,8 @@ export function Shop() {
 
   const buy = (id: string) => {
     const err = actions.buyItem(id)
-    setMsg(err ?? '샀어요!')
+    const it = SHOP.find((i) => i.id === id)!
+    setMsg(err ?? (it.kind === 'food' ? `${it.name} 보관함에 넣었어요 · 홈에서 줘요` : it.kind === 'place' ? '테마가 열렸어요 · 홈에서 옆으로 넘겨요' : '옷장에 넣었어요 · 홈에서 입혀요'))
     setTimeout(() => setMsg(''), 1500)
   }
 
@@ -41,6 +44,7 @@ export function Shop() {
           const on = g.cat.equipped.includes(item.id)
           return (
             <div key={item.id} className={`shop-item ${on ? 'equipped' : ''}`}>
+              {kind === 'food' && (g.inventory[item.id] ?? 0) > 0 && <span className="have-badge">보유 {g.inventory[item.id]}</span>}
               {kind === 'place' ? (
                 <div className={`shop-place room tod-${timeOfDay()} place-${item.id}`}>
                   <Backdrop place={item.id} tod={timeOfDay()} />
@@ -59,9 +63,7 @@ export function Shop() {
               {owned && kind === 'place' ? (
                 <span className="owned-tag">열림 · 홈에서 옆으로 넘겨요</span>
               ) : owned ? (
-                <button className={`btn small ${on ? 'primary' : ''}`} onClick={() => actions.toggleEquip(item.id)}>
-                  {on ? (item.slot === 'room' ? '두는 중' : '입는 중') : item.slot === 'room' ? '두기' : '입히기'}
-                </button>
+                <span className="owned-tag">옷장에 있어요</span>
               ) : (
                 <button className="btn small" onClick={() => buy(item.id)}>
                   <Gold value={item.price} />
@@ -82,12 +84,9 @@ export function Shop() {
           <h1>상점</h1>
         </div>
       </header>
-      <div className="bleed">
-        <Playground cat={g.cat} height={230} catHeight={112} />
-      </div>
       {msg && <p className="toast-inline">{msg}</p>}
-      {section('food', '돌보기')}
-      {section('deco', '옷·가구')}
+      {section('food', '먹이·장난감 · 사면 보관함으로')}
+      {section('deco', '옷·가구 · 홈 옷장에서 입혀요')}
       {section('place', '테마')}
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
