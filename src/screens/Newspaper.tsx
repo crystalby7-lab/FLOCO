@@ -1,9 +1,8 @@
-// 오늘의 플로코 신문: 고양이 기자들이 섹션마다 2~3줄로 전해주는 원페이퍼 뉴스
-// 홈에는 시장 요약과 섹션 둘만 접어서 보여주고, 펼치면 전체 화면으로 연다.
+// 오늘의 플로코 신문
+// 고양이 기자가 기사를 읽고 새로 써준 신문. 홈에는 1면과 섹션 둘만, 펼치면 전체 화면.
 import { useEffect, useState } from 'react'
-import { useGame } from '../store'
-import { tickerOf } from '../data/market'
-import { DESK, dateLabel, loadNews, WEATHER_LABEL, type News, type NewsSection, type Weather } from '../data/news'
+import { actions } from '../store'
+import { DESK, dateLabel, isStale, loadNews, STORY_DESKS, WEATHER_LABEL, type DeskId, type News, type Story, type Weather } from '../data/news'
 import { ART } from '../components/CatView'
 import { Page } from '../components/Page'
 
@@ -24,179 +23,177 @@ function useNews() {
   return { news, done }
 }
 
-// 길드가 지금 들고 있거나 의견을 모으는 중인 종목의 소식만 고른다
-function ourTickers(news: News, codes: string[]) {
-  return codes.filter((c) => news.tickers?.[c]?.articles?.length).map((c) => ({ code: c, sec: news.tickers[c] }))
-}
-
 export function NewsCard({ onOpen }: { onOpen: () => void }) {
-  const s = useGame()
-  const g = s.guild!
   const { news, done } = useNews()
+  const [toast, setToast] = useState('')
 
   if (!news)
     return (
       <section className="card np-card">
-        <div className="np-head">
-          <span className="np-date">오늘의 플로코 신문</span>
-          <img className="np-head-cat" src={ART.b_tuxedo} alt="" aria-hidden />
-        </div>
+        <h3 className="np-title">오늘의 플로코 신문</h3>
         <p className="np-empty">{done ? '신문을 아직 못 받았어요. 잠시 뒤에 다시 와주세요.' : '신문을 가져오는 중…'}</p>
       </section>
     )
 
-  const codes = [...new Set(g.proposals.filter((p) => p.status === 'holding' || p.status === 'voting').map((p) => p.ticker))]
-  const ours = ourTickers(news, codes)
-
   return (
     <section className="card np-card">
-      <div className="np-head">
-        <div className="grow">
-          <span className="np-date">
-            {dateLabel(news.date)}
-            {news.sample && <i className="np-sample">예시</i>}
-          </span>
-          <h3 className="np-title">오늘의 플로코 신문</h3>
-        </div>
-        <img className="np-head-cat" src={ART.b_tuxedo} alt="" aria-hidden />
-      </div>
-
-      <div className="np-weather">
-        <WeatherIcon w={news.market.weather} />
-        <div>
-          <b>시장 날씨 · {WEATHER_LABEL[news.market.weather]}</b>
-          <p>{news.market.summary}</p>
-        </div>
-      </div>
-
-      <Desk k="market" sec={news.sections.market} compact />
-      <OursDesk ours={ours} compact />
-
+      <Masthead news={news} />
+      <Front story={news.front} onToast={setToast} />
+      <Desk id="market" stories={news.sections.market.slice(0, 1)} onToast={setToast} />
+      <Desk id="life" stories={news.sections.life.slice(0, 1)} onToast={setToast} />
       <button className="btn btn-primary btn-block" onClick={onOpen}>
         신문 펼치기
       </button>
+      <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </section>
   )
 }
 
 export function Newspaper({ onClose }: { onClose: () => void }) {
-  const s = useGame()
-  const g = s.guild!
   const { news, done } = useNews()
+  const [toast, setToast] = useState('')
 
   if (!news)
     return (
-      <Page title="오늘의 플로코 신문" sub="고양이 기자들의 한 장 소식" onExit={onClose}>
+      <Page title="오늘의 플로코 신문" sub="고양이 기자들이 읽고 다시 썼어요" onExit={onClose}>
         <p className="np-empty">{done ? '신문을 아직 못 받았어요. 잠시 뒤에 다시 와주세요.' : '신문을 가져오는 중…'}</p>
       </Page>
     )
 
-  const codes = [...new Set(g.proposals.filter((p) => p.status === 'holding' || p.status === 'voting').map((p) => p.ticker))]
-  const ours = ourTickers(news, codes)
-
   return (
-    <Page title="오늘의 플로코 신문" sub={`${dateLabel(news.date)}${news.sample ? ' · 예시 기사' : ''}`} onExit={onClose}>
-      <section className="np-banner">
-        <WeatherIcon w={news.market.weather} size={44} />
-        <div>
-          <b>시장 날씨 · {WEATHER_LABEL[news.market.weather]}</b>
-          <p>{news.market.summary}</p>
-        </div>
-      </section>
-
-      <Desk k="market" sec={news.sections.market} />
-      <OursDesk ours={ours} />
-      <Desk k="life" sec={news.sections.life} />
-      <Desk k="world" sec={news.sections.world} />
-      <Desk k="word" sec={news.sections.word} term={news.sections.word.term} />
-
-      <p className="fineprint np-foot">
-        기사 요약과 링크만 가져와요. 어떤 종목을 사라거나 팔라는 뜻이 아니고, 무슨 일이 있었는지 같이 읽어보는 자리예요.
-      </p>
+    <Page title="오늘의 플로코 신문" sub={dateLabel(news.date)} onExit={onClose}>
+      <div className="np-full">
+        <Weatherline news={news} big />
+        <Front story={news.front} onToast={setToast} />
+        {STORY_DESKS.map((id) => (
+          <Desk key={id} id={id} stories={news.sections[id] ?? []} onToast={setToast} />
+        ))}
+        <Desk id="word" stories={[news.word]} onToast={setToast} />
+        <p className="fineprint np-foot">
+          고양이 기자가 기사를 읽고 우리 말로 새로 쓴 신문이에요. 원문은 링크로 달아뒀어요. 어떤 종목을 사라거나 팔라는 뜻은 아니에요.
+        </p>
+      </div>
+      <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </Page>
+  )
+}
+
+// ───────── 머리글 ─────────
+
+function Masthead({ news }: { news: News }) {
+  return (
+    <header className="np-head">
+      <div className="np-head-text">
+        <span className="np-date">{dateLabel(news.date)}</span>
+        <h3 className="np-title">오늘의 플로코 신문</h3>
+        {(news.sample || isStale(news)) && (
+          <div className="np-chips">
+            {news.sample && <span className="np-chip">예시 신문</span>}
+            {isStale(news) && <span className="np-chip wait">새 신문 준비 중</span>}
+          </div>
+        )}
+      </div>
+      <img className="np-head-cat" src={ART.b_tuxedo} alt="" aria-hidden />
+    </header>
+  )
+}
+
+function Weatherline({ news, big }: { news: News; big?: boolean }) {
+  return (
+    <div className={`np-weather ${big ? 'big' : ''}`}>
+      <WeatherIcon w={news.market.weather} size={big ? 42 : 32} />
+      <div className="np-weather-text">
+        <b>
+          시장 날씨 · {WEATHER_LABEL[news.market.weather]}
+          {big && isStale(news) && <span className="np-chip wait">새 신문 준비 중</span>}
+        </b>
+        <p>{news.market.note}</p>
+      </div>
+    </div>
+  )
+}
+
+// ───────── 1면 ─────────
+
+function Front({ story, onToast }: { story: News['front']; onToast: (m: string) => void }) {
+  const desk = DESK[story.desk] ?? DESK.market
+  return (
+    <section className="np-front">
+      <div className="np-front-top">
+        <span className="np-front-label">1면</span>
+        <small>{desk.by}가 골랐어요</small>
+      </div>
+      <StoryBody story={story} cat={desk.cat} front onToast={onToast} />
+    </section>
   )
 }
 
 // ───────── 섹션 ─────────
 
-function Desk({ k, sec, term, compact }: { k: keyof typeof DESK; sec: NewsSection; term?: string; compact?: boolean }) {
-  const d = DESK[k]
+function Desk({ id, stories, onToast }: { id: DeskId; stories: Story[]; onToast: (m: string) => void }) {
+  const d = DESK[id]
+  if (!stories.length) return null
   return (
-    <article className={`np-sec ${compact ? 'compact' : ''}`}>
+    <section className="np-desk">
+      <h4 className="np-desk-title">{d.title}</h4>
+      {stories.slice(0, 2).map((s, i) => (
+        <StoryBody key={s.headline + i} story={s} cat={d.cat} by={d.by} onToast={onToast} />
+      ))}
+    </section>
+  )
+}
+
+// ───────── 기사 한 꼭지 ─────────
+
+function StoryBody({ story, cat, by, front, onToast }: { story: Story; cat: string; by?: string; front?: boolean; onToast: (m: string) => void }) {
+  const toGuild = () => {
+    actions.postBoard(`[신문] ${story.headline}`)
+    onToast('길드 한마디에 올렸어요')
+    setTimeout(() => onToast(''), 1700)
+  }
+  return (
+    <article className={`np-story ${front ? 'front' : ''}`}>
       <div className="np-by">
-        <img src={ART[d.cat]} alt="" />
-        <small>{d.by}</small>
+        <img src={ART[cat]} alt="" />
+        {by && <small>{by}</small>}
       </div>
-      <div className="np-body">
-        <h4>
-          {d.title}
-          {term && <span className="np-term">{term}</span>}
-        </h4>
-        <div className="np-bubble">
-          {sec.lines.map((l, i) => (
-            <p key={i}>{l}</p>
-          ))}
-        </div>
-        {sec.tags.length > 0 && (
+      <div className="np-bubble">
+        {story.term && <span className="np-term">{story.term}</span>}
+        <h5 className="np-headline">{story.headline}</h5>
+        <dl className="np-qa">
+          <div>
+            <dt>무슨 일?</dt>
+            <dd>{story.what}</dd>
+          </div>
+          <div>
+            <dt>왜 중요해?</dt>
+            <dd>{story.why}</dd>
+          </div>
+          <div>
+            <dt>나랑 무슨 상관?</dt>
+            <dd>{story.me}</dd>
+          </div>
+        </dl>
+        <p className="np-say">{story.cat}</p>
+        {story.tags && story.tags.length > 0 && (
           <div className="np-tags">
-            {sec.tags.map((t) => (
+            {story.tags.map((t) => (
               <span key={t} className="np-tag">
                 #{t}
               </span>
             ))}
           </div>
         )}
-        <ul className="np-links">
-          {(compact ? sec.articles.slice(0, 1) : sec.articles).map((a) => (
-            <li key={a.url}>
-              <a href={a.url} target="_blank" rel="noreferrer">
-                <span className="grow">{a.title}</span>
-                <small>{a.source} ›</small>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </article>
-  )
-}
-
-function OursDesk({ ours, compact }: { ours: { code: string; sec: NewsSection }[]; compact?: boolean }) {
-  const d = DESK.ours
-  return (
-    <article className={`np-sec ${compact ? 'compact' : ''}`}>
-      <div className="np-by">
-        <img src={ART[d.cat]} alt="" />
-        <small>{d.by}</small>
-      </div>
-      <div className="np-body">
-        <h4>{d.title}</h4>
-        {ours.length === 0 ? (
-          <div className="np-bubble">
-            <p>아직 우리 종목 소식은 없어요.</p>
-          </div>
-        ) : (
-          (compact ? ours.slice(0, 1) : ours).map(({ code, sec }) => (
-            <div key={code} className="np-ours">
-              <span className="np-tag on">{tickerOf(code).name}</span>
-              <div className="np-bubble">
-                {sec.lines.map((l, i) => (
-                  <p key={i}>{l}</p>
-                ))}
-              </div>
-              <ul className="np-links">
-                {(compact ? sec.articles.slice(0, 1) : sec.articles).map((a) => (
-                  <li key={a.url}>
-                    <a href={a.url} target="_blank" rel="noreferrer">
-                      <span className="grow">{a.title}</span>
-                      <small>{a.source} ›</small>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        )}
+        <div className="np-actions">
+          <button className="np-share" onClick={toGuild}>
+            이 얘기 길드에 꺼내기
+          </button>
+          {story.link && (
+            <a className="np-link" href={story.link.url} target="_blank" rel="noreferrer">
+              원문 · {story.link.source} ›
+            </a>
+          )}
+        </div>
       </div>
     </article>
   )
