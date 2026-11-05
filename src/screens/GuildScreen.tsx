@@ -1,6 +1,6 @@
 // 길드: 우리 길드 기록 · 이번 주 같이 할 일 · 친구들(응원) · 길드 한마디 · 초대
 import { useState } from 'react'
-import { actions, memberName, useGame, vault } from '../store'
+import { actions, memberName, today, useGame, vault } from '../store'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
 
@@ -113,7 +113,7 @@ export function GuildScreen() {
             </div>
             {!m.isMe && (
               <button
-                className={`cheer-btn ${g.cheers[m.id] === new Date().toISOString().slice(0, 10) ? 'done' : ''}`}
+                className={`cheer-btn ${g.cheers[`${myId}>${m.id}`] === today() ? 'done' : ''}`}
                 onClick={() => {
                   const err = actions.cheer(m.id)
                   flash(err ?? `${m.nickname}에게 응원을 보냈어요`)

@@ -9814,3 +9814,11 @@ label.set2-row:active {
 .app.fs-large .sheet-body {
   zoom: 1.08;
 }
+
+/* 길드 참가 오류 메시지 */
+.form-err {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  text-align: center;
+}

@@ -10,6 +10,7 @@ import { ART } from '../components/CatView'
 import { Avatar } from '../components/Avatar'
 import { Survey } from './Survey'
 import { ProfileEditor } from './ProfileEditor'
+import { useSyncStatus, type SyncStatus } from '../sync'
 import logoFace from '../assets/logo-face.png'
 import type { Prefs } from '../types'
 
@@ -23,6 +24,14 @@ const titleOf = (level: number) =>
 
 const FONT_LABEL: Record<Prefs['fontScale'], string> = { small: '작게', normal: '보통', large: '크게' }
 const hh = (h: number) => `${String(h).padStart(2, '0')}:00`
+
+// 서버 연결 상태에 따라 계정 그룹 아래 설명이 바뀐다
+const syncNote = (sync: SyncStatus) =>
+  sync === 'online'
+    ? '익명으로 로그인해서 길드 친구들과 실시간으로 같이 보고 있어요.'
+    : sync === 'connecting'
+      ? '서버에 연결하는 중이에요.'
+      : '서버에 닿지 못해 혼자 모드예요. 기록은 이 기기에만 저장돼요.'
 
 type SheetId =
   | null
@@ -56,6 +65,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
   const [taps, setTaps] = useState(0)
   const [dev, setDev] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+  const sync = useSyncStatus()
   const type = u.survey ? typeOf(u.survey) : null
 
   const flash = (msg: string) => {
@@ -158,8 +168,14 @@ export function Settings({ onClose }: { onClose: () => void }) {
           <Chev />
         </button>
 
-        <Group title="계정" note="지금은 로그인 없이 이 기기에만 저장돼요.">
-          <Row icon="key" tone="sky" label="로그인 방식" value="익명" onClick={() => setSheet('login')} />
+        <Group title="계정" note={syncNote(sync)}>
+          <Row icon="key" tone="sky" label="로그인 방식" value={sync === 'online' ? '익명 (서버 연결됨)' : '익명'} onClick={() => setSheet('login')} />
+          <Row
+            icon="cloud"
+            tone={sync === 'online' ? 'mint' : 'grey'}
+            label="서버 연결"
+            value={sync === 'online' ? '연결됨' : sync === 'connecting' ? '연결 중…' : '혼자 모드'}
+          />
           <Row icon="person" tone="sky" label="닉네임·학년" value={`${u.nickname} · ${u.grade}`} onClick={() => setSheet('profile')} />
           <Row icon="clipboard" tone="lilac" label="처음 설문 답변" value={type?.name ?? '아직 없음'} onClick={() => setSheet('answers')} />
           <Row icon="logout" tone="grey" label="로그아웃" onClick={soon} />
@@ -226,7 +242,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
           <Row icon="block" tone="red" label="차단·신고" onClick={soon} />
           <Row icon="doc" tone="lilac" label="개인정보처리방침" onClick={() => setSheet('privacy')} />
           <Row icon="doc" tone="lilac" label="이용약관" onClick={() => setSheet('terms')} />
-          <Row icon="cloud" tone="grey" label="저장 위치" value="이 기기에만" />
+          <Row icon="cloud" tone="grey" label="저장 위치" value={sync === 'online' ? '이 기기 + 서버' : '이 기기에만'} />
         </Group>
 
         <Group title="도움말">
@@ -267,9 +283,14 @@ export function Settings({ onClose }: { onClose: () => void }) {
 
       {sheet === 'login' && (
         <Sheet title="로그인 방식" onClose={() => setSheet(null)}>
-          <OptionRow label="익명으로 쓰기" sub="이 기기에만 기록이 남아요" on onClick={() => setSheet(null)} />
+          <OptionRow
+            label="익명으로 쓰기"
+            sub={sync === 'online' ? '로그인 없이 서버와 연결돼 있어요' : '서버에 닿지 못해 이 기기에만 기록이 남아요'}
+            on
+            onClick={() => setSheet(null)}
+          />
           <OptionRow label="구글 계정 연결" sub="기기를 바꿔도 기록이 따라와요" soon onClick={soon} />
-          <p className="fineprint">서버(Firebase) 연결 전이라 아직 계정을 만들 수 없어요. 지금 기록은 이 브라우저에만 저장돼요.</p>
+          <p className="fineprint">지금은 익명 로그인이라 기기를 바꾸면 기록이 이어지지 않아요. 구글 연결이 열리면 따라와요.</p>
         </Sheet>
       )}
 
@@ -513,7 +534,13 @@ export function Settings({ onClose }: { onClose: () => void }) {
             </li>
             <li>
               <b>어디에 저장되나요</b>
-              <span>지금 테스트 버전은 이 휴대폰 브라우저에만 저장돼요. '계정 삭제'를 누르면 모두 지워져요.</span>
+              <span>
+                이 휴대폰 브라우저에 저장하고, 서버에 연결되면 길드 친구들과 같이 보도록 서버에도 저장해요. 서버에 못 닿으면 이 기기에만 남아요.
+              </span>
+            </li>
+            <li>
+              <b>지우고 싶을 때</b>
+              <span>'계정 삭제'를 누르면 이 기기의 기록이 모두 지워져요.</span>
             </li>
             <li>
               <b>내려받기</b>
