@@ -1,4 +1,5 @@
-// 홈: 길드 고양이 방 · 상태 · 돌보기 · 지금 할 일 · 오늘의 미션 · 자동 훈련 (F7·F8) · 길드 소식
+// 홈: 길드 고양이 방 · 상태 · 돌보기 · 지금 할 일 · 오늘의 미션 · 자동 훈련 (F7·F8) · 오늘의 플로코 신문
+// 길드 소식(피드)은 길드 탭으로 옮겼다.
 import { useEffect, useRef, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, today, trainingAvailable, unlocked, useGame, vault } from '../store'
 import { changePct, tickerOf } from '../data/market'
@@ -9,6 +10,7 @@ import { ConfirmDialog } from '../components/Page'
 import { Lock } from '../components/Icons'
 import { itemOf, PLACES } from '../data/shop'
 import { pickAsk, type Ask } from '../data/catTalk'
+import { NewsCard, Newspaper } from './Newspaper'
 import type { Cat } from '../types'
 import { Gold } from '../components/ui'
 import type { Tab } from '../App'
@@ -20,18 +22,6 @@ function useTick(ms = 30_000) {
     return () => clearInterval(id)
   }, [ms])
 }
-
-const timeAgo = (at: number) => {
-  const m = Math.floor((Date.now() - at) / 60000)
-  if (m < 1) return '방금'
-  if (m < 60) return `${m}분 전`
-  const h = Math.floor(m / 60)
-  return h < 24 ? `${h}시간 전` : `${Math.floor(h / 24)}일 전`
-}
-
-const feedTone = (icon: string) =>
-  ['✅', '📈', '🎉', '🔓', '✨', '🎁'].includes(icon) ? 'moss' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'berry' : ['💡', '👍', '📘'].includes(icon) ? 'honey' : ''
-
 
 type Care = 'feed' | 'snack' | 'toy' | 'boba' | 'bath'
 const CARE: { id: Care; label: string; art: string; msg: string }[] = [
@@ -57,6 +47,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const [slide, setSlide] = useState(0)
   const [buying, setBuying] = useState<string | null>(null)
   const [asking, setAsking] = useState<Ask | null>(null)
+  const [paper, setPaper] = useState(false)
   const track = useRef<HTMLDivElement>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
@@ -321,18 +312,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      <section className="card journal">
-        <h3 className="card-title">길드 소식</h3>
-        <ul>
-          {g.feed.slice(0, 10).map((f) => (
-            <li key={f.id}>
-              <span className={`j-dot ${feedTone(f.icon)}`} />
-              <span className="j-text">{f.text}</span>
-              <span className="j-time">{timeAgo(f.at)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <NewsCard onOpen={() => setPaper(true)} />
 
       {buying && (
         <ConfirmDialog
@@ -373,6 +353,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </div>
         </div>
       )}
+      {paper && <Newspaper onClose={() => setPaper(false)} />}
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )

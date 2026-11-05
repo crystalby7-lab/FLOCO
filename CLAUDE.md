@@ -12,9 +12,9 @@
 ## 구조
 - `src/store.ts` — 전체 상태(useSyncExternalStore + localStorage `floco-mvp-v1`), 규칙 `RULES`, 모든 동작 `actions`. 새 필드를 넣으면 `migrate()`에 기본값을 꼭 추가.
 - `src/types.ts` — 데이터 타입 (Guild, Cat, Proposal, User 등)
-- `src/data/` — 퀘스트(quests), 시세(market), 상점·장소 테마(shop), 설문(survey), 고양이 질문(catTalk)
+- `src/data/` — 퀘스트(quests), 시세(market), 상점·장소 테마(shop), 설문(survey), 고양이 질문(catTalk), 신문(news)
   - 지도 위 마을 건물은 따로 데이터가 없다. `MapScreen.tsx`의 `BUILD`가 퀘스트 id → 건물 그림(`t_*`)을 잇는다.
-- `src/screens/` — 홈, 지도(MapScreen), 레슨(Lesson), 투자(Invest), 상점(Shop), 길드(GuildScreen), 설정(Settings), 프로필 꾸미기(ProfileEditor), 온보딩
+- `src/screens/` — 홈, 지도(MapScreen), 레슨(Lesson), 투자(Invest), 상점(Shop), 길드(GuildScreen), 설정(Settings), 프로필 꾸미기(ProfileEditor), 신문(Newspaper), 온보딩
 - `src/components/` — Playground(고양이가 사는 장면·장소 배경), CatView(그림 목록 `ART`), TabCat(탭바 고양이), Avatar, Page(전체 화면 + 나가기 확인)
 - `src/assets/cat/*.png` — 보영이 그린 캐릭터 시트에서 오린 그림. 파일 이름이 곧 `ART['이름']`
   - 포즈: sit, walk, lie… / 퀴즈 고양이: t_wave, t_jump, t_rain…
@@ -36,6 +36,14 @@
 - 경험치는 이유 쓰기·걱정 말하기·같이 돌아보기로만 오른다.
 - 고양이 질문은 일방형(고양이가 묻고 고르면 한마디), 종목 추천은 절대 하지 않음.
 - 친구(하늘, 도윤)는 데모용 봇. 서버(Firebase) 연결 전까지 투표·돌아보기를 대신 한다.
+
+## 오늘의 플로코 신문
+- 홈에는 시장 요약과 섹션 둘만 접어서 보이고(`NewsCard`), '신문 펼치기'를 누르면 전체 화면(`Newspaper`).
+- 섹션 5개마다 담당 고양이: 오늘의 시장(b_tuxedo) · 우리 길드 종목(sit) · 생활 속 경제(b_orange) · 해외 소식(b_black) · 오늘의 단어(b_grey).
+- '우리 길드 종목'은 길드가 보유/제안 중인 종목만 앱에서 골라 보여준다 (`news.tickers[코드]`).
+- 데이터는 `public/news.json`. 앱은 raw.githubusercontent의 것을 먼저 보고, 실패하면 로컬 파일을 쓴다 (`src/data/news.ts`).
+- `scripts/fetch-news.mjs`를 `.github/workflows/news.yml`이 3시간마다 돌린다. 저장소 Secret `GEMINI_API_KEY`가 있으면 고양이 말투 요약, 없으면 제목+첫 문장.
+- 기사 전문은 저장하지 않는다(요약과 링크만). 코인·단타·추천성 기사는 거른다. 매수·매도를 권하는 문장은 쓰지 않는다.
 
 ## 서버 (Firebase)
 - `src/sync.ts` — 익명 로그인 후 `users/{uid}`(내 정보)와 `guilds/{초대코드}`(길드 전체)를 서버와 맞춤. 친구 변경은 실시간 반영.

@@ -1,0 +1,42 @@
+name: 오늘의 플로코 신문
+
+# 3시간마다 경제 뉴스를 모아 public/news.json을 새로 쓴다.
+# GEMINI_API_KEY(저장소 Secret)가 있으면 고양이 말투 요약까지, 없으면 제목+첫 문장으로.
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # 손으로도 돌릴 수 있게
+
+permissions:
+  contents: write
+
+concurrency:
+  group: news
+  cancel-in-progress: false
+
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 뉴스 모으기
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/fetch-news.mjs
+
+      - name: 바뀌었으면 커밋
+        run: |
+          if [ -z "$(git status --porcelain public/news.json)" ]; then
+            echo "바뀐 내용 없음"
+            exit 0
+          fi
+          git config user.name "floco-news-bot"
+          git config user.email "actions@github.com"
+          git add public/news.json
+          git commit -m "오늘의 플로코 신문 갱신 ($(TZ=Asia/Seoul date '+%m-%d %H시'))"
+          git push

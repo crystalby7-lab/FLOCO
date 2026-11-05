@@ -1,8 +1,12 @@
-// 길드: 우리 길드 기록 · 이번 주 같이 할 일 · 친구들(응원) · 길드 한마디 · 초대
+// 길드: 우리 길드 기록 · 이번 주 같이 할 일 · 친구들(응원) · 길드 소식 · 길드 한마디 · 초대
+// (길드 소식은 홈에 있던 것을 옮겨왔다. 홈에는 대신 오늘의 플로코 신문이 들어간다.)
 import { useState } from 'react'
 import { actions, memberName, today, useGame, vault } from '../store'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
+
+const feedTone = (icon: string) =>
+  ['✅', '📈', '🎉', '🔓', '✨', '🎁'].includes(icon) ? 'moss' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'berry' : ['💡', '👍', '📘'].includes(icon) ? 'honey' : ''
 
 export function GuildScreen() {
   const s = useGame()
@@ -143,6 +147,19 @@ export function GuildScreen() {
             </b>
           </div>
         ))}
+      </section>
+
+      <section className="card journal">
+        <h3 className="card-title">길드 소식</h3>
+        <ul>
+          {g.feed.slice(0, 12).map((f) => (
+            <li key={f.id}>
+              <span className={`j-dot ${feedTone(f.icon)}`} />
+              <span className="j-text">{f.text}</span>
+              <span className="j-time">{ago(f.at)}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="card board">
