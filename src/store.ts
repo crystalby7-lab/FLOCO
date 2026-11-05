@@ -6,7 +6,6 @@ import { useSyncExternalStore } from 'react'
 import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
 import { priceOf, tickerOf } from './data/market'
-import { TOWN_SLOTS, townItem } from './data/town'
 import { itemOf } from './data/shop'
 import { reviewReasons } from './aiReview'
 
@@ -19,7 +18,6 @@ export const RULES = {
   hungerDecayPerHour: 4,
   moodDecayPerHour: 3,
   cleanDecayPerHour: 2,
-  bathPrice: 80,
   questReward: 200, // 퀘스트 첫 완료 시 금고 골드 (레벨은 근거·돌아보기로만)
   dailyReward: 300, // 오늘의 미션 3개 완료 보상
   talksPerDay: 3, // 고양이 질문에 답하면 기분 +5 (하루 3번)
@@ -37,7 +35,22 @@ export const today = () => {
 }
 const freshDaily = (): Daily => ({ date: today(), quest: false, vote: false, care: false, claimed: false })
 
-export const DEFAULT_PREFS: Prefs = { chatter: true, calm: false, notifyVote: true, notifyRetro: true, notifyCat: true }
+// 새 설정을 넣을 때는 여기에 기본값을 추가한다. migrate()가 예전 저장 데이터에 이 값을 채워 넣는다.
+export const DEFAULT_PREFS: Prefs = {
+  chatter: true,
+  calm: false,
+  fontScale: 'normal',
+  sound: true,
+  haptic: true,
+  notifyAll: true,
+  notifyVote: true,
+  notifyRetro: true,
+  notifyCat: true,
+  notifyCheer: true,
+  quiet: false,
+  quietFrom: 22,
+  quietTo: 7,
+}
 
 const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' } }
 
@@ -52,11 +65,9 @@ function migrate(raw: Partial<GameState>): GameState {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
       ...g,
-      album: g.album ?? [],
       inventory: g.inventory ?? {},
       board: g.board ?? seedBoard(g.members),
       cheers: g.cheers ?? {},
-      town: g.town ?? Array(TOWN_SLOTS).fill(null),
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
       cat: { ...g.cat, clean: g.cat.clean ?? 80 },
@@ -347,8 +358,6 @@ export const actions = {
         inventory: { feed: 2, toy: 1 },
         board: seedBoard(members),
         cheers: {},
-        town: Array(TOWN_SLOTS).fill(null),
-        album: [],
         levelSeen: 1,
         createdAt: now(),
       }
@@ -375,8 +384,6 @@ export const actions = {
         inventory: { feed: 2, toy: 1 },
         board: seedBoard(members),
         cheers: {},
-        town: Array(TOWN_SLOTS).fill(null),
-        album: [],
         levelSeen: 1,
         createdAt: now(),
       }
@@ -471,21 +478,6 @@ export const actions = {
     writeRetro(proposalId, me(state.guild!).id, text, parts)
   },
 
-  bathe(): string | null {
-    const g = state.guild!
-    if (g.gold < RULES.bathPrice) return '금고 골드가 부족해요.'
-    updateGuild((gg) => {
-      const cat = catNow(gg.cat)
-      return addFeed(
-        { ...gg, gold: gg.gold - RULES.bathPrice, cat: { ...cat, clean: 100, mood: Math.min(100, cat.mood + 5) } },
-        '🛁',
-        `${me(gg).nickname}님이 ${gg.cat.name}를 씻겨줬어요.`,
-      )
-    })
-    markDaily('care')
-    return null
-  },
-
   claimDaily() {
     set((s) => {
       const d = s.daily
@@ -500,12 +492,6 @@ export const actions = {
 
   ackLevel() {
     updateGuild((g) => ({ ...g, levelSeen: g.cat.level }))
-  },
-
-  seePose(id: string) {
-    const g = state.guild
-    if (!g || g.album.includes(id)) return
-    updateGuild((gg) => ({ ...gg, album: [...gg.album, id] }))
   },
 
   finishTutorial() {
@@ -535,6 +521,12 @@ export const actions = {
 
   renameGuild(name: string) {
     updateGuild((g) => addFeed({ ...g, name }, '✏️', `길드 이름이 ${name}(으)로 바뀌었어요.`))
+  },
+
+  // 길드 나가기: 내 계정은 그대로 두고 길드만 비운다 (다시 만들거나 초대 코드로 들어갈 수 있다)
+  // 서버 연결 후에는 나간 사실을 길드에 알리고 고양이·금고는 남은 친구들에게 남는다.
+  leaveGuild() {
+    set((s) => ({ ...s, guild: null }))
   },
 
   setPref<K extends keyof Prefs>(key: K, value: Prefs[K]) {
@@ -581,25 +573,6 @@ export const actions = {
     })
     markDaily('care')
     return null
-  },
-
-  // 우리 마을 짓기 / 치우기
-  buildTown(slot: number, id: string): string | null {
-    const g = state.guild!
-    const it = townItem(id)!
-    if (g.town[slot]) return '이미 지은 땅이에요.'
-    if (g.gold < it.price) return '금고 골드가 부족해요.'
-    updateGuild((gg) =>
-      addFeed(
-        { ...gg, gold: gg.gold - it.price, town: gg.town.map((x, i) => (i === slot ? id : x)) },
-        '🏠',
-        `${me(gg).nickname}님이 마을에 ${it.name}을(를) 지었어요.`,
-      ),
-    )
-    return null
-  },
-  clearTown(slot: number) {
-    updateGuild((g) => ({ ...g, town: g.town.map((x, i) => (i === slot ? null : x)) }))
   },
 
   // 길드 한마디

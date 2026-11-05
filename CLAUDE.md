@@ -12,7 +12,8 @@
 ## 구조
 - `src/store.ts` — 전체 상태(useSyncExternalStore + localStorage `floco-mvp-v1`), 규칙 `RULES`, 모든 동작 `actions`. 새 필드를 넣으면 `migrate()`에 기본값을 꼭 추가.
 - `src/types.ts` — 데이터 타입 (Guild, Cat, Proposal, User 등)
-- `src/data/` — 퀘스트(quests), 시세(market), 상점·장소 테마(shop), 설문(survey), 고양이 질문(catTalk), 마을 건물(town)
+- `src/data/` — 퀘스트(quests), 시세(market), 상점·장소 테마(shop), 설문(survey), 고양이 질문(catTalk)
+  - 지도 위 마을 건물은 따로 데이터가 없다. `MapScreen.tsx`의 `BUILD`가 퀘스트 id → 건물 그림(`t_*`)을 잇는다.
 - `src/screens/` — 홈, 지도(MapScreen), 레슨(Lesson), 투자(Invest), 상점(Shop), 길드(GuildScreen), 설정(Settings), 프로필 꾸미기(ProfileEditor), 온보딩
 - `src/components/` — Playground(고양이가 사는 장면·장소 배경), CatView(그림 목록 `ART`), TabCat(탭바 고양이), Avatar, Page(전체 화면 + 나가기 확인)
 - `src/assets/cat/*.png` — 보영이 그린 캐릭터 시트에서 오린 그림. 파일 이름이 곧 `ART['이름']`

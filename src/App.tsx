@@ -50,7 +50,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app ${s.prefs.calm ? 'calm' : ''}`}>
+    <div className={`app ${s.prefs.calm ? 'calm' : ''} fs-${s.prefs.fontScale}`}>
       <header className="appbar stats-bar">
         <button className="sb-logo" onClick={() => go('home')} aria-label="홈으로">
           <span className="wm-mark">

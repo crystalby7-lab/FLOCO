@@ -3,7 +3,7 @@
 // 밥·간식·장난감을 주면 반응하고, 누르면 배를 보이며 뒹군다. 레벨이 오르면 왕관.
 import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
-import { ART, CatSprite, OUTFITS, POSES, type Face, type Pose } from './CatView'
+import { ART, CatSprite, POSES, type Face, type Pose } from './CatView'
 
 export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy' | 'bath'; key: number } | null
 
@@ -30,7 +30,6 @@ export function Playground({
   height = 300,
   catHeight = 120,
   lines = [],
-  onPose,
   place = 'room',
   ask = false,
   onTapCat,
@@ -40,7 +39,6 @@ export function Playground({
   height?: number
   catHeight?: number
   lines?: string[] // 고양이 혼잣말 후보
-  onPose?: (id: string) => void // 앨범 기록용
   place?: string // 방·마당·옥상·바닷가
   ask?: boolean // 고양이가 물어볼 게 있으면 머리 위에 ? 말풍선
   onTapCat?: () => boolean // true를 돌려주면 기본 반응(뒹굴기) 대신 그쪽에서 처리
@@ -127,13 +125,6 @@ export function Playground({
     if (r < 0.97 && has('cushion')) return walkTo(SPOT.cushion, () => stay('sleep', rand(5000, 8000)))
     return stay('side', rand(2000, 3500))
   }
-
-  // 포즈가 바뀌면 앨범에 기록 (옷 입고 앉아 있으면 옷 모습으로)
-  useEffect(() => {
-    const outfit = pose === 'sit' ? cat.equipped.find((e) => OUTFITS.includes(e)) : undefined
-    onPose?.(outfit ?? pose)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pose, cat.equipped.join()])
 
   // 가끔 혼잣말
   useEffect(() => {

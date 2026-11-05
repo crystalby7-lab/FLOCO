@@ -138,7 +138,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
                     cat={cat}
                     event={ev}
                     lines={s.prefs.chatter ? lines : []}
-                    onPose={actions.seePose}
                     height={330}
                     catHeight={124}
                     place={pl.id}

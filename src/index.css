@@ -3296,45 +3296,6 @@ img.avatar {
   color: var(--muted);
   font-weight: 650;
 }
-.album-note {
-  margin-top: -6px;
-}
-.album {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-.album-cell {
-  background: var(--card);
-  border-radius: var(--r-md);
-  aspect-ratio: 1 / 1.12;
-  max-width: 100%;
-  padding: 8px 4px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2px;
-}
-.album-cell img {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  object-fit: contain;
-}
-.album-cell small {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--sub);
-  white-space: nowrap;
-}
-.album-cell.locked img {
-  filter: brightness(0);
-  opacity: 0.08;
-}
-.album-cell.locked small {
-  color: var(--faint);
-}
 .members li .contrib {
   flex-direction: row;
 }
@@ -4072,7 +4033,6 @@ h1 {
 .tk-card,
 .shop-item,
 .stat,
-.album-cell,
 .meter,
 .mission-row,
 .profile-card,
@@ -5075,9 +5035,6 @@ textarea:focus {
   background: var(--sky-soft);
   border-color: var(--blue-light);
 }
-.album-cell.locked {
-  background: var(--field);
-}
 .feed-dot.honey {
   background: var(--blue);
 }
@@ -5264,7 +5221,6 @@ h1,
 .tk-card,
 .shop-item,
 .stat,
-.album-cell,
 .profile-card,
 .note-card,
 .vault-card,
@@ -8981,10 +8937,6 @@ body {
   font-weight: 800;
   color: #d4566e;
 }
-.album,
-.album-note {
-  display: none;
-}
 .scene-status {
   margin-top: -52px;
 }
@@ -9150,205 +9102,6 @@ body {
   50% { filter: brightness(0.92); }
 }
 .cat-actor { z-index: 2; }
-
-/* ═══════════ 우리 마을 ═══════════ */
-.town-card {
-  position: relative;
-  overflow: hidden;
-  padding: 0 !important;
-  border: 0;
-  text-align: left;
-  min-height: 150px;
-  display: flex !important;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-.tc-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.tc-row {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 4px;
-  padding: 14px 10px 0;
-}
-.tc-row img {
-  height: 64px;
-}
-.tc-row img.ghost {
-  opacity: 0.55;
-  filter: grayscale(0.4);
-}
-.tc-text {
-  position: relative;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 10px 14px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.tc-text b {
-  font-size: 16px;
-  font-weight: 800;
-}
-.tc-text small {
-  font-size: 12px;
-  color: var(--sub);
-}
-.town-gold {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-  font-weight: 800;
-}
-.town-map {
-  position: relative;
-  height: 520px;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: var(--card-shadow);
-}
-.town-sky {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  object-position: center 30%;
-}
-.town-ground {
-  position: absolute;
-  inset: 120px 0 0;
-  background: linear-gradient(#bfe3a5, #a7d78c 40%, #9bcf82);
-  border-radius: 50% 50% 0 0 / 40px 40px 0 0;
-}
-.town-road {
-  position: absolute;
-  left: 50%;
-  top: 150px;
-  bottom: -10px;
-  width: 46px;
-  transform: translateX(-50%) perspective(300px) rotateX(30deg);
-  background: repeating-linear-gradient(#e9dfcf 0 22px, #f3ecdf 22px 30px);
-  border-radius: 20px 20px 0 0;
-  opacity: 0.85;
-}
-.town-slot {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  border: 0;
-  background: none;
-  padding: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-width: 70px;
-  min-height: 40px;
-}
-.town-slot img {
-  width: auto;
-  max-width: 120px;
-  filter: drop-shadow(0 6px 6px rgba(40, 80, 40, 0.25));
-  animation: pop-in 0.35s var(--ease);
-}
-.town-slot .plot {
-  width: 66px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px dashed rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 800;
-  display: grid;
-  place-items: center;
-  margin-bottom: -10px;
-}
-.town-slot.on .plot {
-  background: rgba(47, 107, 216, 0.3);
-  border-color: var(--blue);
-}
-.town-slot.on img {
-  filter: drop-shadow(0 0 6px rgba(47, 107, 216, 0.9));
-}
-.town-cat {
-  position: absolute;
-  bottom: 14px;
-  height: 40px;
-  z-index: 40;
-  animation: town-walk 18s linear infinite;
-}
-@keyframes town-walk {
-  0% { left: 100%; transform: scaleX(1); }
-  49% { left: -14%; transform: scaleX(1); }
-  50% { left: -14%; transform: scaleX(-1); }
-  99% { left: 100%; transform: scaleX(-1); }
-  100% { left: 100%; transform: scaleX(1); }
-}
-.town-sheet {
-  position: sticky;
-  bottom: 0;
-  margin-top: 12px;
-  background: #fff;
-  border-radius: 22px;
-  padding: 12px;
-  box-shadow: 0 -8px 24px -14px rgba(30, 70, 120, 0.5);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 60;
-  animation: sheet-up 0.25s var(--ease);
-}
-.town-sheet.small {
-  align-items: center;
-}
-.town-sheet .row {
-  display: flex;
-  gap: 8px;
-}
-.town-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  max-height: 290px;
-  overflow-y: auto;
-}
-.town-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  border: 0;
-  background: #f3f7fc;
-  border-radius: 16px;
-  padding: 8px 4px;
-}
-.town-item:disabled {
-  opacity: 0.45;
-}
-.ti-art {
-  height: 62px;
-  display: flex;
-  align-items: flex-end;
-}
-.ti-art img {
-  max-height: 62px;
-  max-width: 90px;
-  object-fit: contain;
-}
-.town-item b {
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-}
 
 /* 거실 다시: 고양이 시트 그림만, 조명은 은은하게 */
 .lv-tower {
@@ -9623,4 +9376,441 @@ body {
 .breed-av img:not(.av-sticker) {
   width: 118%;
   top: 8%;
+}
+
+/* ═══════════ v5.6 — 거실: 벽·바닥 경계 없이 한 겹 그라데이션 ═══════════ */
+/* 벽과 바닥을 따로 칠하지 않고 위에서 아래로 이어지는 빛 한 장으로 둔다.
+   아래쪽은 앱 바탕색(--paper)으로 번져서 화면과 경계 없이 이어진다. */
+.place-room .room-wall.living {
+  background: linear-gradient(
+    180deg,
+    #d8e5f5 0%,
+    #eef4fc 26%,
+    #e9f1fb 50%,
+    #dde8f7 74%,
+    var(--paper) 96%
+  ) !important;
+}
+.place-room.tod-evening .room-wall.living {
+  background: linear-gradient(
+    180deg,
+    #dce2f2 0%,
+    #f7e7e0 26%,
+    #f0e0e2 52%,
+    #dde0f1 78%,
+    var(--paper) 96%
+  ) !important;
+}
+.place-room.tod-night .room-wall.living {
+  background: linear-gradient(
+    180deg,
+    #c9d4ea 0%,
+    #cdd3ea 26%,
+    #c6cee6 54%,
+    #cbd6ec 80%,
+    var(--paper) 96%
+  ) !important;
+}
+/* 벽·바닥 사이 몰딩 띠 (경계선) */
+.place-room .room-wall.living::after {
+  display: none;
+}
+/* 바닥 면 대신, 고양이 발밑에 은은하게 고이는 그늘만 남긴다 */
+.place-room .room-floor.living {
+  height: 44% !important;
+  border-radius: 0 !important;
+  background: radial-gradient(130% 100% at 50% 100%, rgba(118, 145, 182, 0.17), rgba(118, 145, 182, 0.05) 56%, transparent 78%) !important;
+}
+/* 러그: 테두리 없는 부드러운 빛무리 */
+.place-room .rug {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.14) 68%, transparent 100%);
+  box-shadow: none;
+  opacity: 0.9;
+}
+/* 조명·햇살도 아래에서 사라지게 (바닥 끝에 네모 자국이 남지 않도록) */
+.place-room .tod-light,
+.place-room .window-beam {
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, rgba(0, 0, 0, 0.35) 80%, transparent 97%);
+  mask-image: linear-gradient(to bottom, #000 45%, rgba(0, 0, 0, 0.35) 80%, transparent 97%);
+}
+
+/* ═══════════ v5.7 — 설정 화면 (출시 앱처럼 그룹으로) ═══════════ */
+.set2 {
+  gap: 0;
+  padding: 6px 16px calc(28px + var(--safe-b));
+}
+
+/* 맨 위 프로필 카드 */
+.set2-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: var(--paper-2);
+  border-radius: 22px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--card-shadow);
+  color: var(--ink);
+}
+.set2-profile:active {
+  transform: scale(0.995);
+}
+.sp-av {
+  position: relative;
+  flex: none;
+  line-height: 0;
+}
+.sp-edit {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2.5px var(--paper-2);
+}
+.sp-edit svg {
+  width: 13px;
+  height: 13px;
+}
+.sp-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sp-text b {
+  font-size: 18px;
+  font-weight: 800;
+}
+.sp-text small {
+  font-size: 13px;
+  color: var(--sub);
+  font-weight: 650;
+}
+.sp-tag {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-style: normal;
+  color: var(--blue);
+  background: #eaf1fd;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* 그룹 */
+.set2-group {
+  margin-bottom: 18px;
+}
+.set2-gtitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sub);
+  padding: 0 6px 7px;
+}
+.set2-card {
+  background: var(--paper-2);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+.set2-note {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--sub);
+  padding: 8px 8px 0;
+}
+
+/* 줄 */
+.set2-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 11px 15px;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+  font-family: inherit;
+}
+.set2-row + .set2-row::before {
+  content: '';
+  position: absolute;
+  left: 54px;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: #eef2f7;
+}
+button.set2-row:active,
+label.set2-row:active {
+  background: #f6f9fd;
+}
+.si {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+.si.sky { background: #e8f0fd; color: #2f6bd8; }
+.si.mint { background: #e4f4ed; color: #2f9b74; }
+.si.honey { background: #fdf0d9; color: #c98a1e; }
+.si.pink { background: #fde9ef; color: #d8607f; }
+.si.lilac { background: #eeebfb; color: #7566c8; }
+.si.grey { background: #eff2f6; color: #70798a; }
+.si.red { background: #ffecec; color: #e04f4f; }
+.set2-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.set2-label b {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.set2-label small {
+  font-size: 12px;
+  color: var(--sub);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.set2-val {
+  flex: none;
+  max-width: 42%;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.set2-chev {
+  flex: none;
+  color: #c3ccd8;
+}
+.set2-row.danger .set2-label b {
+  color: var(--red-dark);
+}
+.set2-row.dim {
+  opacity: 0.45;
+}
+
+/* 초대 코드 줄 */
+.code-row {
+  flex-wrap: wrap;
+}
+.code-chip {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--blue);
+  background: #eaf1fd;
+  border-radius: 10px;
+  padding: 5px 10px;
+}
+.code-btns {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+.code-btns .icon-btn {
+  width: 34px;
+  height: 34px;
+  color: var(--sub);
+}
+
+/* 선택 시트 */
+.opt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: none;
+  text-align: left;
+  color: var(--ink);
+  font-family: inherit;
+}
+.opt-row:last-of-type {
+  border-bottom: 0;
+}
+.opt-row.on .set2-label b {
+  color: var(--blue);
+}
+.opt-row > svg {
+  color: var(--blue);
+  flex: none;
+}
+.soon-tag {
+  flex: none;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--sub);
+  background: var(--field);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* 시트 안에 들어가는 줄 */
+.sheet-row {
+  min-height: 48px;
+  padding: 8px 4px;
+}
+.sheet-row::before {
+  display: none;
+}
+.quiet-times {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 6px 4px 2px;
+}
+.quiet-times.off {
+  opacity: 0.45;
+}
+.quiet-times label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sub);
+}
+.quiet-times select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--field);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.quiet-dash {
+  padding-bottom: 12px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+/* 멤버 목록 */
+.set2-members {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.set2-members li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #eef2f7;
+}
+.set2-members li:last-child {
+  border-bottom: 0;
+}
+.set2-members .grow {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.set2-members b {
+  font-size: 15px;
+  font-weight: 700;
+}
+.set2-members small {
+  font-size: 12px;
+  color: var(--sub);
+  font-weight: 650;
+}
+.me-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--blue);
+  background: #eaf1fd;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* 오픈소스 */
+.oss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.oss-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.oss-list b {
+  font-size: 14.5px;
+  font-weight: 800;
+}
+.oss-list small {
+  font-size: 12px;
+  color: var(--sub);
+  font-weight: 600;
+}
+
+/* 맨 아래 로고 */
+.set2-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 18px 0 6px;
+}
+.set2-foot img {
+  width: 34px;
+  height: 34px;
+  opacity: 0.85;
+}
+.set2-foot small {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--sub);
+}
+.set2-foot .fine {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* 글자 크기: 내용이 담기는 칸을 같은 비율로 키우고 줄인다
+   (고정 위치인 .layer·.sheet 자체에는 걸지 않는다 — 화면 밖으로 밀려나기 때문) */
+.app.fs-small .app-main,
+.app.fs-small .layer-body,
+.app.fs-small .page-body,
+.app.fs-small .sheet-body {
+  zoom: 0.94;
+}
+.app.fs-large .app-main,
+.app.fs-large .layer-body,
+.app.fs-large .page-body,
+.app.fs-large .sheet-body {
+  zoom: 1.08;
 }
