@@ -13,6 +13,8 @@ import type { Tab } from '../App'
 const US = new Set(['SP500', 'NDQ'])
 const flagOf = (code: string) => (US.has(code) ? '🇺🇸' : '🇰🇷')
 const won = (n: number) => `${Math.round(n).toLocaleString()}원`
+// 2026-11-06 → 11월 6일
+const dayLabel = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`
 const signed = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n).toLocaleString()}원`
 const pctTxt = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
 const tone = (v: number) => (v > 0 ? 'up' : v < 0 ? 'down' : '')
@@ -373,8 +375,9 @@ function TradesPage({ g, onClose }: { g: Guild; onClose: () => void }) {
     .filter((p) => p.qty && p.buyPrice)
     .flatMap((p) => {
       const t = tickerOf(p.ticker).name
-      const out = [{ id: p.id + 'b', day: p.createdDay, kind: '매수', name: t, qty: p.qty!, price: p.buyPrice!, why: p.reasons[0] }]
-      if (p.status === 'sold' && p.sellPrice) out.push({ id: p.id + 's', day: p.soldDay ?? p.createdDay, kind: '매도', name: t, qty: p.qty!, price: p.sellPrice, why: '' })
+      const out = [{ id: p.id + 'b', day: p.createdDay, date: p.createdDate, kind: '매수', name: t, qty: p.qty!, price: p.buyPrice!, why: p.reasons[0] }]
+      if (p.status === 'sold' && p.sellPrice)
+        out.push({ id: p.id + 's', day: p.soldDay ?? p.createdDay, date: p.soldDate ?? p.createdDate, kind: '매도', name: t, qty: p.qty!, price: p.sellPrice, why: '' })
       return out
     })
     .sort((a, b) => b.day - a.day)
@@ -390,7 +393,7 @@ function TradesPage({ g, onClose }: { g: Guild; onClose: () => void }) {
               <span className="grow">
                 <b>{r.name}</b>
                 <small>
-                  거래일 {r.day} · {r.qty}주 × {won(r.price)}
+                  {r.date ? dayLabel(r.date) : `거래일 ${r.day}`} · {r.qty}주 × {won(r.price)}
                 </small>
                 {r.why && <small className="trade-why">이유: {r.why}</small>}
               </span>
