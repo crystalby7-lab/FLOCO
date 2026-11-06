@@ -12,7 +12,9 @@ import { reviewReasons } from './aiReview'
 const KEY = 'floco-mvp-v1'
 
 export const RULES = {
-  startGold: 100_000,
+  startGold: 10_000, // 게임 코인 (상점·돌보기)
+  startCash: 10_000_000, // 모의투자 시작 자산 (원)
+  questCash: 500_000, // 퀘스트 첫 완료 시 투자금 (원)
   goldPerHour: 60, // F8 자동 훈련
   trainCapHours: 8, // 상한: 8시간치까지만 쌓임
   hungerDecayPerHour: 4,
@@ -66,6 +68,9 @@ function migrate(raw: Partial<GameState>): GameState {
     s.guild = {
       ...g,
       inventory: g.inventory ?? {},
+      // 예전 저장본: 금고 골드 하나로 투자하던 걸 투자 계좌(원)와 게임 코인으로 나눈다
+      cash: g.cash ?? RULES.startCash - g.proposals.filter((p) => p.status === 'holding' && p.qty && p.buyPrice).reduce((a, p) => a + p.qty! * p.buyPrice!, 0),
+      gold: g.cash === undefined ? Math.min(g.gold, RULES.startGold) : g.gold,
       board: g.board ?? seedBoard(g.members),
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
@@ -181,7 +186,7 @@ export function vault(g: Guild, day: number) {
   const realized = g.proposals
     .filter((p) => p.status === 'sold' && p.qty && p.buyPrice && p.sellPrice)
     .reduce((a, p) => a + p.qty! * (p.sellPrice! - p.buyPrice!), 0)
-  return { cash: g.gold, invested, total: g.gold + invested, pnl, realized, holdings }
+  return { cash: g.cash, invested, total: g.cash + invested, pnl, realized, holdings }
 }
 
 const yesterday = () => {
@@ -270,7 +275,7 @@ function seedProposal(): Proposal {
     id: uid(),
     proposerId: 'bot-haneul',
     ticker: 'SP500',
-    amount: 45_000,
+    amount: 2_000_000,
     reasons: [
       '미국 대표 회사 500곳을 한 번에 담고 있어서 한 회사가 떨어져도 덜 흔들리고, 총보수도 0.07%로 낮다.',
       '원·달러 환율이 오르내리면 수익이 달라지는 점은 아직 확인 못 했다.',
@@ -325,18 +330,18 @@ function resolve(g: Guild, s: GameState, proposalId: string): Guild {
   const t = tickerOf(p.ticker)
 
   if (yes >= need) {
-    if (g.gold < p.amount || Math.floor(p.amount / priceOf(p.ticker, s.day)) < 1) {
+    if (g.cash < p.amount || Math.floor(p.amount / priceOf(p.ticker, s.day)) < 1) {
       const rejected: Proposal = { ...p, status: 'rejected' }
-      return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '금고 골드가 부족해 매수하지 못했어요.')
+      return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '투자금이 부족해 매수하지 못했어요.')
     }
     const price = priceOf(p.ticker, s.day)
     const qty = Math.floor(p.amount / price)
     const cost = qty * price
     const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty }
     return addFeed(
-      { ...g, gold: g.gold - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
+      { ...g, cash: g.cash - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
       '✅',
-      `모두 좋대요! ${t.name} ${qty}주를 ${price.toLocaleString()}골드에 샀어요.`,
+      `모두 좋대요! ${t.name} ${qty}주를 ${price.toLocaleString()}원에 샀어요.`,
     )
   }
   if (no > g.members.length - need) {
@@ -377,6 +382,7 @@ export const actions = {
         code: Math.random().toString(36).slice(2, 8).toUpperCase(),
         members,
         gold: RULES.startGold,
+        cash: RULES.startCash,
         cat: newCat(catName),
         proposals: [seedProposal()],
         retros: [],
@@ -405,6 +411,7 @@ export const actions = {
         code: code.toUpperCase(),
         members,
         gold: RULES.startGold,
+        cash: RULES.startCash,
         cat: newCat('모찌'),
         proposals: [seedProposal()],
         retros: [],
@@ -426,7 +433,7 @@ export const actions = {
     updateGuild((g) => {
       const { gold } = trainingAvailable(g.cat)
       if (gold <= 0) return g
-      return addFeed({ ...g, gold: g.gold + gold, cat: { ...catNow(g.cat), lastClaimAt: now() } }, '🏋️', `자동 훈련 보상 ${gold}골드를 받았어요.`)
+      return addFeed({ ...g, gold: g.gold + gold, cat: { ...catNow(g.cat), lastClaimAt: now() } }, '🏋️', `자동 훈련 보상 코인 ${gold}개를 받았어요.`)
     })
   },
 
@@ -437,9 +444,9 @@ export const actions = {
       let ns: GameState = { ...s, quests: { ...s.quests, [questId]: { done: true, score: Math.max(score, s.quests[questId]?.score ?? 0), at: now() } } }
       if (first && ns.guild) {
         let g = addFeed(
-          { ...ns.guild, gold: ns.guild.gold + RULES.questReward },
+          { ...ns.guild, gold: ns.guild.gold + RULES.questReward, cash: ns.guild.cash + RULES.questCash },
           '📘',
-          `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 금고 +${RULES.questReward}G`,
+          `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 코인 +${RULES.questReward} · 투자금 +${(RULES.questCash / 10000).toLocaleString()}만원`,
         )
         if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! 공동 투자 제안과 ETF 숲이 열렸어요.')
         if (quest.unlocks) g = addFeed(g, '🔓', 'ETF 비교 도구가 해금됐어요.')
@@ -457,7 +464,7 @@ export const actions = {
     const prev = g.proposals.filter((p) => p.proposerId === myId).map((p) => p.reasons[0])
     const ai = reviewReasons(reasons, prev)
     if (!ai.pass) return ai
-    if (amount > g.gold) return { pass: false, message: '금고 골드보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
+    if (amount > g.cash) return { pass: false, message: '주문가능금액보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
     if (amount < priceOf(ticker, state.day)) return { pass: false, message: '1주 가격보다 금액이 적어요.', hint: '금액을 늘리거나 다른 종목을 골라보세요.' }
     const p: Proposal = {
       id: uid(),
@@ -493,11 +500,11 @@ export const actions = {
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
       const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day }
-      const ng = { ...g, gold: g.gold + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
+      const ng = { ...g, cash: g.cash + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,
         profit >= 0 ? '📈' : '📉',
-        `${tickerOf(p.ticker).name}를 팔았어요 (${profit >= 0 ? '+' : ''}${profit.toLocaleString()}골드). 같이 돌아봐요!`,
+        `${tickerOf(p.ticker).name}를 팔았어요 (${profit >= 0 ? '+' : ''}${profit.toLocaleString()}원). 같이 돌아봐요!`,
       )
     })
     scheduleBotRetros(proposalId)
@@ -515,7 +522,7 @@ export const actions = {
       return {
         ...s,
         daily: { ...d, claimed: true },
-        guild: addFeed({ ...s.guild, gold: s.guild.gold + RULES.dailyReward }, '🎁', `오늘의 미션 완료 · 금고 +${RULES.dailyReward}G`),
+        guild: addFeed({ ...s.guild, gold: s.guild.gold + RULES.dailyReward }, '🎁', `오늘의 미션 완료 · 코인 +${RULES.dailyReward}`),
       }
     })
   },
@@ -569,7 +576,7 @@ export const actions = {
   buyItem(itemId: string): string | null {
     const g = state.guild!
     const item = itemOf(itemId)!
-    if (g.gold < item.price) return '금고 골드가 부족해요.'
+    if (g.gold < item.price) return '코인이 부족해요.'
     if (item.kind !== 'food' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
     updateGuild((gg) => {
       const ng: Guild = { ...gg, gold: gg.gold - item.price }

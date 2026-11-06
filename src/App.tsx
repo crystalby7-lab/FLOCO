@@ -62,7 +62,7 @@ export default function App() {
             <img src={ART.i_paw} alt="" />
             <b>{streakNow(s)}일</b>
           </span>
-          <span className="sb-chip" title="길드 금고">
+          <span className="sb-chip" title="게임 코인">
             <Coin size={20} />
             <b>{g.gold.toLocaleString()}</b>
           </span>

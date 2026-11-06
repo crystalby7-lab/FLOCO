@@ -59,7 +59,8 @@ export type Guild = {
   name: string
   code: string
   members: Member[]
-  gold: number // 길드 금고 (가상 골드, 현금화 불가)
+  gold: number // 게임 코인 (고양이 돌보기·상점·테마용, 현금화 불가)
+  cash: number // 모의투자 계좌 현금 (원, 가상)
   cat: Cat
   proposals: Proposal[]
   retros: Retro[]

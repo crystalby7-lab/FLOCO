@@ -472,10 +472,9 @@ export function Settings({ onClose }: { onClose: () => void }) {
               <span>배부름·기분·청결은 {RULES.floor} 아래로 내려가지 않아요.</span>
             </li>
             <li>
-              <b>골드를 버는 방법</b>
+              <b>돈은 두 가지예요</b>
               <span>
-                혼자 하는 훈련(한 시간 {RULES.goldPerHour}G, 최대 {RULES.trainCapHours}시간), 퀘스트 첫 완료 +{RULES.questReward}G, 오늘의 미션 +
-                {RULES.dailyReward}G.
+                모의투자 계좌(원): 시작 {(RULES.startCash / 10000).toLocaleString()}만원, 퀘스트 첫 완료마다 +{RULES.questCash / 10000}만원. 게임 코인: 고양이 돌보기·상점용으로, 혼자 하는 훈련(한 시간 {RULES.goldPerHour}개, 최대 {RULES.trainCapHours}시간)·퀘스트 +{RULES.questReward}·오늘의 미션 +{RULES.dailyReward}로 모아요. 둘은 서로 바꿀 수 없어요.
               </span>
             </li>
             <li>

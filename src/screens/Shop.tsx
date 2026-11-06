@@ -75,7 +75,7 @@ export function Shop() {
     <div className="tab-panel">
       <header className="top">
         <div>
-          <div className="eyebrow">길드 금고로 사요</div>
+          <div className="eyebrow">게임 코인으로 사요</div>
           <h1>상점</h1>
         </div>
       </header>

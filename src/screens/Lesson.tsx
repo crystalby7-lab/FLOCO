@@ -113,9 +113,9 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
           <p className="ls-result-sub">{done ? `${g.cat.name}가 뿌듯해해요` : `${total}문제 중 2문제 이상 맞히면 통과예요`}</p>
           <ul className="receipt">
             <li>
-              <span>금고</span>
+              <span>보상</span>
               <i />
-              <b className="gold-ink">{done && first ? `+${RULES.questReward}G` : '+0G'}</b>
+              <b className="gold-ink">{done && first ? `투자금 +${RULES.questCash / 10000}만원 · 코인 +${RULES.questReward}` : '없음'}</b>
             </li>
             <li>
               <span>맞힌 문제</span>

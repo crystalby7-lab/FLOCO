@@ -12,22 +12,22 @@ import type { Tab } from '../App'
 // 국내 / 미국 구분
 const US = new Set(['SP500', 'NDQ'])
 const flagOf = (code: string) => (US.has(code) ? '🇺🇸' : '🇰🇷')
-const won = (n: number) => `${Math.round(n).toLocaleString()}G`
-const signed = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n).toLocaleString()}G`
+const won = (n: number) => `${Math.round(n).toLocaleString()}원`
+const signed = (n: number) => `${n >= 0 ? '+' : ''}${Math.round(n).toLocaleString()}원`
 const pctTxt = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`
 const tone = (v: number) => (v > 0 ? 'up' : v < 0 ? 'down' : '')
 
 // 용어 사전: 숫자 옆 ⓘ를 누르면 나온다
 const TERMS: Record<string, { title: string; body: string; ex: string }> = {
-  total: { title: '총 자산', body: '금고에 있는 현금과, 지금 가진 종목을 오늘 값으로 계산한 금액을 더한 거예요.', ex: '현금 50,000G + 종목 평가금 52,000G = 총 자산 102,000G' },
-  cash: { title: '주문가능금액', body: '지금 바로 새 종목을 살 때 쓸 수 있는 현금이에요. 이미 산 종목에 들어간 돈은 빠져 있어요.', ex: '금고 100,000G 중 30,000G로 ETF를 샀다면 주문가능금액은 70,000G' },
-  invested: { title: '투자중 금액', body: '가지고 있는 종목들을 오늘 값으로 계산한 금액이에요. 값이 오르내리면 같이 바뀌어요.', ex: '10주 × 오늘 값 2,100G = 21,000G' },
-  eval: { title: '평가금', body: '아직 팔지 않은 종목을 지금 판다고 쳤을 때의 금액이에요. 팔기 전까지는 확정된 돈이 아니에요.', ex: '샀을 때 20,000G → 지금 평가금 21,000G' },
-  pnl: { title: '수익금', body: '평가금에서 처음 산 금액을 뺀 거예요. 빨간색은 이익, 파란색은 손해예요.', ex: '21,000G - 20,000G = +1,000G' },
-  rate: { title: '수익률', body: '처음 넣은 돈에 비해 몇 % 늘었거나 줄었는지예요. 금액이 달라도 서로 비교할 수 있어요.', ex: '20,000G로 1,000G 벌면 +5%' },
-  avg: { title: '평균 단가', body: '여러 번에 나눠 샀다면, 한 주를 평균 얼마에 샀는지예요.', ex: '2,000G에 1주, 2,200G에 1주 → 평균 2,100G' },
+  total: { title: '총 자산', body: '계좌에 있는 현금과, 지금 가진 종목을 오늘 값으로 계산한 금액을 더한 거예요.', ex: '현금 50,000원 + 종목 평가금 52,000원 = 총 자산 102,000원' },
+  cash: { title: '주문가능금액', body: '지금 바로 새 종목을 살 때 쓸 수 있는 현금이에요. 이미 산 종목에 들어간 돈은 빠져 있어요.', ex: '계좌 1,000,000원 중 30,000원으로 ETF를 샀다면 주문가능금액은 70,000원' },
+  invested: { title: '투자중 금액', body: '가지고 있는 종목들을 오늘 값으로 계산한 금액이에요. 값이 오르내리면 같이 바뀌어요.', ex: '10주 × 오늘 값 2,100원 = 21,000원' },
+  eval: { title: '평가금', body: '아직 팔지 않은 종목을 지금 판다고 쳤을 때의 금액이에요. 팔기 전까지는 확정된 돈이 아니에요.', ex: '샀을 때 20,000원 → 지금 평가금 21,000원' },
+  pnl: { title: '수익금', body: '평가금에서 처음 산 금액을 뺀 거예요. 빨간색은 이익, 파란색은 손해예요.', ex: '21,000원 - 20,000원 = +1,000원' },
+  rate: { title: '수익률', body: '처음 넣은 돈에 비해 몇 % 늘었거나 줄었는지예요. 금액이 달라도 서로 비교할 수 있어요.', ex: '20,000원으로 1,000원 벌면 +5%' },
+  avg: { title: '평균 단가', body: '여러 번에 나눠 샀다면, 한 주를 평균 얼마에 샀는지예요.', ex: '2,000원에 1주, 2,200원에 1주 → 평균 2,100원' },
   market: { title: '장 운영 시간', body: '주식은 정해진 시간에만 사고팔 수 있어요. 한국은 오전 9시~오후 3시 30분, 미국은 한국 시간으로 밤에 열려요.', ex: '장이 닫혀 있으면 다음 날 열릴 때 가격이 바뀌어요' },
-  today: { title: '오늘 등락', body: '어제와 비교해 오늘 값이 얼마나 움직였는지예요. 하루 숫자보다 산 이유가 그대로인지가 더 중요해요.', ex: '어제 2,000G → 오늘 2,040G = +2%' },
+  today: { title: '오늘 등락', body: '어제와 비교해 오늘 값이 얼마나 움직였는지예요. 하루 숫자보다 산 이유가 그대로인지가 더 중요해요.', ex: '어제 2,000원 → 오늘 2,040원 = +2%' },
 }
 
 export function Term({ id, children }: { id: string; children?: ReactNode }) {
@@ -84,8 +84,8 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
   const [sort, setSort] = useState<'value' | 'rate'>('value')
   const [page, setPage] = useState<null | 'assets' | 'rewards' | 'trades' | 'tips'>(null)
   const v = vault(g, day)
-  const totalPnl = v.total - RULES.startGold
-  const totalRate = (totalPnl / RULES.startGold) * 100
+  const totalPnl = v.total - RULES.startCash
+  const totalRate = (totalPnl / RULES.startCash) * 100
   const cost = v.holdings.reduce((a, h) => a + h.p.qty! * h.p.buyPrice!, 0)
   const rate = cost ? (v.pnl / cost) * 100 : 0
   const kr = v.holdings.filter((h) => !US.has(h.p.ticker))
@@ -116,7 +116,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
         <>
           <section className="acct-card">
             <div className="acct-owner">
-              <span>{g.name}의 금고</span>
+              <span>{g.name}의 모의투자 계좌</span>
               <img src={ART.sit} alt="" />
             </div>
             <Term id="total">
@@ -128,7 +128,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
               <em>
                 {totalPnl >= 0 ? '▲' : '▼'} {Math.abs(totalRate).toFixed(2)}%
               </em>
-              <small>시작 금고 {won(RULES.startGold)}부터</small>
+              <small>시작 자산 {won(RULES.startCash)} 대비</small>
             </span>
             <div className="acct-btns">
               <button onClick={() => setPage('assets')}>
@@ -160,7 +160,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
 
           <button className="acct-learn" onClick={() => go('map')}>
             <img src={ART.t_sprout} alt="" />
-            퀘스트를 끝내면 금고에 골드가 들어와요 ›
+            학습을 완료하면 가상 자산이 늘어나요 ›
           </button>
 
           <div className="acct-region">
@@ -346,9 +346,9 @@ function AssetsPage({ g, day, onClose }: { g: Guild; day: number; onClose: () =>
 }
 
 function RewardsPage({ g, onClose }: { g: Guild; onClose: () => void }) {
-  const list = g.feed.filter((f) => /\+\s?\d|골드/.test(f.text) && !/경험치/.test(f.text))
+  const list = g.feed.filter((f) => /\+\s?\d|코인/.test(f.text) && !/경험치/.test(f.text))
   return (
-    <Page title="보상내역" sub="공부하고 돌봐서 받은 골드" onExit={onClose}>
+    <Page title="보상내역" sub="공부하고 돌봐서 받은 보상" onExit={onClose}>
       {list.length === 0 ? (
         <p className="pp-empty">아직 받은 보상이 없어요. 퀘스트를 끝내거나 오늘 할 일을 채워봐요.</p>
       ) : (
@@ -362,7 +362,7 @@ function RewardsPage({ g, onClose }: { g: Guild; onClose: () => void }) {
           ))}
         </ul>
       )}
-      <Tip text="FLOCO의 골드는 투자 수익보다 '배우고 돌보는 것'으로 더 많이 쌓여요. 급하게 벌려고 하지 않아도 괜찮아요." />
+      <Tip text="퀘스트를 끝내면 투자금이, 고양이를 돌보면 게임 코인이 쌓여요. 급하게 벌려고 하지 않아도 괜찮아요." />
     </Page>
   )
 }

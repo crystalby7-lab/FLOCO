@@ -252,7 +252,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             <span className="next-label">오늘 배울 것</span>
             <h2>{nextQuest.title}</h2>
             <p className="next-quote">
-              {nextQuest.summary} · 끝내면 금고 +{RULES.questReward}G
+              {nextQuest.summary} · 끝내면 투자금 +{RULES.questCash / 10000}만원
             </p>
             <button className="btn btn-primary btn-block" onClick={() => go('map')}>
               지도로 가기
@@ -290,7 +290,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           ))}
         </ul>
         <button className="btn btn-primary btn-block" disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
-          {d.claimed ? '오늘 출석 보상 받았어요' : `다 하면 출석 보상 · +${RULES.dailyReward}G`}
+          {d.claimed ? '오늘 출석 보상 받았어요' : `다 하면 출석 보상 · 코인 +${RULES.dailyReward}`}
         </button>
       </section>
 

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { actions, majority, me, memberName, mustRetro, RULES, unlocked, useGame, vault } from '../store'
 import { changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
-import { Empty, Gold } from '../components/ui'
+import { Empty } from '../components/ui'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
 import { Avatar } from '../components/Avatar'
@@ -148,7 +148,7 @@ function TickerSheet({
   return (
     <Page title={t.name} sub="종목 자세히 보기" onExit={onClose}>
       <div className="tk-head">
-        <div className="tk-price num">{priceOf(code, day).toLocaleString()}G</div>
+        <div className="tk-price num">{priceOf(code, day).toLocaleString()}원</div>
         <div className="tk-changes">
           {[1, 5, 20].map((d) => {
             const c = changePct(code, day, d)
@@ -234,14 +234,14 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
           <span className={`badge ${p.status}`}>{statusLabel}</span>
           <h3>{t.name}</h3>
           <small>
-            {memberName(g, p.proposerId)} · <Gold value={p.amount} size={13} />
+            {memberName(g, p.proposerId)} · <span className="num">{p.amount.toLocaleString()}원</span>
           </small>
         </div>
         <div className="proposal-right">
           {(p.status === 'holding' || p.status === 'sold') && (
             <span className={`pnl ${pnl >= 0 ? 'up' : 'down'}`}>
               {pnl >= 0 ? '+' : ''}
-              {pnl.toLocaleString()}G
+              {pnl.toLocaleString()}원
               <small>{pct(ret)}</small>
             </span>
           )}
@@ -342,9 +342,9 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
               <PriceChart data={history(p.ticker, day, Math.max(5, held + 3))} height={90} base={p.buyPrice} />
               <div className="hold-grid">
                 <span>산 가격</span>
-                <b>{p.buyPrice?.toLocaleString()}G</b>
+                <b>{p.buyPrice?.toLocaleString()}원</b>
                 <span>지금 가격</span>
-                <b>{now.toLocaleString()}G</b>
+                <b>{now.toLocaleString()}원</b>
                 <span>수량 · 들고 있은 날</span>
                 <b>
                   {p.qty}주 · {held}일
@@ -477,7 +477,7 @@ const STEPS = ['종목', '금액', '이유', '확인']
 function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: number; start: string; compare: boolean; onClose: () => void }) {
   const [step, setStep] = useState(start ? 1 : 0)
   const [ticker, setTicker] = useState(start || 'K200')
-  const [amount, setAmount] = useState(50_000)
+  const [amount, setAmount] = useState(1_000_000)
   const [reasons, setReasons] = useState<[string, string, string]>(['', '', ''])
   const [focus, setFocus] = useState(0)
   const [result, setResult] = useState<AiResult | null>(null)
@@ -527,7 +527,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
                     <small>{compare ? `${t.holds} · 보수 ${t.fee}` : t.holds}</small>
                   </span>
                   <span className="tk-r">
-                    <span className="num">{priceOf(t.code, day).toLocaleString()}G</span>
+                    <span className="num">{priceOf(t.code, day).toLocaleString()}원</span>
                     <span className="tk-tags">
                       <span className={`num ${ch >= 0 ? 'up' : 'down'}`}>5일 {pct(ch)}</span>
                       <span className={`pill pill-${sw.tone}`}>흔들림 {sw.label}</span>
@@ -547,23 +547,23 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
       {step === 1 && (
         <>
           <div className="amount-box">
-            <small className="sub">{tickerOf(ticker).name} · 1주 {price.toLocaleString()}G</small>
-            <div className="amount-big num">{amount.toLocaleString()}G</div>
+            <small className="sub">{tickerOf(ticker).name} · 1주 {price.toLocaleString()}원</small>
+            <div className="amount-big num">{amount.toLocaleString()}원</div>
             <small className="sub">
-              {qty}주 살 수 있어요 · 금고의 {share}%
+              {qty}주 살 수 있어요 · 내 계좌의 {share}%
             </small>
           </div>
           <div className="chips">
-            {[10_000, 20_000, 30_000, 50_000, 80_000].map((a) => {
+            {[500_000, 1_000_000, 2_000_000, 3_000_000, 5_000_000].map((a) => {
               const q = Math.floor(a / price)
               return (
-                <button key={a} className={`chip ${amount === a ? 'on' : ''}`} disabled={q < 1 || a > g.gold} onClick={() => setAmount(a)}>
-                  {(a / 10000).toFixed(0)}만G · {q}주
+                <button key={a} className={`chip ${amount === a ? 'on' : ''}`} disabled={q < 1 || a > g.cash} onClick={() => setAmount(a)}>
+                  {(a / 10000).toFixed(0)}만원 · {q}주
                 </button>
               )
             })}
           </div>
-          {share >= 40 && <p className="note-warn">금고의 {share}%예요. 한 번에 많이 쓰면 친구들이 걱정할 수 있어요.</p>}
+          {share >= 40 && <p className="note-warn">내 계좌의 {share}%예요. 한 번에 많이 쓰면 친구들이 걱정할 수 있어요.</p>}
           <div className="row">
             <button className="btn" onClick={() => setStep(0)}>
               이전
@@ -620,7 +620,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
               <div className="review-sum">
                 <span>{tickerOf(ticker).name}</span>
                 <b className="num">
-                  {amount.toLocaleString()}G · {qty}주
+                  {amount.toLocaleString()}원 · {qty}주
                 </b>
               </div>
               <button className="btn btn-primary btn-block" onClick={onClose}>
