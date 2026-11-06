@@ -1,7 +1,8 @@
 // 같이 투자: 금고 → 종목 살펴보기 → 제안(종목·금액·이유 3칸·AI 검토) → 의견 → 모의매매 → 같이 돌아보기 (F4·F5·F6)
 import { useState } from 'react'
 import { actions, majority, me, memberName, mustRetro, RULES, unlocked, useGame, vault } from '../store'
-import { asOfDate, asOfLabel, changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { asOfDate, asOfLabel, changePct, comparePair, feeAsOf, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { companyOf, moneyLabel } from '../data/companies'
 import { Empty } from '../components/ui'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
@@ -148,6 +149,8 @@ function TickerSheet({
   const [span, setSpan] = useState(20)
   const data = history(code, day, span)
   const sw = swingOf(code)
+  const pair = comparePair(code)
+  const co = companyOf(t.code)
   return (
     <Page title={t.name} sub={asOfLabel() ?? '종목 자세히 보기'} onExit={onClose}>
       <div className="tk-head">
@@ -187,14 +190,94 @@ function TickerSheet({
         <div>
           <dt>종목코드</dt>
           <dd>
-            {t.stock} · {t.index}
+            {t.code} · {t.index ?? t.track}
           </dd>
         </div>
-        <div>
-          <dt>총보수 (1년)</dt>
-          <dd>{compare ? t.fee : <span className="muted">ETF 숲 '비교하는 법'을 끝내면 보여요</span>}</dd>
-        </div>
+        {t.fee && (
+          <div>
+            <dt>
+              총보수 (1년)
+              {compare && <small className="fee-asof">{feeAsOf()}</small>}
+            </dt>
+            <dd>{compare ? t.fee : <span className="muted">ETF 숲 '비교하는 법'을 끝내면 보여요</span>}</dd>
+          </div>
+        )}
       </dl>
+
+      {t.risk && (
+        <p className="tk-risk">
+          <img src={ART.face_wow} alt="" />
+          {t.risk}
+        </p>
+      )}
+
+      {co && (
+        <section className="tk-fin">
+          <h3 className="card-title small">이 회사는 얼마나 벌까</h3>
+          <div className="tk-fin-row">
+            <div>
+              <small>매출액</small>
+              <b>{moneyLabel(co.revenue)}</b>
+            </div>
+            <div>
+              <small>영업이익</small>
+              <b>{moneyLabel(co.profit)}</b>
+            </div>
+          </div>
+          <p className="fineprint">{co.period} · 금융감독원 전자공시(DART)에 회사가 올린 숫자예요.</p>
+        </section>
+      )}
+
+      {pair.length > 0 && (
+        <section className="tk-compare">
+          <h3 className="card-title small">비교해보기</h3>
+          <p className="sub small">{t.index ? `같은 '${t.index}'를 따라가는데 보수가 달라요.` : '비슷한 상품과 나란히 봐요.'}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>　</th>
+                <th>{t.name}</th>
+                {pair.map((o) => (
+                  <th key={o.code}>{o.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>총보수</th>
+                <td className="hi">{t.fee ?? '-'}</td>
+                {pair.map((o) => (
+                  <td key={o.code}>{o.fee ?? '-'}</td>
+                ))}
+              </tr>
+              <tr>
+                <th>담은 것</th>
+                <td>{t.index ?? t.track}</td>
+                {pair.map((o) => (
+                  <td key={o.code}>{o.index ?? o.track}</td>
+                ))}
+              </tr>
+              <tr>
+                <th>한 주 값</th>
+                <td>{priceOf(t.code, day).toLocaleString()}원</td>
+                {pair.map((o) => (
+                  <td key={o.code}>{priceOf(o.code, day).toLocaleString()}원</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          <p className="fineprint">보수는 {feeAsOf()}예요. 운용사가 바꿀 수 있으니 살 때 다시 확인해요.</p>
+        </section>
+      )}
+
+      <section className="tk-checks">
+        <h3 className="card-title small">확인할 점</h3>
+        <ol>
+          {t.checks?.map((c) => (
+            <li key={c}>{c}</li>
+          ))}
+        </ol>
+      </section>
       <p className="fineprint">
         {asOfLabel()
           ? `${asOfLabel()} · 한국거래소 종가예요(공공데이터포털). 사고파는 건 연습용 돈으로만 해요.`
@@ -491,7 +574,7 @@ const STEPS = ['종목', '금액', '이유', '확인']
 
 function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: number; start: string; compare: boolean; onClose: () => void }) {
   const [step, setStep] = useState(start ? 1 : 0)
-  const [ticker, setTicker] = useState(start || 'K200')
+  const [ticker, setTicker] = useState(start || '069500')
   const [amount, setAmount] = useState(1_000_000)
   const [reasons, setReasons] = useState<[string, string, string]>(['', '', ''])
   const [focus, setFocus] = useState(0)

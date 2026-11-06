@@ -10641,3 +10641,132 @@ label.set2-row:active {
   font-weight: 750;
   color: var(--sub);
 }
+
+/* ═══════════ v5.9 — 종목 상세: 위험 한 줄 · 비교해보기 · 확인할 점 · 실적 ═══════════ */
+.fee-asof {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-top: 1px;
+}
+.tk-risk {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 11px 13px;
+  background: #fff1f1;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-weight: 650;
+  color: #b4485f;
+  word-break: keep-all;
+}
+.tk-risk img {
+  width: 26px;
+  flex: none;
+}
+.tk-compare,
+.tk-checks,
+.tk-fin {
+  margin-top: 16px;
+  background: var(--paper-2);
+  border-radius: 18px;
+  padding: 13px;
+  box-shadow: var(--card-shadow);
+}
+.tk-compare table {
+  width: 100%;
+  margin-top: 9px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.tk-compare th,
+.tk-compare td {
+  padding: 7px 5px;
+  font-size: 12.5px;
+  text-align: center;
+  border-bottom: 1px solid #eef2f7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.tk-compare thead th {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.35;
+}
+.tk-compare tbody th {
+  width: 62px;
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--sub);
+}
+.tk-compare td {
+  font-weight: 700;
+  color: var(--ink);
+}
+.tk-compare td.hi {
+  color: var(--blue);
+  font-weight: 800;
+}
+.tk-compare tbody tr:last-child th,
+.tk-compare tbody tr:last-child td {
+  border-bottom: 0;
+}
+.tk-checks ol {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  counter-reset: chk;
+}
+.tk-checks li {
+  display: flex;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-weight: 650;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.tk-checks li::before {
+  counter-increment: chk;
+  content: counter(chk);
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: #eaf1fd;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.tk-fin-row {
+  display: flex;
+  gap: 10px;
+  margin: 9px 0 4px;
+}
+.tk-fin-row > div {
+  flex: 1;
+  background: var(--field);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.tk-fin-row small {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--sub);
+}
+.tk-fin-row b {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}

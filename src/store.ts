@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from 'react'
 import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
-import { asOfDate, isRealPrices, priceOf, tickerOf } from './data/market'
+import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { itemOf } from './data/shop'
 import { reviewReasons } from './aiReview'
 
@@ -71,6 +71,8 @@ function migrate(raw: Partial<GameState>): GameState {
       // 예전 저장본: 금고 골드 하나로 투자하던 걸 투자 계좌(원)와 게임 코인으로 나눈다
       cash: g.cash ?? RULES.startCash - g.proposals.filter((p) => p.status === 'holding' && p.qty && p.buyPrice).reduce((a, p) => a + p.qty! * p.buyPrice!, 0),
       gold: g.cash === undefined ? Math.min(g.gold, RULES.startGold) : g.gold,
+      // 예전에 K200·SP500으로 저장된 제안을 실제 종목코드로 바꾼다
+      proposals: (g.proposals ?? []).map((p) => ({ ...p, ticker: realCode(p.ticker) })),
       board: g.board ?? seedBoard(g.members),
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
@@ -280,7 +282,7 @@ function seedProposal(): Proposal {
   return {
     id: uid(),
     proposerId: 'bot-haneul',
-    ticker: 'SP500',
+    ticker: '360750',
     amount: 2_000_000,
     reasons: [
       '미국 대표 회사 500곳을 한 번에 담고 있어서 한 회사가 떨어져도 덜 흔들리고, 총보수도 0.07%로 낮다.',

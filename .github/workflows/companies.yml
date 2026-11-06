@@ -1,0 +1,43 @@
+name: 대형주 실적 받기
+
+# 분기 보고서가 나온 뒤(2·5·8·11월 중순)에 매출·영업이익을 받아 public/companies.json을 쓴다.
+# 저장소 Secret DART_API_KEY(금융감독원 OpenDART 인증키)가 필요하다.
+# 키가 없거나 받아오지 못하면 파일을 건드리지 않는다.
+on:
+  schedule:
+    - cron: '0 10 16 2,5,8,11 *' # 19:00 KST, 2·5·8·11월 16일
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: companies
+  cancel-in-progress: false
+
+jobs:
+  companies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 실적 받기
+        env:
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: node scripts/fetch-companies.mjs
+
+      - name: 바뀌었으면 커밋
+        run: |
+          if [ -z "$(git status --porcelain public/companies.json)" ]; then
+            echo "바뀐 실적 없음"
+            exit 0
+          fi
+          git config user.name "floco-price-bot"
+          git config user.email "actions@github.com"
+          git add public/companies.json
+          git commit -m "대형주 실적 갱신 ($(TZ=Asia/Seoul date '+%Y-%m'))"
+          git push

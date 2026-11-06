@@ -16,16 +16,13 @@ const OUT = resolve('public/prices.json')
 const DAYS = 60 // 남길 거래일 수
 const LOOKBACK = 120 // 휴일을 감안해 넉넉히 조회할 달력 일수
 
-// src/data/market.ts의 TICKERS와 같은 종목
-const ETFS = [
-  { stock: '069500', name: 'KODEX 200' },
-  { stock: '360750', name: 'TIGER 미국S&P500' },
-  { stock: '133690', name: 'TIGER 미국나스닥100' },
-  { stock: '305720', name: 'KODEX 2차전지산업' },
-  { stock: '114260', name: 'KODEX 국고채3년' },
-]
+// 종목 목록은 앱과 같은 파일에서 읽는다 (src/data/tickers.json)
+const TABLE = JSON.parse(await readFile(resolve('src/data/tickers.json'), 'utf8'))
+const ETFS = TABLE.items.filter((t) => t.kind === 'etf')
+const STOCKS = TABLE.items.filter((t) => t.kind === 'stock')
 
 const ETF_URL = 'https://apis.data.go.kr/1160100/GetSecuritiesProductInfoService_V2/getETFPriceInfo_V2'
+const STOCK_URL = 'https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2'
 const INDEX_URL = 'https://apis.data.go.kr/1160100/GetMarketIndexInfoService_V2/getStockMarketIndex_V2'
 
 // 포털 키는 '인코딩 키'와 '디코딩 키' 두 가지로 주어진다.
@@ -75,14 +72,27 @@ async function main() {
   const range = { beginBasDt: ymd(begin), endBasDt: ymd(end) }
 
   const series = {}
-  for (const etf of ETFS) {
-    // likeSrtnCd로 부분 검색한 뒤 정확히 일치하는 것만 고른다 (srtnCd 파라미터는 무시된다)
-    const items = await call(ETF_URL, { ...range, likeSrtnCd: etf.stock })
-    const rows = toSeries(items, (it) => String(it.srtnCd) === etf.stock)
-    if (rows.length < 2) throw new Error(`${etf.name}(${etf.stock}) 종가를 못 받았어요 (${rows.length}일)`)
-    series[etf.stock] = rows
-    console.log(`· ${etf.name} ${rows.length}일 (${rows[0].d} ~ ${rows[rows.length - 1].d}, 마지막 ${rows[rows.length - 1].c.toLocaleString()}원)`)
+  const missing = []
+
+  // likeSrtnCd로 부분 검색한 뒤 정확히 일치하는 것만 고른다 (srtnCd 파라미터는 무시된다)
+  const grab = async (url, t) => {
+    try {
+      const items = await call(url, { ...range, likeSrtnCd: t.code })
+      const rows = toSeries(items, (it) => String(it.srtnCd) === t.code)
+      if (rows.length < 2) throw new Error(`${rows.length}일치뿐`)
+      series[t.code] = rows
+      console.log(`· ${t.name} ${rows.length}일 (마지막 ${rows[rows.length - 1].d} ${rows[rows.length - 1].c.toLocaleString()}원)`)
+    } catch (e) {
+      missing.push(`${t.name}(${t.code}): ${e.message}`)
+    }
   }
+
+  for (const t of ETFS) await grab(ETF_URL, t)
+  for (const t of STOCKS) await grab(STOCK_URL, t)
+
+  if (missing.length) console.warn(`· 못 받은 종목 ${missing.length}개\n  - ${missing.join('\n  - ')}`)
+  // 절반도 못 받으면 뭔가 잘못된 것 — 파일을 건드리지 않는다
+  if (Object.keys(series).length < Math.ceil(TABLE.items.length / 2)) throw new Error(`받은 종목이 너무 적어요 (${Object.keys(series).length}/${TABLE.items.length})`)
 
   // 코스피 지수 (없어도 신문·화면은 돌아간다)
   let kospi = []
@@ -97,7 +107,8 @@ async function main() {
   // 가장 최근 거래일 = 종목들이 공통으로 가진 마지막 날짜 중 가장 이른 것
   const asOf = Object.values(series)
     .map((s) => s[s.length - 1].d)
-    .sort()[0]
+    .sort()
+    .at(-1)
 
   const prices = {
     updatedAt: new Date().toISOString(),

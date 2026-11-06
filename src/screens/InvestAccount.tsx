@@ -9,9 +9,10 @@ import { PriceChart } from '../components/Chart'
 import type { Guild } from '../types'
 import type { Tab } from '../App'
 
-// 국내 / 미국 구분
-const US = new Set(['SP500', 'NDQ'])
-const flagOf = (code: string) => (US.has(code) ? '🇺🇸' : '🇰🇷')
+// 무엇을 따라가는 종목인지 (국내 / 미국 / 그 외)
+const marketOf = (code: string) => tickerOf(code).market
+const isUS = (code: string) => marketOf(code) === 'us'
+const flagOf = (code: string) => (marketOf(code) === 'us' ? '🇺🇸' : marketOf(code) === 'kr' ? '🇰🇷' : '🌏')
 const won = (n: number) => `${Math.round(n).toLocaleString()}원`
 // 2026-11-06 → 11월 6일
 const dayLabel = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`
@@ -90,8 +91,8 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
   const totalRate = (totalPnl / RULES.startCash) * 100
   const cost = v.holdings.reduce((a, h) => a + h.p.qty! * h.p.buyPrice!, 0)
   const rate = cost ? (v.pnl / cost) * 100 : 0
-  const kr = v.holdings.filter((h) => !US.has(h.p.ticker))
-  const us = v.holdings.filter((h) => US.has(h.p.ticker))
+  const kr = v.holdings.filter((h) => !isUS(h.p.ticker))
+  const us = v.holdings.filter((h) => isUS(h.p.ticker))
   const shown = (region === 'kr' ? kr : region === 'us' ? us : v.holdings).slice().sort((a, b) => (sort === 'value' ? b.value - a.value : b.pct - a.pct))
 
   return (
@@ -111,7 +112,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
 
       <div className="mkt-row">
         <Market name="KOSPI" hours="09:00 - 15:30 KST" flag="🇰🇷" open={sessionOf('kr')} ch={kospiChange(day)} />
-        <Market name="NASDAQ" hours="09:30 - 16:00 ET" flag="🇺🇸" open={sessionOf('us')} ch={changePct('NDQ', day)} />
+        <Market name="NASDAQ" hours="09:30 - 16:00 ET" flag="🇺🇸" open={sessionOf('us')} ch={changePct('133690', day)} />
       </div>
 
       {tab === 'own' ? (

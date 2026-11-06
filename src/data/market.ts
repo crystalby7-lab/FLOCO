@@ -6,27 +6,39 @@
 //
 // 종목 정보(단축코드·정식 이름·총보수)는 2026-11-06에 운용사·ETF 공시로 확인한 값.
 
+import table from './tickers.json'
+
 export type Ticker = {
-  code: string // 앱에서 쓰는 코드
-  stock: string // 실제 단축코드 (6자리)
+  code: string // 단축코드 (6자리)
   name: string // 정식 이름
-  holds: string // 무엇을 담았나
-  index: string // 기초지수
-  fee: string // 총보수 (연)
-  base: number // ↓ 아래 셋은 종가를 못 받았을 때 쓰는 가짜 시세용
+  kind: 'etf' | 'stock'
+  market: 'kr' | 'us' | 'other' // 무엇을 따라가나 (국내/미국/그 외)
+  track: string // '국내 추종' 같은 한 줄 표시
+  holds: string // 무엇을 담았나 (쉬운 말 한 줄)
+  index?: string // 기초지수 (ETF만)
+  fee?: string // 총보수 (연, ETF만)
+  swing?: '높음' // 흔들림을 손으로 '높음'으로 고정
+  risk?: string // 왜 위험한지 한 줄
+  compare?: string[] // 같은 지수를 따르는 짝 (상세에서 나란히)
+  checks: string[] // 사기 전에 확인할 점 3가지
+  base: number // ↓ 종가를 못 받았을 때 쓰는 연습용 값
   vol: number
-  drift: number
 }
 
-export const TICKERS: Ticker[] = [
-  { code: 'K200', stock: '069500', name: 'KODEX 200', holds: '한국 대표 회사 200곳', index: '코스피 200', fee: '0.150%', base: 36000, vol: 0.012, drift: 0.0004 },
-  { code: 'SP500', stock: '360750', name: 'TIGER 미국S&P500', holds: '미국 대표 회사 500곳', index: 'S&P 500', fee: '0.0068%', base: 21000, vol: 0.01, drift: 0.0006 },
-  { code: 'NDQ', stock: '133690', name: 'TIGER 미국나스닥100', holds: '미국 기술 기업 100곳', index: '나스닥 100', fee: '0.0068%', base: 128000, vol: 0.016, drift: 0.0007 },
-  { code: 'BATT', stock: '305720', name: 'KODEX 2차전지산업', holds: '배터리 관련 회사 10~20곳', index: 'FnGuide 2차전지 산업', fee: '0.450%', base: 9800, vol: 0.03, drift: -0.0005 },
-  { code: 'BOND', stock: '114260', name: 'KODEX 국고채3년', holds: '한국 정부가 빌린 돈(채권)', index: 'MKF 국고채지수(총수익)', fee: '0.150%', base: 51000, vol: 0.002, drift: 0.0001 },
-]
+export const TICKERS = table.items as Ticker[]
+export const FEE_CHECKED_AT = table.checkedAt // 보수를 확인한 날
 
-export const tickerOf = (code: string) => TICKERS.find((t) => t.code === code)!
+// 예전 저장본에 남아 있는 코드 (제안·거래 기록이 깨지지 않게)
+const LEGACY: Record<string, string> = { K200: '069500', SP500: '360750', NDQ: '133690', BATT: '305720', BOND: '114260' }
+export const realCode = (code: string) => LEGACY[code] ?? code
+
+export const tickerOf = (code: string) => TICKERS.find((t) => t.code === realCode(code)) ?? TICKERS[0]
+
+// 'n월 n일 기준' (보수 확인 날짜)
+export const feeAsOf = () => `${Number(FEE_CHECKED_AT.slice(5, 7))}월 ${Number(FEE_CHECKED_AT.slice(8, 10))}일 기준`
+
+// 같은 지수를 따르는 짝 (상세에서 비교해보기)
+export const comparePair = (code: string) => (tickerOf(code).compare ?? []).map((c) => tickerOf(c)).filter(Boolean)
 
 // ───────── 실제 종가 ─────────
 
@@ -55,8 +67,10 @@ const REMOTE = 'https://raw.githubusercontent.com/crystalby7-lab/FLOCO/main/publ
 const LOCAL = `${import.meta.env.BASE_URL}prices.json`
 
 function usable(p: Prices) {
-  // 다섯 종목 모두 이틀치 이상 있어야 차트와 등락률을 그릴 수 있다
-  return !!p?.asOf && TICKERS.every((t) => (p.series?.[t.stock]?.length ?? 0) >= 2)
+  // 절반 이상 종목이 이틀치 넘게 있어야 쓸 만한 시세로 본다
+  if (!p?.asOf || !p.series) return false
+  const ok = TICKERS.filter((t) => (p.series[t.code]?.length ?? 0) >= 2).length
+  return ok >= Math.ceil(TICKERS.length / 2)
 }
 
 export async function loadPrices(): Promise<boolean> {
@@ -96,10 +110,10 @@ function fakePrice(code: string, gameDay: number): number {
   if (cache[key]) return cache[key]
   const t = tickerOf(code)
   let p = t.base
-  const seedBase = code.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+  const seedBase = t.code.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
   for (let d = 1; d <= day; d++) {
     const r = rand(seedBase * 1000 + d) * 2 - 1
-    p = p * (1 + t.drift + r * t.vol)
+    p = p * (1 + r * t.vol)
   }
   cache[key] = Math.round(p)
   return cache[key]
@@ -111,7 +125,7 @@ function fakePrice(code: string, gameDay: number): number {
 
 export function priceOf(code: string, day: number): number {
   if (real) {
-    const s = real.series[tickerOf(code).stock]
+    const s = real.series[tickerOf(code).code]
     if (s?.length) {
       const i = Math.min(s.length - 1, Math.max(0, s.length - 1 + day))
       return s[i].c
@@ -123,7 +137,7 @@ export function priceOf(code: string, day: number): number {
 // 그 값이 어느 날짜의 종가인지
 export function dateOf(code: string, day: number): string | null {
   if (!real) return null
-  const s = real.series[tickerOf(code).stock]
+  const s = real.series[tickerOf(code).code]
   if (!s?.length) return null
   const i = Math.min(s.length - 1, Math.max(0, s.length - 1 + day))
   return s[i].d
@@ -147,13 +161,16 @@ export function kospiChange(day: number, span = 1): number {
     const j = Math.max(0, i - span)
     return k[j].c ? ((k[i].c - k[j].c) / k[j].c) * 100 : 0
   }
-  return changePct('K200', day, span)
+  return changePct('069500', day, span)
 }
 
-// 흔들림 정도: 실제 종가가 있으면 최근 20거래일 하루 변동 폭으로 계산한다
+// 흔들림 정도: 실제 종가가 있으면 최근 20거래일 하루 변동 폭으로 계산한다.
+// 한 산업·한 나라에 몰린 종목은 tickers.json에서 '높음'으로 고정해 둔다.
 export function swingOf(code: string): { label: '낮음' | '보통' | '높음'; tone: 'moss' | 'sky' | 'berry' } {
-  let v = tickerOf(code).vol
-  const s = real?.series[tickerOf(code).stock]
+  const t = tickerOf(code)
+  if (t.swing === '높음') return { label: '높음', tone: 'berry' }
+  let v = t.vol
+  const s = real?.series[t.code]
   if (s && s.length > 5) {
     const tail = s.slice(-21)
     const moves = tail.slice(1).map((x, i) => Math.abs((x.c - tail[i].c) / tail[i].c))
