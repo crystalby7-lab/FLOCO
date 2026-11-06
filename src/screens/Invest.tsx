@@ -10,6 +10,7 @@ import { ART } from '../components/CatView'
 import { Lock } from '../components/Icons'
 import type { AiResult, Guild, Proposal } from '../types'
 import type { Tab } from '../App'
+import { InvestAccount } from './InvestAccount'
 
 const REASON_LABELS = ['왜 사고 싶어?', '아직 모르는 건?', '안 사기로 한 건?'] as const
 const REASON_PH = [
@@ -56,14 +57,12 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel">
-      <header className="top">
-        <div>
-          <div className="eyebrow">{majority(g)}명이 좋다고 하면 사요 · 거래일 {s.day}</div>
-          <h1>같이 투자</h1>
-        </div>
-      </header>
+      <InvestAccount g={g} day={s.day} go={go} onOpen={setViewing} />
 
-      <VaultCard g={g} day={s.day} onOpen={setViewing} />
+      <div className="section-head invest-guild-head">
+        <h2>같이 투자 제안</h2>
+        <span className="muted">{majority(g)}명이 좋다고 하면 사요 · 거래일 {s.day}</span>
+      </div>
 
       {canPropose ? (
         <button className="btn btn-primary btn-block" onClick={() => setWriting('')}>
@@ -81,26 +80,6 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
           </button>
         </div>
       )}
-
-      <div className="section-head">
-        <h2>살펴볼 종목</h2>
-        <span className="muted">눌러서 자세히</span>
-      </div>
-      <div className="ticker-strip">
-        {TICKERS.map((t) => {
-          const ch = changePct(t.code, s.day, 5)
-          return (
-            <button key={t.code} className="tk-card" onClick={() => setViewing(t.code)}>
-              <span className="tk-name">{t.name}</span>
-              <PriceChart data={history(t.code, s.day, 12)} height={40} compact />
-              <span className="tk-row">
-                <b className="num">{priceOf(t.code, s.day).toLocaleString()}G</b>
-                <span className={`num ${ch >= 0 ? 'up' : 'down'}`}>{pct(ch)}</span>
-              </span>
-            </button>
-          )
-        })}
-      </div>
 
       <div className="seg filter">
         {(
@@ -142,60 +121,6 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
       )}
       {writing !== null && <ProposalForm g={g} day={s.day} start={writing} compare={tools.has('etf_compare')} onClose={() => setWriting(null)} />}
     </div>
-  )
-}
-
-// ───────── 금고 요약 ─────────
-
-const SEG_COLORS = ['var(--blue)', 'var(--pink)', '#9fc7a8', '#d8c3a5', '#b8a9d9']
-
-function VaultCard({ g, day, onOpen }: { g: Guild; day: number; onOpen: (code: string) => void }) {
-  const v = vault(g, day)
-  const parts = [{ label: '현금', value: v.cash, color: 'var(--faint)' }, ...v.holdings.map((h, i) => ({ label: tickerOf(h.p.ticker).name, value: h.value, color: SEG_COLORS[i % SEG_COLORS.length], code: h.p.ticker }))]
-  return (
-    <section className="card vault-card">
-      <div className="vault-top">
-        <div>
-          <span className="sub small">길드 금고 전체</span>
-          <div className="vault-total">
-            <Gold value={v.total} size={22} />
-          </div>
-        </div>
-        <div className="vault-pnl">
-          <span className="sub small">지금 평가손익</span>
-          <b className={`num ${v.pnl >= 0 ? 'up' : 'down'}`}>
-            {v.pnl >= 0 ? '+' : ''}
-            {v.pnl.toLocaleString()}G
-          </b>
-        </div>
-      </div>
-      <div className="alloc" aria-label="금고 비중">
-        {parts.map((p) => (
-          <i key={p.label} style={{ flex: p.value, background: p.color }} />
-        ))}
-      </div>
-      <ul className="alloc-legend">
-        {parts.map((p) => (
-          <li key={p.label}>
-            <i style={{ background: p.color }} />
-            {'code' in p && p.code ? (
-              <button className="link" onClick={() => onOpen(p.code!)}>
-                {p.label}
-              </button>
-            ) : (
-              <span>{p.label}</span>
-            )}
-            <span className="num muted">{Math.round((p.value / v.total) * 100)}%</span>
-          </li>
-        ))}
-      </ul>
-      {v.realized !== 0 && (
-        <p className="fineprint">
-          지금까지 팔아서 생긴 손익 {v.realized >= 0 ? '+' : ''}
-          {v.realized.toLocaleString()}G · 수익이 나도 레벨은 오르지 않아요
-        </p>
-      )}
-    </section>
   )
 }
 
