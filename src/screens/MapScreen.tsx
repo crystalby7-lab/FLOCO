@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { questsDone, unlocked, useGame } from '../store'
 import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
 import { Page } from '../components/Page'
+import { TabHeader } from '../components/TabHeader'
 import { Book, Lock } from '../components/Icons'
 import { ART } from '../components/CatView'
 import { Lesson } from './Lesson'
@@ -42,11 +43,16 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel live path-panel" onClick={() => setPopup(null)}>
-      <header className="d-head">
-        <span className="d-date">플로월드 마을</span>
-        <h1>
-          지은 건물 {doneN} <small>/ {QUESTS.length}</small>
-        </h1>
+      <TabHeader
+        title="플로월드"
+        sub="퀘스트를 깨면 마을 건물이 하나씩 지어져요"
+        right={
+          <span className="head-pill">
+            <img src={ART.t_navy} alt="" />
+            {doneN}/{QUESTS.length}
+          </span>
+        }
+      >
         <div className="map-progress">
           <div style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
         </div>
@@ -58,7 +64,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
             </span>
           ))}
         </div>
-      </header>
+      </TabHeader>
 
       {REGIONS.map((r) => {
         const qs = QUESTS.filter((q) => q.region === r.id)

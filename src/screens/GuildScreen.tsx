@@ -1,9 +1,10 @@
 // 길드: 우리 길드 기록 · 이번 주 같이 할 일 · 친구들(응원) · 길드 소식 · 길드 한마디 · 초대
 // (길드 소식은 홈에 있던 것을 옮겨왔다. 홈에는 대신 오늘의 플로코 신문이 들어간다.)
 import { useState } from 'react'
-import { actions, memberName, today, useGame, vault } from '../store'
+import { actions, memberName, today, useGame } from '../store'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
+import { TabHeader } from '../components/TabHeader'
 
 const feedTone = (icon: string) =>
   ['✅', '📈', '🎉', '🔓', '✨', '🎁'].includes(icon) ? 'moss' : ['📉', '🙅', '⚠️', '✋'].includes(icon) ? 'berry' : ['💡', '👍', '📘'].includes(icon) ? 'honey' : ''
@@ -15,7 +16,6 @@ export function GuildScreen() {
   const [draft, setDraft] = useState('')
   const [toast, setToast] = useState('')
   const link = `${location.origin}${location.pathname}?invite=${g.code}`
-  const v = vault(g, s.day)
 
   const copy = async () => {
     try {
@@ -72,12 +72,17 @@ export function GuildScreen() {
 
   return (
     <div className="tab-panel">
-      <header className="top">
-        <div>
-          <div className="eyebrow">길드 {g.members.length}/5명 · 금고 {v.total.toLocaleString()}G</div>
-          <h1>{g.name}</h1>
-        </div>
-      </header>
+      <TabHeader
+        title={g.name}
+        sub={`멤버 ${g.members.length}/5 · 같이 키운 지 ${days}일`}
+        right={
+          <span className="head-avatars">
+            {g.members.slice(0, 4).map((m) => (
+              <Avatar key={m.id} g={g} id={m.id} size={30} />
+            ))}
+          </span>
+        }
+      />
 
       <section className="card guild-hero">
         <img src={ART.crown} alt="" className="gh-cat" />

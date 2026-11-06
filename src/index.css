@@ -10603,3 +10603,32 @@ label.set2-row:active {
 .mkt-card small { overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
 .mkt-right { flex: none; }
 .mkt-flag { font-size: 16px; }
+
+/* 탭 제목 통일 */
+.tab-head { display: flex; flex-direction: column; gap: 10px; padding: 6px 2px 4px; }
+.tab-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tab-head-text { min-width: 0; }
+.tab-head h1 { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; color: var(--ink); line-height: 1.2; }
+.tab-head p { font-size: 13.5px; font-weight: 600; color: var(--sub); margin-top: 3px; word-break: keep-all; }
+.tab-head-right { flex: none; }
+.head-pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px 0 8px;
+  background: #fff; border-radius: 999px; font-size: 14px; font-weight: 800; color: var(--ink);
+  box-shadow: 0 4px 12px -8px rgba(30,70,120,.6); font-variant-numeric: tabular-nums;
+}
+.head-pill img { height: 24px; }
+.head-avatars { display: flex; }
+.head-avatars .breed-av { border: 2.5px solid var(--paper); box-sizing: content-box; }
+.head-avatars .breed-av + .breed-av { margin-left: -10px; }
+.tab-head .map-progress { margin: 0; height: 6px; }
+.tab-head .tool-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab-head .tag-label { font-size: 12px; font-weight: 700; padding: 4px 10px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.tab-head .tag-label.on { color: var(--blue); background: #fff; }
+.shop-sec-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 14px 2px 8px; }
+.shop-sec-head h2 { font-size: 18px; font-weight: 900; color: var(--ink); }
+.shop-sec-head small { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.guild-hero {
+  background: #fff !important;
+  border: 0 !important;
+  box-shadow: var(--card-shadow) !important;
+}
