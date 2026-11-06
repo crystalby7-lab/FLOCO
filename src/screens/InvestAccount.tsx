@@ -2,7 +2,7 @@
 // 숫자마다 ⓘ를 누르면 고양이가 그 말이 무슨 뜻인지 설명해줘서, 화면을 보면서 용어를 배운다.
 import { useState, type ReactNode } from 'react'
 import { RULES, vault } from '../store'
-import { changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { asOfLabel, changePct, history, kospiChange, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
 import { ART } from '../components/CatView'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
@@ -108,7 +108,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
       </div>
 
       <div className="mkt-row">
-        <Market name="KOSPI" hours="09:00 - 15:30 KST" flag="🇰🇷" open={sessionOf('kr')} ch={changePct('K200', day)} />
+        <Market name="KOSPI" hours="09:00 - 15:30 KST" flag="🇰🇷" open={sessionOf('kr')} ch={kospiChange(day)} />
         <Market name="NASDAQ" hours="09:30 - 16:00 ET" flag="🇺🇸" open={sessionOf('us')} ch={changePct('NDQ', day)} />
       </div>
 
@@ -119,6 +119,7 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
               <span>{g.name}의 모의투자 계좌</span>
               <img src={ART.sit} alt="" />
             </div>
+            <span className="acct-asof">{asOfLabel() ?? '연습용 시세'}</span>
             <Term id="total">
               <small className="acct-label">총 자산</small>
             </Term>

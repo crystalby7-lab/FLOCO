@@ -5,7 +5,7 @@
 import { useSyncExternalStore } from 'react'
 import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS } from './data/quests'
-import { priceOf, tickerOf } from './data/market'
+import { asOfDate, isRealPrices, priceOf, tickerOf } from './data/market'
 import { itemOf } from './data/shop'
 import { reviewReasons } from './aiReview'
 
@@ -130,6 +130,12 @@ export function setRemote(r: Remote | null, uidFromAuth: string | null) {
   }
 }
 export const isOnline = () => remote !== null
+
+// 실제 종가를 받아온 뒤 화면을 다시 그리게 한다 (market.ts는 상태 밖에 있어서
+// 상태 객체를 새로 만들어 줘야 useSyncExternalStore가 다시 그린다)
+export function notifyPrices() {
+  set((s) => ({ ...s }))
+}
 
 export function useGame(): GameState {
   return useSyncExternalStore(
@@ -476,6 +482,7 @@ export const actions = {
       votes: [{ memberId: myId, agree: true }],
       status: 'voting',
       createdDay: state.day,
+      ...(asOfDate() ? { createdDate: asOfDate()! } : {}),
     }
     updateGuild((gg) => {
       let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '💡', `${me(gg).nickname}님이 ${tickerOf(ticker).name} 매수를 제안했어요.`)
@@ -499,7 +506,7 @@ export const actions = {
       const price = priceOf(p.ticker, s.day)
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
-      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day }
+      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, ...(asOfDate() ? { soldDate: asOfDate()! } : {}) }
       const ng = { ...g, cash: g.cash + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,
@@ -657,8 +664,9 @@ export const actions = {
     })
   },
 
-  // 데모용
+  // 데모용 — 가짜 시세일 때만 쓴다. 실제 종가로 돌 때는 날짜를 우리가 만들지 않는다.
   nextDay() {
+    if (isRealPrices()) return
     set((s) => {
       const ns = { ...s, day: s.day + 1 }
       return ns.guild ? { ...ns, guild: addFeed({ ...ns.guild, day: ns.day }, '📅', `하루가 지났어요 (거래일 ${ns.day}).`) } : ns

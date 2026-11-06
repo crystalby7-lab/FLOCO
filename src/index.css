@@ -10632,3 +10632,12 @@ label.set2-row:active {
   border: 0 !important;
   box-shadow: var(--card-shadow) !important;
 }
+
+/* 모의투자 계좌: 어느 날 종가인지 */
+.acct-asof {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--sub);
+}

@@ -49,6 +49,18 @@
 - 기사 전문은 저장하지 않는다. 코인·단타·추천성 기사는 거르고, 매수·매도를 권하는 문장은 쓰지 않는다.
 - 신문 화면 글자는 폭 360px에서도 겹치지 않아야 한다. 칩(태그·알림)을 제목 줄에 끼워 넣지 말 것.
 
+## 시세 (실제 종가)
+- 종목은 실제 국내 상장 ETF 5개. 단축코드·정식 이름·총보수는 2026-11-06에 운용사·ETF 공시로 확인한 값 (`src/data/market.ts`).
+  KODEX 200(069500, 0.150%) · TIGER 미국S&P500(360750, 0.0068%) · TIGER 미국나스닥100(133690, 0.0068%) · KODEX 2차전지산업(305720, 0.450%) · KODEX 국고채3년(114260, 0.150%)
+- `scripts/fetch-prices.mjs`를 `.github/workflows/prices.yml`이 평일 18시(KST)에 돌려 최근 60거래일 종가와 코스피 지수를 `public/prices.json`에 넣는다.
+  공공데이터포털 금융위원회 **V2** 주소를 쓴다 (`GetSecuritiesProductInfoService_V2/getETFPriceInfo_V2`, `GetMarketIndexInfoService_V2/getStockMarketIndex_V2`).
+  `srtnCd`는 무시되므로 `likeSrtnCd`로 받아서 코드가 정확히 같은 것만 걸러낸다.
+- 저장소 Secret `DATA_GO_KR_KEY`(공공데이터포털 일반 인증키). 키가 없거나 받아오지 못하면 **prices.json을 건드리지 않는다**.
+- 앱은 raw.githubusercontent → 로컬 `public/prices.json` 순으로 읽고, 둘 다 없으면 예전 가짜 시세로 돈다 (`loadPrices()`).
+- `priceOf(code, day)`의 `day`는 '가장 최근 거래일에서 며칠 전'. 0이면 최신 종가. 매수·매도는 최신 종가로 체결된다.
+- 거래일은 실제 날짜(`asOfDate()`)로 적고 화면에 'N월 N일 종가 기준'(`asOfLabel()`)을 보여준다. 제안에는 `createdDate`·`soldDate`가 남는다.
+- 데모용 '하루 지나기'는 가짜 시세일 때만 보이고, 실제 종가로 돌면 `nextDay()`가 아무 일도 하지 않는다.
+
 ## 서버 (Firebase)
 - `src/sync.ts` — 익명 로그인 후 `users/{uid}`(내 정보)와 `guilds/{초대코드}`(길드 전체)를 서버와 맞춤. 친구 변경은 실시간 반영.
 - 서버에 못 닿으면 자동으로 혼자 모드(localStorage만). 설정 → '서버 연결'에서 상태 확인.

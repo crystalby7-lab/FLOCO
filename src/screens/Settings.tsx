@@ -11,6 +11,7 @@ import { Avatar } from '../components/Avatar'
 import { Survey } from './Survey'
 import { ProfileEditor } from './ProfileEditor'
 import { useSyncStatus, type SyncStatus } from '../sync'
+import { asOfLabel, isRealPrices } from '../data/market'
 import logoFace from '../assets/logo-face.png'
 import type { Prefs } from '../types'
 
@@ -257,7 +258,12 @@ export function Settings({ onClose }: { onClose: () => void }) {
 
         {dev && (
           <Group title="테스트 도구" note="앱 버전을 다섯 번 눌러서 열었어요. 테스트 버전에서만 보여요.">
-            <Row icon="calendar" tone="honey" label="하루 지나기" value={`거래일 ${s.day}`} onClick={() => (actions.nextDay(), flash('하루가 지났어요'))} />
+            {/* 실제 종가로 돌 때는 날짜를 우리가 넘기지 않는다 */}
+            {isRealPrices() ? (
+              <Row icon="calendar" tone="grey" label="시세" value={asOfLabel() ?? '실제 종가'} />
+            ) : (
+              <Row icon="calendar" tone="honey" label="하루 지나기" value={`거래일 ${s.day}`} onClick={() => (actions.nextDay(), flash('하루가 지났어요'))} />
+            )}
             <Row
               icon="trash"
               tone="red"

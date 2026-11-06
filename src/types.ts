@@ -38,6 +38,8 @@ export type Proposal = {
   votes: Vote[]
   status: ProposalStatus
   createdDay: number
+  createdDate?: string // 실제 종가로 살 때의 거래일 (YYYY-MM-DD)
+  soldDate?: string
   buyPrice?: number
   qty?: number
   sellPrice?: number

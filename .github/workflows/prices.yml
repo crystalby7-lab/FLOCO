@@ -1,0 +1,43 @@
+name: 실제 종가 받기
+
+# 평일 저녁 6시(KST)에 그날 종가를 받아 public/prices.json을 새로 쓴다.
+# 저장소 Secret DATA_GO_KR_KEY(공공데이터포털 일반 인증키)가 필요하다.
+# 키가 없거나 받아오지 못하면 파일을 건드리지 않는다.
+on:
+  schedule:
+    - cron: '0 9 * * 1-5' # 09:00 UTC = 18:00 KST, 월~금
+  workflow_dispatch: # 손으로도 돌릴 수 있게
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prices
+  cancel-in-progress: false
+
+jobs:
+  prices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 종가 받기
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: node scripts/fetch-prices.mjs
+
+      - name: 바뀌었으면 커밋
+        run: |
+          if [ -z "$(git status --porcelain public/prices.json)" ]; then
+            echo "바뀐 종가 없음"
+            exit 0
+          fi
+          git config user.name "floco-price-bot"
+          git config user.email "actions@github.com"
+          git add public/prices.json
+          git commit -m "종가 갱신 ($(TZ=Asia/Seoul date '+%m-%d'))"
+          git push

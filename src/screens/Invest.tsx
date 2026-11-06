@@ -1,7 +1,7 @@
 // 같이 투자: 금고 → 종목 살펴보기 → 제안(종목·금액·이유 3칸·AI 검토) → 의견 → 모의매매 → 같이 돌아보기 (F4·F5·F6)
 import { useState } from 'react'
 import { actions, majority, me, memberName, mustRetro, RULES, unlocked, useGame, vault } from '../store'
-import { changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { asOfDate, asOfLabel, changePct, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
 import { Empty } from '../components/ui'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
@@ -11,6 +11,9 @@ import { Lock } from '../components/Icons'
 import type { AiResult, Guild, Proposal } from '../types'
 import type { Tab } from '../App'
 import { InvestAccount } from './InvestAccount'
+
+// 두 날짜(YYYY-MM-DD) 사이의 날수
+const daysBetween = (a: string, b: string) => Math.max(0, Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / 86_400_000))
 
 const REASON_LABELS = ['왜 사고 싶어?', '아직 모르는 건?', '안 사기로 한 건?'] as const
 const REASON_PH = [
@@ -61,7 +64,7 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 
       <div className="section-head invest-guild-head">
         <h2>같이 투자 제안</h2>
-        <span className="muted">{majority(g)}명이 좋다고 하면 사요 · 거래일 {s.day}</span>
+        <span className="muted">{majority(g)}명이 좋다고 하면 사요 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
       </div>
 
       {canPropose ? (
@@ -146,7 +149,7 @@ function TickerSheet({
   const data = history(code, day, span)
   const sw = swingOf(code)
   return (
-    <Page title={t.name} sub="종목 자세히 보기" onExit={onClose}>
+    <Page title={t.name} sub={asOfLabel() ?? '종목 자세히 보기'} onExit={onClose}>
       <div className="tk-head">
         <div className="tk-price num">{priceOf(code, day).toLocaleString()}원</div>
         <div className="tk-changes">
@@ -182,11 +185,21 @@ function TickerSheet({
           </dd>
         </div>
         <div>
+          <dt>종목코드</dt>
+          <dd>
+            {t.stock} · {t.index}
+          </dd>
+        </div>
+        <div>
           <dt>총보수 (1년)</dt>
           <dd>{compare ? t.fee : <span className="muted">ETF 숲 '비교하는 법'을 끝내면 보여요</span>}</dd>
         </div>
       </dl>
-      <p className="fineprint">연습용 가격이에요. 실제 시세는 서비스 연결 후 하루 한 번 종가로 바뀌어요.</p>
+      <p className="fineprint">
+        {asOfLabel()
+          ? `${asOfLabel()} · 한국거래소 종가예요(공공데이터포털). 사고파는 건 연습용 돈으로만 해요.`
+          : '연습용 가격이에요. 종가를 못 받아와서 지금은 연습용 숫자로 움직여요.'}
+      </p>
       {canPropose && (
         <button className="btn btn-primary btn-block" onClick={onPropose}>
           이 종목으로 제안하기
@@ -224,7 +237,9 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
   const ret = p.buyPrice ? ((last - p.buyPrice) / p.buyPrice) * 100 : 0
   const retros = g.retros.filter((r) => r.proposalId === p.id)
   const statusLabel = { voting: '의견 모으는 중', holding: '갖고 있어요', sold: '팔았어요', rejected: '이번엔 패스' }[p.status]
-  const held = p.status === 'holding' ? day - p.createdDay : (p.soldDay ?? day) - p.createdDay
+  // 들고 있은 날: 실제 종가로 샀으면 진짜 날짜 차이로, 아니면 데모 거래일 차이로
+  const heldByDate = p.createdDate ? daysBetween(p.createdDate, p.soldDate ?? asOfDate() ?? p.createdDate) : null
+  const held = heldByDate ?? (p.status === 'holding' ? day - p.createdDay : (p.soldDay ?? day) - p.createdDay)
 
   return (
     <article className={`proposal ${p.status}`}>
