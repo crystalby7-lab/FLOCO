@@ -41,18 +41,31 @@ export function NewsCard({ onOpen }: { onOpen: () => void }) {
       <Masthead news={news} />
       <div className="pp-front">
         <span className="pp-kicker">1면 · {fd.title}</span>
-        <h3 className="pp-front-head">{f.headline}</h3>
+        <h3 className="pp-front-head">
+          {f.link ? (
+            <a href={f.link.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+              {f.headline}
+            </a>
+          ) : (
+            f.headline
+          )}
+        </h3>
         <p className="pp-front-lead">{f.what}</p>
         <Quote cat={fd.cat} by={fd.by} text={f.cat} />
       </div>
       <ul className="pp-more">
         {more.slice(0, 3).map(({ id, s }) => (
           <li key={id}>
-            <img src={ART[DESK[id].cat]} alt="" />
-            <div>
-              <small>{DESK[id].title}</small>
-              <b>{s!.headline}</b>
-            </div>
+            <a href={s!.link?.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+              <img src={ART[DESK[id].cat]} alt="" />
+              <div>
+                <small>
+                  {DESK[id].title}
+                  {s!.link ? ` · ${s!.link.source}` : ''}
+                </small>
+                <b>{s!.headline}</b>
+              </div>
+            </a>
           </li>
         ))}
       </ul>
@@ -81,7 +94,15 @@ export function Newspaper({ onClose }: { onClose: () => void }) {
         <Weatherline news={news} />
         <article className="pp-lead-story">
           <span className="pp-kicker">1면 · {fd.by}가 골랐어요</span>
-          <h2 className="pp-lead-head">{news.front.headline}</h2>
+          <h2 className="pp-lead-head">
+            {news.front.link ? (
+              <a href={news.front.link.url} target="_blank" rel="noreferrer">
+                {news.front.headline}
+              </a>
+            ) : (
+              news.front.headline
+            )}
+          </h2>
           <Explain story={news.front} />
           <Quote cat={fd.cat} by={fd.by} text={news.front.cat} />
           <Actions story={news.front} onToast={flash} />
@@ -200,32 +221,44 @@ function Actions({ story, onToast }: { story: Story; onToast: (m: string) => voi
       </button>
       {story.link && (
         <a className="pp-link" href={story.link.url} target="_blank" rel="noreferrer">
-          원문 · {story.link.source}
+          원문 보기 · {story.link.source} ›
         </a>
       )}
     </div>
   )
 }
 
-// 섹션 기사: 제목과 한 줄만 보이고, 누르면 펼쳐진다
+// 섹션 기사: 우리가 쓴 제목 + 한 줄 요약. 누르면 원문 기사로 바로 간다.
 function Fold({ story, cat, by, onToast }: { story: Story; cat: string; by: string; onToast: (m: string) => void }) {
-  const [open, setOpen] = useState(false)
+  void cat
+  void by
+  const body = (
+    <>
+      <span className="pp-fold-text">
+        <b>{story.headline}</b>
+        <small>{story.what}</small>
+        {story.link && <em>{story.link.source} · 원문 보기 ›</em>}
+      </span>
+    </>
+  )
   return (
-    <article className={`pp-fold ${open ? 'open' : ''}`}>
-      <button className="pp-fold-head" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <span>
-          <b>{story.headline}</b>
-          <small>{story.what}</small>
-        </span>
-        <i aria-hidden>{open ? '−' : '+'}</i>
-      </button>
-      {open && (
-        <div className="pp-fold-body">
-          <Explain story={story} skipWhat />
-          <Quote cat={cat} by={by} text={story.cat} />
-          <Actions story={story} onToast={onToast} />
-        </div>
+    <article className="pp-fold">
+      {story.link ? (
+        <a className="pp-fold-head" href={story.link.url} target="_blank" rel="noreferrer">
+          {body}
+        </a>
+      ) : (
+        <div className="pp-fold-head">{body}</div>
       )}
+      <button
+        className="pp-mini-share"
+        onClick={() => {
+          actions.postBoard(`[신문] ${story.headline}`)
+          onToast('길드 한마디에 올렸어요')
+        }}
+      >
+        길드에 꺼내기
+      </button>
     </article>
   )
 }

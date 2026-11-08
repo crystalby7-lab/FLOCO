@@ -10946,3 +10946,14 @@ label.set2-row:active {
   width: 100%; border: 1.5px dashed var(--blue); background: rgba(255,255,255,.6); color: var(--blue);
   font-size: 13px; font-weight: 800; padding: 9px; border-radius: 12px; margin-bottom: 8px;
 }
+/* 신문: 누르면 원문으로 */
+.pp-front-head a, .pp-lead-head a { color: inherit; text-decoration: none; }
+.pp-more li a { display: flex; gap: 10px; align-items: center; color: inherit; text-decoration: none; width: 100%; min-width: 0; }
+.pp-fold { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; }
+.pp-fold-head { display: block; color: inherit; text-decoration: none; padding: 0; }
+.pp-fold-text { display: flex; flex-direction: column; gap: 3px; }
+.pp-fold-text b { font-size: 15.5px; font-weight: 800; line-height: 1.4; word-break: keep-all; }
+.pp-fold-text small { font-size: 13px; line-height: 1.5; color: var(--sub); word-break: keep-all; }
+.pp-fold-text em { font-style: normal; font-size: 12px; font-weight: 800; color: var(--blue); }
+.pp-mini-share { align-self: flex-start; border: 0; background: #f1f6fc; color: var(--sub); font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; }
+.pp-link { font-weight: 800; color: var(--blue) !important; }
