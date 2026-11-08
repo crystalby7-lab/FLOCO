@@ -61,6 +61,7 @@ export type Retro = {
   role: 'proposer' | 'opponent'
   text: string
   parts?: [string, string, string] // 맞았던 것 / 빗나간 것 / 다음엔
+  at?: number
 }
 
 export type FeedItem = { id: string; text: string; at: number; icon: string }

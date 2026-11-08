@@ -80,7 +80,7 @@ function migrate(raw: Partial<GameState>): GameState {
       gold: g.cash === undefined ? Math.min(g.gold, RULES.startGold) : g.gold,
       // 예전에 K200·SP500으로 저장된 제안을 실제 종목코드로 바꾼다
       proposals: (g.proposals ?? []).map((p) => ({ ...p, ticker: realCode(p.ticker) })),
-      board: g.board ?? seedBoard(g.members),
+      board: (g.board ?? seedBoard(g.members)).filter((p) => !p.text.startsWith('[신문]')), // 예전 신문 공유 글은 정리
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
@@ -750,7 +750,7 @@ function writeRetro(proposalId: string, authorId: string, text: string, parts?: 
     const p = g.proposals.find((x) => x.id === proposalId)
     if (!p || g.retros.some((r) => r.proposalId === proposalId && r.authorId === authorId)) return g
     const role = p.proposerId === authorId ? 'proposer' : 'opponent'
-    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text, parts }] }
+    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text, parts, at: now() }] }
     const withExp = addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 돌아보기`)
     // 내가 쓴 돌아보기면 코인도
     return g.members.find((m) => m.id === authorId)?.isMe ? addFeed({ ...withExp, gold: withExp.gold + RULES.retroCoin }, '🪞', `돌아보기를 썼어요 · 코인 +${RULES.retroCoin}`) : withExp

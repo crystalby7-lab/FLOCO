@@ -11056,3 +11056,33 @@ label.set2-row:active {
 .cm-celebrate.blue { background: linear-gradient(120deg, #e3eefc, #fff); }
 .cm-celebrate.pink { background: linear-gradient(120deg, #fde8ee, #fff); }
 .cm-act { display: none; }
+
+/* ── 피드 정리: 접힌 글쓰기 · 돌아보기 카드 · 이번 주 정리 ── */
+.cm-compose-mini { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: #fff; border-radius: 999px; padding: 6px 14px 6px 6px; box-shadow: var(--card-shadow); text-align: left; }
+.cm-compose-mini span:not(.breed-av) { flex: 1; color: var(--muted); font-size: 14px; font-weight: 600; }
+.cm-compose-mini i { font-style: normal; font-size: 16px; }
+.cm-cancel { border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; padding: 8px; }
+.cm-retro { background: #fff; border-radius: 18px; padding: 12px 14px; box-shadow: var(--card-shadow); list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.cm-retro-ico { width: 34px; height: 34px; object-fit: contain; }
+.cm-retro-parts { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.cm-retro-parts > div { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: baseline; }
+.cm-retro-parts dt { font-size: 11.5px; font-weight: 800; color: var(--sub); }
+.cm-retro-parts > div:nth-child(1) dt { color: #2f9e6a; }
+.cm-retro-parts > div:nth-child(2) dt { color: #d9534f; }
+.cm-retro-parts > div:nth-child(3) dt { color: #3b6fd8; }
+.cm-retro-parts dd { margin: 0; font-size: 14px; line-height: 1.45; word-break: keep-all; }
+.cm-week { margin-top: 14px; background: linear-gradient(160deg, #fff 0%, #eef5ff 100%); border-radius: 20px; padding: 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 12px; }
+.cm-week-head { display: flex; align-items: center; gap: 10px; }
+.cm-week-head img { width: 40px; height: 40px; object-fit: contain; }
+.cm-week-head div { display: flex; flex-direction: column; }
+.cm-week-head b { font-size: 15.5px; font-weight: 800; }
+.cm-week-head small { font-size: 12px; color: var(--muted); }
+.cm-week-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cm-week-stats div { background: #fff; border-radius: 14px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cm-week-stats b { font-size: 18px; font-weight: 800; }
+.cm-week-stats small { font-size: 11.5px; color: var(--sub); font-weight: 700; }
+.cm-week-kings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.cm-week-kings li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.cm-week-kings li span { font-weight: 800; color: var(--sub); width: 70px; flex: none; }
+.cm-week-kings li small { margin-left: auto; color: var(--muted); font-size: 12px; }
+.cm-week-empty { color: var(--muted); }
