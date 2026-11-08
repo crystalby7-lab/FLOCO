@@ -10,7 +10,7 @@ import { ConfirmDialog } from '../components/Page'
 import { Lock } from '../components/Icons'
 import { itemOf, PLACES } from '../data/shop'
 import { pickAsk, type Ask } from '../data/catTalk'
-import { NewsCard, Newspaper } from './Newspaper'
+import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
 import { Gold } from '../components/ui'
 import type { Tab } from '../App'
@@ -47,7 +47,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const [slide, setSlide] = useState(0)
   const [buying, setBuying] = useState<string | null>(null)
   const [asking, setAsking] = useState<Ask | null>(null)
-  const [paper, setPaper] = useState(false)
   const track = useRef<HTMLDivElement>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
@@ -312,7 +311,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      <NewsCard onOpen={() => setPaper(true)} />
+      <NewsLinks />
 
       {buying && (
         <ConfirmDialog
@@ -353,7 +352,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           </div>
         </div>
       )}
-      {paper && <Newspaper onClose={() => setPaper(false)} />}
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )

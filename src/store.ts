@@ -262,6 +262,9 @@ function newCat(name: string): Cat {
 
 // ───────── 데모 친구 (Firebase 연결 전까지 친구 역할) ─────────
 
+const BOT_CHAT = ['ㅋㅋ 공감', '오 좋다!', '주니 오늘 귀엽더라', '나도 그 생각 했어']
+const BOT_INVEST = ['근거 좋다! 수수료도 같이 보자', '그 종목 흔들림은 어느 정도야?', '오 나도 관심 있었어. 이유 하나만 더 말해줘', '환율도 같이 보면 좋을 듯']
+const BOT_ANSWER = ['지도 시장 거리에 그거 나와!', '종목 상세에서 ⓘ 누르면 설명 나와', '나도 헷갈렸는데 투자팁에 있더라', '내일 같이 찾아보자']
 const BOT_OPPOSE = [
   '한 산업에만 몰려 있어서 너무 크게 흔들릴 것 같아.',
   '수수료가 다른 ETF보다 높아서 오래 들고 있기엔 아쉬워.',
@@ -661,10 +664,30 @@ export const actions = {
   },
 
   // 길드 한마디
-  postBoard(text: string) {
-    const t = text.trim().slice(0, 60)
+  postBoard(text: string, topic: 'chat' | 'invest' | 'ask' = 'chat') {
+    const t = text.trim().slice(0, 140)
     if (!t) return
-    updateGuild((g) => ({ ...g, board: [{ id: uid(), memberId: me(g).id, text: t, at: Date.now(), hearts: [] }, ...g.board].slice(0, 30) }))
+    const id = uid()
+    updateGuild((g) => ({ ...g, board: [{ id, memberId: me(g).id, text: t, at: Date.now(), hearts: [], topic, comments: [] }, ...g.board].slice(0, 40) }))
+    // 테스트 친구가 가끔 반응해준다 (서버 연결 후 실제 친구가 생기면 빠짐)
+    const g = state.guild
+    const bots = g?.members.filter((m) => m.isBot) ?? []
+    if (bots.length) {
+      const bot = bots[Math.floor(Math.random() * bots.length)]
+      const lines = topic === 'ask' ? BOT_ANSWER : topic === 'invest' ? BOT_INVEST : BOT_CHAT
+      setTimeout(() => actions.commentPost(id, pick(lines), bot.id), 2500)
+      setTimeout(() => {
+        updateGuild((gg) => ({ ...gg, board: gg.board.map((p) => (p.id === id && !p.hearts.includes(bot.id) ? { ...p, hearts: [...p.hearts, bot.id] } : p)) }))
+      }, 1500)
+    }
+  },
+  commentPost(postId: string, text: string, authorId?: string) {
+    const t = text.trim().slice(0, 100)
+    if (!t) return
+    updateGuild((g) => ({
+      ...g,
+      board: g.board.map((p) => (p.id !== postId ? p : { ...p, comments: [...(p.comments ?? []), { id: uid(), memberId: authorId ?? me(g).id, text: t, at: Date.now() }] })),
+    }))
   },
   heartPost(id: string) {
     updateGuild((g) => {

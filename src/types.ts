@@ -8,7 +8,8 @@ export type Member = {
   isBot?: boolean // 데모용 친구 (Firebase 연결 전까지 투표·복기를 대신 해줌)
 }
 
-export type Post = { id: string; memberId: string; text: string; at: number; hearts: string[] }
+export type Comment = { id: string; memberId: string; text: string; at: number }
+export type Post = { id: string; memberId: string; text: string; at: number; hearts: string[]; topic?: 'chat' | 'invest' | 'ask'; comments?: Comment[] }
 
 export type Cat = {
   name: string

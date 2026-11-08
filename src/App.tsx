@@ -83,7 +83,7 @@ export default function App() {
         {tab === 'map' && <MapScreen go={go} />}
         {tab === 'invest' && <Invest go={go} />}
         {tab === 'shop' && <Shop />}
-        {tab === 'guild' && <GuildScreen />}
+        {tab === 'guild' && <GuildScreen go={go} />}
       </main>
       <nav className="tabbar">
         {TABS.map((t) => (
