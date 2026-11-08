@@ -338,12 +338,12 @@ function resolve(g: Guild, s: GameState, proposalId: string): Guild {
   const t = tickerOf(p.ticker)
 
   if (yes >= need) {
-    if (g.cash < p.amount || Math.floor(p.amount / priceOf(p.ticker, s.day)) < 1) {
+    const price = p.orderPrice ?? priceOf(p.ticker, s.day)
+    const qty = p.orderQty ?? Math.floor(p.amount / price)
+    if (g.cash < qty * price || qty < 1) {
       const rejected: Proposal = { ...p, status: 'rejected' }
       return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '투자금이 부족해 매수하지 못했어요.')
     }
-    const price = priceOf(p.ticker, s.day)
-    const qty = Math.floor(p.amount / price)
     const cost = qty * price
     const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty }
     return addFeed(
@@ -466,14 +466,14 @@ export const actions = {
   },
 
   // F4: 이유 3칸 → AI 검토 → 통과하면 길드에 올라감
-  propose(ticker: string, amount: number, reasons: [string, string, string]): AiResult {
+  propose(ticker: string, amount: number, reasons: [string, string, string], order?: { price: number; qty: number; type: 'limit' | 'market' }): AiResult {
     const g = state.guild!
     const myId = me(g).id
     const prev = g.proposals.filter((p) => p.proposerId === myId).map((p) => p.reasons[0])
     const ai = reviewReasons(reasons, prev)
     if (!ai.pass) return ai
     if (amount > g.cash) return { pass: false, message: '주문가능금액보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
-    if (amount < priceOf(ticker, state.day)) return { pass: false, message: '1주 가격보다 금액이 적어요.', hint: '금액을 늘리거나 다른 종목을 골라보세요.' }
+    if (!order && amount < priceOf(ticker, state.day)) return { pass: false, message: '1주 가격보다 금액이 적어요.', hint: '금액을 늘리거나 다른 종목을 골라보세요.' }
     const p: Proposal = {
       id: uid(),
       proposerId: myId,
@@ -484,6 +484,7 @@ export const actions = {
       votes: [{ memberId: myId, agree: true }],
       status: 'voting',
       createdDay: state.day,
+      ...(order ? { orderPrice: order.price, orderQty: order.qty, orderType: order.type } : {}),
       ...(asOfDate() ? { createdDate: asOfDate()! } : {}),
     }
     updateGuild((gg) => {
@@ -506,11 +507,11 @@ export const actions = {
     set((s) => ({ ...s, watch: s.watch.includes(code) ? s.watch.filter((c) => c !== code) : [...s.watch, code] }))
   },
 
-  sell(proposalId: string, reason?: string) {
+  sell(proposalId: string, reason?: string, atPrice?: number) {
     updateGuild((g, s) => {
       const p = g.proposals.find((x) => x.id === proposalId)
       if (!p || p.status !== 'holding' || !p.qty || !p.buyPrice) return g
-      const price = priceOf(p.ticker, s.day)
+      const price = atPrice ?? priceOf(p.ticker, s.day)
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
       const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }

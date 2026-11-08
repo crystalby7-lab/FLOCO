@@ -12,6 +12,7 @@ import type { AiResult, Guild, Proposal } from '../types'
 import type { Tab } from '../App'
 import { InvestAccount } from './InvestAccount'
 import { MarketPage, Star } from './Market'
+import { OrderBook } from './OrderBook'
 
 // 두 날짜(YYYY-MM-DD) 사이의 날수
 const daysBetween = (a: string, b: string) => Math.max(0, Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / 86_400_000))
@@ -53,7 +54,8 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
   const [filter, setFilter] = useState<'all' | 'voting' | 'holding' | 'done'>('all')
   const canPropose = true // 근거 3칸 + AI 확인이 곧 관문이라 퀘스트 잠금 없이 바로 거래
   const [market, setMarket] = useState(false)
-  const [selling, setSelling] = useState<Proposal | null>(null)
+  const [selling, setSelling] = useState<{ p: Proposal; price: number } | null>(null)
+  const [order, setOrder] = useState<{ price: number; qty: number; type: 'limit' | 'market' } | null>(null)
 
   const lists = {
     voting: g.proposals.filter((p) => p.status === 'voting'),
@@ -104,17 +106,23 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
           canPropose={canPropose}
           holding={g.proposals.filter((p) => p.status === 'holding' && tickerOf(p.ticker).code === tickerOf(viewing).code)}
           onClose={() => setViewing(null)}
+          g={g}
           onPropose={() => {
             setWriting(viewing)
             setViewing(null)
             setMarket(false)
           }}
-          onSell={(p) => setSelling(p)}
+          onBuy={(o) => {
+            setOrder(o)
+            setWriting(viewing)
+          }}
+          onSell={(p, price) => setSelling({ p, price })}
         />
       )}
       {selling && (
         <SellSheet
-          p={selling}
+          p={selling.p}
+          price={selling.price}
           day={s.day}
           onClose={() => setSelling(null)}
           onDone={() => {
@@ -123,7 +131,23 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
           }}
         />
       )}
-      {writing !== null && <ProposalForm g={g} day={s.day} start={writing} compare={tools.has('etf_compare')} onClose={() => setWriting(null)} />}
+      {writing !== null && (
+        <ProposalForm
+          g={g}
+          day={s.day}
+          start={writing}
+          compare={tools.has('etf_compare')}
+          order={order}
+          onClose={(done) => {
+            setWriting(null)
+            setOrder(null)
+            if (done) {
+              setViewing(null)
+              setMarket(false)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -133,21 +157,24 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 function TickerSheet({
   code,
   day,
-  canPropose,
   holding,
+  g,
   onClose,
-  onPropose,
+  onBuy,
   onSell,
 }: {
   code: string
   day: number
   compare: boolean
-  canPropose: boolean
+  canPropose?: boolean
   holding: Proposal[]
+  g: Guild
   onClose: () => void
-  onPropose: () => void
-  onSell: (p: Proposal) => void
+  onPropose?: () => void
+  onBuy: (o: { price: number; qty: number; type: 'limit' | 'market' }) => void
+  onSell: (p: Proposal, price: number) => void
 }) {
+  const [view, setView] = useState<'order' | 'info'>('order')
   const t = tickerOf(code)
   const [span, setSpan] = useState(20)
   const data = history(code, day, span)
@@ -172,6 +199,18 @@ function TickerSheet({
           })}
         </div>
       </div>
+      <div className="tk-tabs">
+        <button className={view === 'order' ? 'on' : ''} onClick={() => setView('order')}>
+          호가·주문
+        </button>
+        <button className={view === 'info' ? 'on' : ''} onClick={() => setView('info')}>
+          차트·정보
+        </button>
+      </div>
+      {view === 'order' ? (
+        <OrderBook g={g} code={t.code} day={day} holding={holding} onBuy={onBuy} onSell={onSell} />
+      ) : (
+      <>
       <div className="chart-box">
         <PriceChart data={data} height={150} />
         <div className="seg mini">
@@ -304,18 +343,8 @@ function TickerSheet({
           ))}
         </section>
       )}
-      <div className="order-bar">
-        {holding.length > 0 && (
-          <button className="btn order-sell" onClick={() => onSell(holding[0])}>
-            매도
-          </button>
-        )}
-        {canPropose && (
-          <button className="btn order-buy" onClick={onPropose}>
-            매수
-          </button>
-        )}
-      </div>
+      </>
+      )}
     </Page>
   )
 }
@@ -600,17 +629,17 @@ function RetroForm({ g, p, onClose }: { g: Guild; p: Proposal; onClose: () => vo
 
 const STEPS = ['종목', '수량', '근거', '확인']
 
-function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: number; start: string; compare: boolean; onClose: () => void }) {
-  const [step, setStep] = useState(start ? 1 : 0)
+function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; day: number; start: string; compare: boolean; order?: { price: number; qty: number; type: 'limit' | 'market' } | null; onClose: (done?: boolean) => void }) {
+  const [step, setStep] = useState(order ? 2 : start ? 1 : 0)
   const [ticker, setTicker] = useState(start || '069500')
   const [qtyIn, setQtyIn] = useState(0)
   const [reasons, setReasons] = useState<[string, string, string]>(['', '', ''])
   const [focus, setFocus] = useState(0)
   const [result, setResult] = useState<AiResult | null>(null)
   const [checking, setChecking] = useState(false)
-  const price = priceOf(ticker, day)
+  const price = order?.price ?? priceOf(ticker, day)
   const maxQty = Math.floor(g.cash / price)
-  const qty = Math.min(qtyIn || Math.max(1, Math.floor(1_000_000 / price)), maxQty)
+  const qty = order?.qty ?? Math.min(qtyIn || Math.max(1, Math.floor(1_000_000 / price)), maxQty)
   const amount = qty * price
   const share = Math.round((amount / vault(g, day).total) * 100)
 
@@ -619,7 +648,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
     setResult(null)
     setStep(3)
     setTimeout(() => {
-      const r = actions.propose(ticker, amount, reasons)
+      const r = actions.propose(ticker, amount, reasons, order ?? undefined)
       setChecking(false)
       setResult(r)
     }, 1100)
@@ -718,6 +747,16 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
 
       {step === 2 && (
         <>
+          {order && (
+            <div className="order-sum">
+              <span>
+                {tickerOf(ticker).name} · {order.type === 'limit' ? '지정가' : '시장가'}
+              </span>
+              <b className="num">
+                {order.price.toLocaleString()}원 × {order.qty}주 = {(order.price * order.qty).toLocaleString()}원
+              </b>
+            </div>
+          )}
           {REASON_LABELS.map((label, i) => (
             <div key={label} className={`reason-field ${focus === i ? 'focus' : ''}`}>
               <label className="small-label">
@@ -739,7 +778,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
             </div>
           ))}
           <div className="row">
-            <button className="btn" onClick={() => setStep(1)}>
+            <button className="btn" onClick={() => (order ? onClose() : setStep(1))}>
               이전
             </button>
             <button className="btn btn-primary" disabled={reasons.some((r) => r.trim().length < 4)} onClick={submit}>
@@ -764,7 +803,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
                   {amount.toLocaleString()}원 · {qty}주
                 </b>
               </div>
-              <button className="btn btn-primary btn-block" onClick={onClose}>
+              <button className="btn btn-primary btn-block" onClick={() => onClose(true)}>
                 확인
               </button>
             </>
@@ -792,9 +831,9 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
 
 const SELL_CHIPS = ['산 이유가 달라졌어요', '목표했던 만큼 올랐어요', '다른 종목이 더 맞아 보여요', '손실이 더 커질까 걱정돼요']
 
-function SellSheet({ p, day, onClose, onDone }: { p: Proposal; day: number; onClose: () => void; onDone: () => void }) {
+function SellSheet({ p, day, price: at, onClose, onDone }: { p: Proposal; day: number; price?: number; onClose: () => void; onDone: () => void }) {
   const [why, setWhy] = useState('')
-  const price = priceOf(p.ticker, day)
+  const price = at ?? priceOf(p.ticker, day)
   const pnl = (price - p.buyPrice!) * p.qty!
   return (
     <Page title="매도 주문" sub={tickerOf(p.ticker).name} onExit={onClose} confirm={why.length > 0}>
@@ -827,7 +866,7 @@ function SellSheet({ p, day, onClose, onDone }: { p: Proposal; day: number; onCl
         className="btn btn-block order-sell"
         disabled={why.trim().length < 5}
         onClick={() => {
-          actions.sell(p.id, why.trim())
+          actions.sell(p.id, why.trim(), price)
           onDone()
         }}
       >

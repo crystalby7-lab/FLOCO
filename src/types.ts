@@ -39,6 +39,9 @@ export type Proposal = {
   status: ProposalStatus
   createdDay: number
   createdDate?: string // 실제 종가로 살 때의 거래일 (YYYY-MM-DD)
+  orderPrice?: number // 주문창에서 정한 체결 가격 (1주)
+  orderQty?: number // 주문창에서 정한 수량
+  orderType?: 'limit' | 'market' // 지정가 / 시장가
   soldDate?: string
   buyPrice?: number
   qty?: number
