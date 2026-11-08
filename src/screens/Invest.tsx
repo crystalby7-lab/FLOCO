@@ -65,10 +65,6 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
     <div className="tab-panel">
       <InvestAccount g={g} day={s.day} go={go} onOpen={setViewing} onMarket={() => setMarket(true)} />
 
-      <button className="btn btn-primary btn-block go-market" onClick={() => setMarket(true)}>
-        투자하러 가기
-      </button>
-
       <div className="section-head invest-guild-head">
         <h2>주문 현황</h2>
         <span className="muted">길드 {majority(g)}명이 확인하면 체결돼요 · {asOfLabel() ?? `거래일 ${s.day}`}</span>

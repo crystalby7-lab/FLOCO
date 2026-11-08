@@ -131,7 +131,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
             </li>
           </ul>
           {done && first && quest.unlocks && <p className="ls-unlock">ETF 비교 도구가 열렸어요</p>}
-          {done && first && quest.id === 'v3' && <p className="ls-unlock">같이 투자 · ETF 숲이 열렸어요</p>}
+          {done && first && quest.id === 'v3' && <p className="ls-unlock">ETF 숲이 열렸어요</p>}
         </div>
         <div className="ls-foot plain">
           {done ? (

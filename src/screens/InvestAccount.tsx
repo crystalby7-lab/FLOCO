@@ -116,6 +116,15 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
         <Market name="NASDAQ" hours="09:30 - 16:00 ET" flag="🇺🇸" open={sessionOf('us')} ch={changePct('133690', day)} />
       </div>
 
+      <button className="go-market-top" onClick={onMarket}>
+        <img src={ART.t_happy} alt="" />
+        <span>
+          <b>투자하러 가기</b>
+          <small>종목 25개 둘러보고 근거 써서 사기</small>
+        </span>
+        <i>›</i>
+      </button>
+
       {tab === 'own' ? (
         <>
           <section className="acct-card">

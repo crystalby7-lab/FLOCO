@@ -457,7 +457,7 @@ export const actions = {
           '📘',
           `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 코인 +${RULES.questReward} · 투자금 +${(RULES.questCash / 10000).toLocaleString()}만원`,
         )
-        if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! 공동 투자 제안과 ETF 숲이 열렸어요.')
+        if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! ETF 숲이 열렸어요.')
         if (quest.unlocks) g = addFeed(g, '🔓', 'ETF 비교 도구가 해금됐어요.')
         ns = { ...ns, guild: g }
       }
