@@ -355,7 +355,7 @@ function resolve(g: Guild, s: GameState, proposalId: string): Guild {
       return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '투자금이 부족해 매수하지 못했어요.')
     }
     const cost = qty * price
-    const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty }
+    const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty, boughtAt: now() }
     return addFeed(
       { ...g, cash: g.cash - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
       '✅',
@@ -548,7 +548,7 @@ export const actions = {
       const price = atPrice ?? priceOf(p.ticker, s.day)
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
-      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
+      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, soldAt: now(), ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
       const ng = { ...g, cash: g.cash + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,
@@ -680,6 +680,12 @@ export const actions = {
         updateGuild((gg) => ({ ...gg, board: gg.board.map((p) => (p.id === id && !p.hearts.includes(bot.id) ? { ...p, hearts: [...p.hearts, bot.id] } : p)) }))
       }, 1500)
     }
+  },
+  likeTrade(proposalId: string) {
+    updateGuild((g) => {
+      const my = me(g).id
+      return { ...g, proposals: g.proposals.map((p) => (p.id !== proposalId ? p : { ...p, likes: (p.likes ?? []).includes(my) ? (p.likes ?? []).filter((x) => x !== my) : [...(p.likes ?? []), my] })) }
+    })
   },
   commentPost(postId: string, text: string, authorId?: string) {
     const t = text.trim().slice(0, 100)

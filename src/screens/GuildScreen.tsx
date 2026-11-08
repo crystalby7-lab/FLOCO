@@ -1,12 +1,12 @@
 // 길드: 커뮤니티처럼. 피드(글·댓글·좋아요 + 길드에서 일어난 일) / 멤버(응원·초대) / 우리 길드(고양이·기록·이번 주 목표)
 import { useState } from 'react'
 import { actions, memberName, today, useGame } from '../store'
-import { tickerOf } from '../data/market'
+import { priceOf, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
 import { TabHeader } from '../components/TabHeader'
 import type { Tab } from '../App'
-import type { FeedItem, Post } from '../types'
+import type { FeedItem, Post, Proposal } from '../types'
 
 type Topic = 'chat' | 'invest' | 'ask'
 const TOPICS: { id: Topic; label: string }[] = [
@@ -39,10 +39,22 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
 
   // 피드: 글 + 길드 활동을 시간순으로 섞는다
   const posts = g.board.filter((p) => filter === 'all' || (p.topic ?? 'chat') === filter)
-  const acts = filter === 'all' ? g.feed.filter((f) => !['✏️', '📅'].includes(f.icon)).slice(0, 20) : []
-  const items: ({ kind: 'post'; at: number; p: Post } | { kind: 'act'; at: number; f: FeedItem })[] = [
+  // 큰 일만 축하 카드로 (밥·목욕·응원 같은 작은 기록은 피드에서 뺀다)
+  const BIG = ['🏘️', '🎉', '🔓', '🐣', '👋']
+  const acts = filter === 'all' || filter === 'invest' ? g.feed.filter((f) => BIG.includes(f.icon)).slice(0, 12) : []
+  const showActs = filter === 'all'
+  // 체결된 거래 카드 (매수, 매도 각각)
+  const trades = filter === 'all' || filter === 'invest'
+    ? g.proposals.flatMap((p) => [
+        ...(p.buyPrice && p.qty ? [{ kind: 'trade' as const, at: p.boughtAt ?? g.createdAt, p, side: 'buy' as const }] : []),
+        ...(p.status === 'sold' && p.sellPrice ? [{ kind: 'trade' as const, at: p.soldAt ?? p.boughtAt ?? g.createdAt, p, side: 'sell' as const }] : []),
+      ])
+    : []
+  const firstBuyId = g.proposals.filter((p) => p.buyPrice).sort((a, b) => (a.boughtAt ?? 0) - (b.boughtAt ?? 0))[0]?.id
+  const items: ({ kind: 'post'; at: number; p: Post } | { kind: 'act'; at: number; f: FeedItem } | { kind: 'trade'; at: number; p: Proposal; side: 'buy' | 'sell' })[] = [
     ...posts.map((p) => ({ kind: 'post' as const, at: p.at, p })),
-    ...acts.map((f) => ({ kind: 'act' as const, at: f.at, f })),
+    ...(showActs ? acts.map((f) => ({ kind: 'act' as const, at: f.at, f })) : []),
+    ...trades,
   ].sort((a, b) => b.at - a.at)
   const voting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId))
 
@@ -129,12 +141,22 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
             {items.map((it) =>
               it.kind === 'post' ? (
                 <PostCard key={it.p.id} p={it.p} myId={myId} />
+              ) : it.kind === 'trade' ? (
+                <TradeCard
+                  key={it.p.id + it.side}
+                  p={it.p}
+                  side={it.side}
+                  first={it.side === 'buy' && it.p.id === firstBuyId}
+                  myId={myId}
+                  onTalk={() => {
+                    setTopic('invest')
+                    setDraft(`[${tickerOf(it.p.ticker).name}] `)
+                    window.scrollTo({ top: 0 })
+                    document.querySelector('.app-main')?.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                />
               ) : (
-                <li key={it.f.id} className="cm-act">
-                  <span className="cm-act-ico">{it.f.icon}</span>
-                  <span className="cm-act-text">{it.f.text}</span>
-                  <small>{ago(it.f.at)}</small>
-                </li>
+                <CelebrateCard key={it.f.id} f={it.f} />
               ),
             )}
           </ul>
@@ -328,5 +350,82 @@ function GuildInfo() {
         ))}
       </section>
     </>
+  )
+}
+
+// 체결된 거래: 누가 / 무엇을 / 얼마에 / 왜 / 지금 수익률
+function TradeCard({ p, side, first, myId, onTalk }: { p: Proposal; side: 'buy' | 'sell'; first: boolean; myId: string; onTalk: () => void }) {
+  const s = useGame()
+  const g = s.guild!
+  const t = tickerOf(p.ticker)
+  const price = side === 'buy' ? p.buyPrice! : p.sellPrice!
+  const now = priceOf(p.ticker, s.day)
+  const rate = side === 'buy' ? ((now - p.buyPrice!) / p.buyPrice!) * 100 : ((p.sellPrice! - p.buyPrice!) / p.buyPrice!) * 100
+  const liked = (p.likes ?? []).includes(myId)
+  const at = side === 'buy' ? p.boughtAt : p.soldAt
+  return (
+    <li className={`cm-trade ${side}`}>
+      <div className="cm-post-head">
+        <Avatar g={g} id={p.proposerId} size={36} />
+        <div className="grow">
+          <b>
+            {memberName(g, p.proposerId)}
+            {first && <span className="cm-first">첫 매수!</span>}
+          </b>
+          <small>
+            {side === 'buy' ? '매수 체결' : '매도 체결'}
+            {at ? ` · ${ago(at)}` : ''}
+          </small>
+        </div>
+        <span className={`cm-side ${side}`}>{side === 'buy' ? '매수' : '매도'}</span>
+      </div>
+      <div className="cm-trade-box">
+        <div>
+          <b>{t.name}</b>
+          <small>
+            {p.qty}주 × {price.toLocaleString()}원 = {(p.qty! * price).toLocaleString()}원
+          </small>
+        </div>
+        <div className={`cm-rate ${rate > 0 ? 'up' : rate < 0 ? 'down' : ''}`}>
+          <small>{side === 'buy' && p.status === 'holding' ? '지금' : '결과'}</small>
+          <b>
+            {rate >= 0 ? '+' : ''}
+            {rate.toFixed(2)}%
+          </b>
+        </div>
+      </div>
+      <p className="cm-trade-why">
+        <span>{side === 'buy' ? '산 이유' : '판 이유'}</span>
+        {side === 'buy' ? p.reasons[0] : p.sellReason ?? '이유를 남기지 않았어요'}
+      </p>
+      <div className="cm-post-actions">
+        <button className={liked ? 'on' : ''} onClick={() => actions.likeTrade(p.id)}>
+          <img src={ART.i_heart} alt="" />
+          좋아요 {(p.likes ?? []).length || ''}
+        </button>
+        <button onClick={onTalk}>💬 이 거래 얘기하기</button>
+      </div>
+    </li>
+  )
+}
+
+// 큰 일 축하 카드 (장 완성, 레벨 업, 새 친구, 길드 탄생)
+const CELEBRATE: Record<string, { art: string; tone: string }> = {
+  '🏘️': { art: 't_jump', tone: 'mint' },
+  '🎉': { art: 'crown', tone: 'gold' },
+  '🔓': { art: 't_happy', tone: 'blue' },
+  '🐣': { art: 't_wave', tone: 'pink' },
+  '👋': { art: 't_wave', tone: 'blue' },
+}
+function CelebrateCard({ f }: { f: FeedItem }) {
+  const c = CELEBRATE[f.icon] ?? CELEBRATE['🔓']
+  return (
+    <li className={`cm-celebrate ${c.tone}`}>
+      <img src={ART[c.art]} alt="" />
+      <div>
+        <b>{f.text}</b>
+        <small>{ago(f.at)}</small>
+      </div>
+    </li>
   )
 }

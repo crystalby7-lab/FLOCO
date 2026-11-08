@@ -49,6 +49,9 @@ export type Proposal = {
   sellPrice?: number
   soldDay?: number
   sellReason?: string // 왜 팔았는지
+  boughtAt?: number // 체결 시각 (피드 정렬용)
+  soldAt?: number
+  likes?: string[] // 피드 거래 카드 좋아요
 }
 
 export type Retro = {

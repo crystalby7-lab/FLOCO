@@ -11026,3 +11026,33 @@ label.set2-row:active {
 .cm-members li { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 18px; padding: 12px 14px; box-shadow: var(--card-shadow); }
 .cm-members .grow { min-width: 0; }
 .cm-members b { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+
+/* 피드 거래 카드 · 축하 카드 */
+.cm-trade { background: #fff; border-radius: 20px; padding: 14px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 10px; list-style: none; }
+.cm-trade.buy { border-left: 4px solid #e5484d; }
+.cm-trade.sell { border-left: 4px solid var(--blue); }
+.cm-side { font-size: 12px; font-weight: 800; padding: 4px 9px; border-radius: 8px; flex: none; }
+.cm-side.buy { background: #fdecec; color: #e5484d; }
+.cm-side.sell { background: #e8effc; color: var(--blue); }
+.cm-first { font-size: 11px; font-weight: 800; color: #b7791f; background: #fff4d6; padding: 2px 7px; border-radius: 999px; margin-left: 6px; }
+.cm-trade-box { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f6f9fd; border-radius: 14px; padding: 10px 12px; }
+.cm-trade-box > div:first-child { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cm-trade-box b { font-size: 15px; font-weight: 800; }
+.cm-trade-box small { font-size: 12px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.cm-rate { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.cm-rate small { font-size: 11px; color: var(--muted); }
+.cm-rate b { font-size: 17px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.cm-rate.up b { color: #e5484d; }
+.cm-rate.down b { color: var(--blue); }
+.cm-trade-why { font-size: 13.5px; line-height: 1.55; color: var(--ink); word-break: keep-all; }
+.cm-trade-why span { font-size: 12px; font-weight: 800; color: var(--blue); margin-right: 6px; }
+.cm-celebrate { list-style: none; display: flex; align-items: center; gap: 12px; border-radius: 20px; padding: 12px 14px; box-shadow: var(--card-shadow); }
+.cm-celebrate img { height: 52px; flex: none; }
+.cm-celebrate div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cm-celebrate b { font-size: 14.5px; font-weight: 800; line-height: 1.4; word-break: keep-all; }
+.cm-celebrate small { font-size: 11.5px; color: var(--sub); }
+.cm-celebrate.mint { background: linear-gradient(120deg, #e3f6ec, #fff); }
+.cm-celebrate.gold { background: linear-gradient(120deg, #fff4d6, #fff); }
+.cm-celebrate.blue { background: linear-gradient(120deg, #e3eefc, #fff); }
+.cm-celebrate.pink { background: linear-gradient(120deg, #fde8ee, #fff); }
+.cm-act { display: none; }
