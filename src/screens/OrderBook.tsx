@@ -3,6 +3,8 @@
 // 체결 규칙도 실제처럼: 사려는 값이 가장 싼 매도호가보다 낮으면 체결되지 않는다.
 import { useState } from 'react'
 import { priceOf, tickerOf } from '../data/market'
+import { actions, useGame } from '../store'
+import { Coach, ORDER_GUIDE } from '../components/Coach'
 import { Term } from './InvestAccount'
 import type { Guild, Proposal } from '../types'
 
@@ -54,6 +56,8 @@ export function OrderBook({
   onSell: (p: Proposal, price: number) => void
 }) {
   const b = bookOf(code, day)
+  const gs = useGame()
+  const [coach, setCoach] = useState(!gs.guides.includes('order'))
   const prev = priceOf(code, day - 1)
   const [side, setSide] = useState<'buy' | 'sell'>('buy')
   const [type, setType] = useState<'limit' | 'market'>('limit')
@@ -78,6 +82,10 @@ export function OrderBook({
   const maxQ = Math.max(...b.asks.map((a) => a.q), ...b.bids.map((x) => x.q))
 
   return (
+    <>
+    <button className="ob-guide" onClick={() => setCoach(true)}>
+      처음이에요? 주문창 가이드 보기
+    </button>
     <div className="ob">
       <div className="ob-book">
         <div className="ob-head">
@@ -194,5 +202,15 @@ export function OrderBook({
         </button>
       </div>
     </div>
+    {coach && (
+      <Coach
+        steps={ORDER_GUIDE}
+        onDone={() => {
+          setCoach(false)
+          actions.seeGuide('order')
+        }}
+      />
+    )}
+    </>
   )
 }

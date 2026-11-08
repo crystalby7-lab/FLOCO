@@ -6,28 +6,33 @@ export type Situation = { text: string; answer: 'invest' | 'gamble'; why: string
 
 export type Quest = {
   id: string
-  region: 'village' | 'forest'
-  type: 'learn' | 'judge'
+  region: 'village' | 'market' | 'forest'
+  type: 'learn' | 'judge' | 'mission' // mission = 앱에서 직접 해보면 완료
   title: string
   summary: string
   card?: { title: string; points: string[] }
   quiz?: QuizQ[]
   situations?: Situation[]
   unlocks?: string // 해금되는 투자 도구 id
+  mission?: { goal: string; steps: string[] } // mission 퀘스트: 할 일
 }
 
 export type Region = {
-  id: 'village' | 'forest' | 'city' | 'port'
+  id: 'village' | 'market' | 'forest' | 'risk' | 'reason' | 'review' | 'deep'
   name: string
   desc: string
   locked?: boolean // MVP 이후 지역
 }
 
 export const REGIONS: Region[] = [
+  // 배우는 순서: 돈의 기초 → 주식과 거래 화면 → ETF → 위험 → 근거 → 돌아보기 → 심화
   { id: 'village', name: '기초 마을', desc: '저축·투자·도박은 뭐가 다를까' },
+  { id: 'market', name: '시장 거리', desc: '주식이 뭔지, 거래 화면은 어떻게 읽는지' },
   { id: 'forest', name: 'ETF 숲', desc: '한 번에 여러 회사에 나눠 담기' },
-  { id: 'city', name: '기업 도시', desc: '재무제표 기초 · 2차 개발', locked: true },
-  { id: 'port', name: '세계 항구', desc: '환율·금리 · 2차 개발', locked: true },
+  { id: 'risk', name: '파도 해변', desc: '흔들림·분산·잃어도 되는 돈 · 준비 중', locked: true },
+  { id: 'reason', name: '근거 도서관', desc: '사실과 의견 구분, 팔 조건 정하기 · 준비 중', locked: true },
+  { id: 'review', name: '돌아보기 언덕', desc: '결과보다 과정, 운과 실력 구분 · 준비 중', locked: true },
+  { id: 'deep', name: '세계 항구', desc: '금리·환율·회사 성적표 · 준비 중', locked: true },
 ]
 
 export const QUESTS: Quest[] = [
@@ -129,6 +134,78 @@ export const QUESTS: Quest[] = [
         why: '이유를 기록하고 복기하는 건 투자 습관이에요.',
       },
     ],
+  },
+  {
+    id: 'm1',
+    region: 'market',
+    type: 'learn',
+    title: '주식은 회사의 조각',
+    summary: '주식 · 주가 · 배당',
+    card: {
+      title: '주식을 산다는 건 무슨 뜻일까?',
+      points: [
+        '주식: 회사를 아주 잘게 나눈 조각이에요. 1주를 사면 그 회사의 아주 작은 주인이 돼요.',
+        '주가: 사려는 사람이 많으면 오르고, 팔려는 사람이 많으면 내려요. 회사가 돈을 잘 벌 거라고 믿을수록 사려는 사람이 늘어요.',
+        '배당: 회사가 번 돈의 일부를 주인(주주)에게 나눠주는 거예요. 모든 회사가 주지는 않아요.',
+      ],
+    },
+    quiz: [
+      { q: '삼성전자 주식 1주를 샀다면?', options: ['삼성전자에 돈을 빌려준 것', '삼성전자의 아주 작은 주인이 된 것', '삼성전자 제품을 산 것'], answer: 1, why: '주식은 회사의 조각이라, 사면 그만큼 주인이 돼요.' },
+      { q: '주가가 오르는 가장 기본적인 이유는?', options: ['사려는 사람이 팔려는 사람보다 많아서', '회사가 주식을 더 찍어내서', '뉴스에 이름이 나와서'], answer: 0, why: '가격은 사려는 쪽과 팔려는 쪽의 힘겨루기로 정해져요.' },
+      { q: '회사가 번 돈을 주주에게 나눠주는 것은?', options: ['이자', '배당', '수수료'], answer: 1, why: '배당은 주주에게 이익을 나누는 거예요. 이자는 빌려준 돈에 붙어요.' },
+    ],
+  },
+  {
+    id: 'm2',
+    region: 'market',
+    type: 'learn',
+    title: '호가와 주문 읽기',
+    summary: '매도호가 · 매수호가 · 지정가 · 시장가',
+    card: {
+      title: '주문 화면의 숫자들은 무슨 뜻일까?',
+      points: [
+        '매도호가(파란 칸): 팔려는 사람들이 부른 가격이에요. 가장 아래 칸이 지금 가장 싸게 살 수 있는 값이에요.',
+        '매수호가(빨간 칸): 사려는 사람들이 부른 가격이에요. 가장 위 칸이 지금 가장 비싸게 팔 수 있는 값이에요.',
+        '지정가: 내가 정한 가격에만 사고팔아요. 시장가: 지금 있는 가장 좋은 호가로 바로 사고팔아요.',
+        '체결: 사려는 값과 팔려는 값이 만나서 거래가 이뤄지는 거예요.',
+      ],
+    },
+    quiz: [
+      { q: '지금 바로 사고 싶을 때 가장 싸게 살 수 있는 가격은?', options: ['가장 낮은 매도호가', '가장 높은 매수호가', '어제 종가'], answer: 0, why: '팔려는 사람 중 가장 싸게 부른 가격(가장 낮은 매도호가)에 살 수 있어요.' },
+      { q: '가장 낮은 매도호가가 25,535원인데 25,500원에 지정가 매수를 넣으면?', options: ['바로 25,500원에 산다', '그 가격에 팔 사람이 나올 때까지 기다린다', '자동으로 시장가로 바뀐다'], answer: 1, why: '지정가는 내가 정한 값보다 비싸게 사지 않아요. 팔 사람이 없으면 기다려요.' },
+      { q: '시장가 주문의 특징으로 맞는 것은?', options: ['항상 가장 싸게 산다', '빨리 체결되지만 생각보다 비싸게 살 수 있다', '수수료가 없다'], answer: 1, why: '시장가는 속도가 장점이고, 가격은 정할 수 없어요.' },
+    ],
+  },
+  {
+    id: 'm3',
+    region: 'market',
+    type: 'learn',
+    title: '내 계좌 숫자 읽기',
+    summary: '평가금 · 수익금 · 수익률 · 주문가능금액',
+    card: {
+      title: '계좌 화면의 숫자들',
+      points: [
+        '주문가능금액: 지금 바로 새로 살 때 쓸 수 있는 현금이에요.',
+        '평가금: 가진 종목을 지금 값으로 계산한 금액이에요. 팔기 전까지는 확정된 돈이 아니에요.',
+        '수익금과 수익률: 처음 산 금액과 비교해 얼마, 몇 % 늘거나 줄었는지예요. 빨강은 이익, 파랑은 손해예요.',
+      ],
+    },
+    quiz: [
+      { q: '20,000원에 산 종목이 지금 21,000원이면 수익률은?', options: ['+1%', '+5%', '+10%'], answer: 1, why: '1,000 ÷ 20,000 = 0.05, 즉 +5%예요.' },
+      { q: '평가금에 대해 맞는 말은?', options: ['이미 내 통장에 들어온 돈이다', '팔기 전까지는 바뀔 수 있는 금액이다', '산 가격과 항상 같다'], answer: 1, why: '평가금은 지금 판다고 가정한 금액이라 매일 바뀌어요.' },
+      { q: '한국 증권 앱에서 빨간색 숫자는 보통?', options: ['손해', '이익(오름)', '거래 정지'], answer: 1, why: '한국은 오르면 빨강, 내리면 파랑이에요. 미국 앱은 반대인 경우가 많아요.' },
+    ],
+  },
+  {
+    id: 'm4',
+    region: 'market',
+    type: 'mission',
+    title: '실전 미션: 첫 주문 넣기',
+    summary: '근거를 쓰고 직접 주문해보기',
+    mission: {
+      goal: '투자 탭에서 종목을 하나 골라 근거를 쓰고 매수 주문을 넣으면 완료돼요.',
+      steps: ['투자 탭 → 투자하러 가기', '종목을 눌러 호가·주문 보기', '가격과 수량 정하고 근거 쓰고 매수', '근거 확인을 통과하면 미션 완료'],
+    },
   },
   {
     id: 'f1',

@@ -1,8 +1,9 @@
 // 투자 탭 윗부분: 실제 증권 앱처럼 생긴 '플로코 모의투자 계좌'.
 // 숫자마다 ⓘ를 누르면 고양이가 그 말이 무슨 뜻인지 설명해줘서, 화면을 보면서 용어를 배운다.
 import { useState, type ReactNode } from 'react'
-import { RULES, useGame, vault } from '../store'
+import { actions, RULES, useGame, vault } from '../store'
 import { TickerRow } from './Market'
+import { ACCOUNT_GUIDE, Coach } from '../components/Coach'
 import { asOfLabel, changePct, kospiChange, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Page } from '../components/Page'
@@ -85,7 +86,9 @@ function sessionOf(kind: 'kr' | 'us') {
 }
 
 export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day: number; go: (t: Tab) => void; onOpen: (code: string) => void; onMarket: () => void }) {
-  const watch = useGame().watch
+  const gs = useGame()
+  const watch = gs.watch
+  const [coach, setCoach] = useState(!gs.guides.includes('account'))
   const [tab, setTab] = useState<'own' | 'watch'>('own')
   const [region, setRegion] = useState<'all' | 'kr' | 'us'>('all')
   const [sort, setSort] = useState<'value' | 'rate'>('value')
@@ -109,6 +112,9 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
           관심
         </button>
         <span className="grow" />
+        <button className="acct-guide-btn" onClick={() => setCoach(true)}>
+          가이드
+        </button>
         <button className="acct-tip-btn" onClick={() => setPage('tips')}>
           투자팁
         </button>
@@ -303,6 +309,15 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
       {page === 'rewards' && <RewardsPage g={g} onClose={() => setPage(null)} />}
       {page === 'trades' && <TradesPage g={g} onClose={() => setPage(null)} />}
       {page === 'tips' && <TipsPage onClose={() => setPage(null)} />}
+      {coach && tab === 'own' && (
+        <Coach
+          steps={ACCOUNT_GUIDE}
+          onDone={() => {
+            setCoach(false)
+            actions.seeGuide('account')
+          }}
+        />
+      )}
     </div>
   )
 }

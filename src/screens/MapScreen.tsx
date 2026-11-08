@@ -11,13 +11,13 @@ import { ART } from '../components/CatView'
 import { Lesson } from './Lesson'
 import type { Tab } from '../App'
 
-const CHAPTER = { village: 1, forest: 2, city: 3, port: 4 } as const
+const CHAPTER = { village: 1, market: 2, forest: 3, risk: 4, reason: 5, review: 6, deep: 7 } as const
 const OFFSETS = [-40, 50, -10, 64, -56, 18, -30, 46]
 const ROW = 150
 // 퀘스트마다 지어지는 건물 (마을 시트 그림)
-const BUILD: Record<string, string> = { v1: 't_navy', v2: 't_bluehouse', v3: 't_cafe', f1: 't_greenhouse', f2: 't_dome', f3: 't_church' }
+const BUILD: Record<string, string> = { v1: 't_navy', v2: 't_bluehouse', v3: 't_cafe', m1: 't_shop', m2: 't_bluecat', m3: 't_pink', m4: 't_clock', f1: 't_greenhouse', f2: 't_dome', f3: 't_church' }
 // 아직 준비 중인 구역에 미리 보이는 잠긴 건물
-const PREVIEW: Record<string, string[]> = { city: ['t_pink', 't_bluecat', 't_school'], port: ['t_clock', 't_shop', 't_stadium'] }
+const PREVIEW: Record<string, string[]> = { risk: ['t_redroof', 't_fountain'], reason: ['t_school', 't_dome'], review: ['t_church', 't_greenhouse'], deep: ['t_stadium', 't_tram'] }
 const TREES = ['t_tree', 't_sakura', 't_pine']
 
 type NodeState = 'done' | 'now' | 'open' | 'locked'
@@ -28,8 +28,8 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   const [popup, setPopup] = useState<string | null>(null)
   const [guide, setGuide] = useState<string | null>(null)
   const tools = unlocked(s)
-  const villageDone = questsDone(s, 'village')
-  const locked = (r: string) => (r === 'forest' ? !villageDone : r === 'city' || r === 'port')
+  // 순서대로 열린다: 기초 마을 → 시장 거리 → ETF 숲, 나머지는 준비 중
+  const locked = (r: string) => (r === 'village' ? false : r === 'market' ? !questsDone(s, 'village') : r === 'forest' ? !questsDone(s, 'market') : true)
   const current = QUESTS.find((q) => !locked(q.region) && !s.quests[q.id]?.done)
   const doneN = QUESTS.filter((q) => s.quests[q.id]?.done).length
   const nowRef = useRef<HTMLDivElement>(null)
@@ -57,7 +57,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
           <div style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
         </div>
         <div className="tool-tags">
-          {Object.entries(TOOLS).map(([id, t]) => (
+          {Object.entries(TOOLS).filter(([id]) => id !== 'invest').map(([id, t]) => (
             <span key={id} className={`tag-label ${tools.has(id) ? 'on' : ''}`} title={t.desc}>
               {!tools.has(id) && <Lock size={11} />}
               {t.name}
@@ -86,7 +86,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
               <span className="ch-no">{CHAPTER[r.id]}장</span>
               <div className="grow">
                 <h2>{r.name}</h2>
-                <p>{isLocked && r.id === 'forest' ? '기초 마을을 다 채우면 열려요' : r.desc}</p>
+                <p>{isLocked && r.id === 'market' ? '기초 마을을 다 채우면 열려요' : isLocked && r.id === 'forest' ? '시장 거리를 다 채우면 열려요' : r.desc}</p>
               </div>
               {qs.length > 0 ? (
                 <button
@@ -168,24 +168,32 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
                         {st === 'now' && <span className="pulse" aria-hidden />}
                       </button>
                       <span className={`spot-label ${off > 0 ? 'left' : 'right'} ${st}`}>
-                        <small>{st === 'done' ? '지었어요' : st === 'locked' ? '잠김' : st === 'now' ? '퀘스트를 깨면 지어져요' : q.type === 'judge' ? '판단 퀘스트' : '개념 + 퀴즈'}</small>
+                        <small>{st === 'done' ? '지었어요' : st === 'locked' ? '잠김' : st === 'now' ? '퀘스트를 깨면 지어져요' : q.type === 'judge' ? '판단 퀘스트' : q.type === 'mission' ? '실전 미션' : '개념 + 퀴즈'}</small>
                         <b>{q.title}</b>
                       </span>
                       {open && (
                         <div className="spot-pop" onClick={(e) => e.stopPropagation()}>
                           <b>{q.title}</b>
                           <small>
-                            {q.type === 'judge' ? '판단 퀘스트 · 상황 4개' : '개념 노트 + 퀴즈 3문제'}
+                            {q.type === 'judge' ? '판단 퀘스트 · 상황 4개' : q.type === 'mission' ? '앱에서 직접 해보기' : '개념 노트 + 퀴즈 3문제'}
                             {q.unlocks ? ' · 도구 해금' : ''}
                           </small>
+                          {q.mission && (
+                            <ol className="mission-steps">
+                              {q.mission.steps.map((m) => (
+                                <li key={m}>{m}</li>
+                              ))}
+                            </ol>
+                          )}
                           <button
                             className="btn btn-primary btn-block"
                             onClick={() => {
                               setPopup(null)
-                              setLesson(q)
+                              if (q.type === 'mission') go('invest')
+                              else setLesson(q)
                             }}
                           >
-                            {st === 'done' ? '다시 펼쳐 보기' : `퀘스트 시작 · 건물 짓기`}
+                            {q.type === 'mission' ? (st === 'done' ? '완료했어요 · 투자 탭 가기' : '투자 탭으로 가기') : st === 'done' ? '다시 펼쳐 보기' : `퀘스트 시작 · 건물 짓기`}
                           </button>
                         </div>
                       )}
@@ -229,7 +237,7 @@ function Guide({ region, onClose }: { region: string; onClose: () => void }) {
   const qs = QUESTS.filter((q) => q.region === region)
   return (
     <Page title={`${r.name} 개념 노트`} sub="이 장에서 배우는 것" onExit={onClose}>
-      {qs.map((q) => (
+      {qs.filter((q) => q.type !== 'mission').map((q) => (
         <section key={q.id} className="note-card card">
           <small>{q.title}</small>
           <h3>{q.card ? q.card.title : '투자와 도박을 가르는 질문'}</h3>

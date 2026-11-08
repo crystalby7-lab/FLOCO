@@ -122,7 +122,7 @@ export type User = {
 
 export type AvatarLook = { art: string; bg: string; sticker?: string }
 
-export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number }
+export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number; goodOrders?: number }
 
 export type GameState = {
   version: number
@@ -135,4 +135,5 @@ export type GameState = {
   prefs: Prefs
   streak: { count: number; last: string } // 연속 출석 (하루에 하나라도 하면 이어짐)
   watch: string[] // 관심 종목 (별 표시한 것만)
+  guides: string[] // 본 초보 가이드 id
 }

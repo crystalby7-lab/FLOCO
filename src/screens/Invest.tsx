@@ -43,6 +43,19 @@ const CHIP_TEXT: Record<string, string> = {
   '지금 바로 사기': '금고를 한 번에 다 쓰는 건 ',
 }
 
+// 근거 쓰기 전 확인 체크리스트: 누르면 종목 상세의 사실이 '왜 사고 싶어?' 칸에 들어간다
+type Check = { id: string; label: string; ask: string; fact: (code: string, day: number) => string }
+const CHECKS: Check[] = [
+  { id: 'holds', label: '무엇을 담았는지 봤어요', ask: '이 종목에 뭐가 담겼는지 봤어?', fact: (c) => `${tickerOf(c).holds}` },
+  { id: 'fee', label: '총보수(수수료)를 확인했어요', ask: '수수료(총보수)는 확인했어?', fact: (c) => (tickerOf(c).fee ? `총보수는 1년에 ${tickerOf(c).fee}예요.` : '개별 주식이라 총보수는 없고 거래 수수료만 있어요.') },
+  { id: 'trend', label: '최근 20일 흐름을 봤어요', ask: '최근에 얼마나 오르내렸는지 봤어?', fact: (c, d) => `최근 20일 동안 ${(changePct(c, d, 20) >= 0 ? '+' : '') + changePct(c, d, 20).toFixed(1)}% 움직였어요.` },
+  { id: 'swing', label: '흔들림(위험) 정도를 봤어요', ask: '얼마나 크게 흔들리는 종목인지 알아?', fact: (c) => `흔들림은 '${swingOf(c).label}'이에요.` },
+  { id: 'world', label: '환율·금리 영향을 생각했어요', ask: '환율이나 금리가 바뀌면 어떻게 될지 생각해봤어?', fact: (c) => (tickerOf(c).market === 'us' ? '미국 종목을 따라가서 환율이 바뀌면 수익도 달라져요.' : '금리가 오르면 주식 가격이 흔들릴 수 있어요.') },
+]
+// 근거에 쓰면 안 되는 말 (확신·남의 말·한 번에 몰기)
+const BANNED = ['무조건', '확실', '대박', '떡상', '몰빵', '100%', '친구가', '유튜버가', '유튜브에서', '지금 아니면', '절대', '찍어']
+const bannedIn = (t: string) => BANNED.filter((w) => t.includes(w))
+
 const pct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
 
 export function Invest({ go }: { go: (t: Tab) => void }) {
@@ -637,18 +650,34 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
   const [focus, setFocus] = useState(0)
   const [result, setResult] = useState<AiResult | null>(null)
   const [checking, setChecking] = useState(false)
+  const [checked, setChecked] = useState<string[]>([])
+  const [asked, setAsked] = useState<Check | null>(null)
+  const [askedOnce, setAskedOnce] = useState(false)
   const price = order?.price ?? priceOf(ticker, day)
   const maxQty = Math.floor(g.cash / price)
   const qty = order?.qty ?? Math.min(qtyIn || Math.max(1, Math.floor(1_000_000 / price)), maxQty)
   const amount = qty * price
   const share = Math.round((amount / vault(g, day).total) * 100)
 
+  const banned = bannedIn(reasons.join(' '))
+  const good = checked.length === CHECKS.length && banned.length === 0
+  // 제출 전에 고양이가 빠진 확인 하나를 되묻는다 (한 번만)
+  const trySubmit = () => {
+    const miss = CHECKS.find((c) => !checked.includes(c.id))
+    if (miss && !askedOnce) {
+      setAsked(miss)
+      setAskedOnce(true)
+      return
+    }
+    submit()
+  }
   const submit = () => {
+    setAsked(null)
     setChecking(true)
     setResult(null)
     setStep(3)
     setTimeout(() => {
-      const r = actions.propose(ticker, amount, reasons, order ?? undefined)
+      const r = actions.propose(ticker, amount, reasons, order ?? undefined, good)
       setChecking(false)
       setResult(r)
     }, 1100)
@@ -757,6 +786,36 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
               </b>
             </div>
           )}
+          <section className="checklist-box">
+            <div className="cl-head">
+              <b>쓰기 전에 확인했나요?</b>
+              <small>
+                {checked.length}/{CHECKS.length}
+              </small>
+            </div>
+            {CHECKS.map((c) => {
+              const on = checked.includes(c.id)
+              return (
+                <button
+                  key={c.id}
+                  className={`cl-item ${on ? 'on' : ''}`}
+                  onClick={() => {
+                    if (on) return setChecked(checked.filter((x) => x !== c.id))
+                    setChecked([...checked, c.id])
+                    const f = c.fact(ticker, day)
+                    if (!reasons[0].includes(f)) setReason(0, (reasons[0] ? reasons[0].trimEnd() + ' ' : '') + f)
+                  }}
+                >
+                  <span className="cl-box">{on ? '✓' : ''}</span>
+                  <span className="cl-text">
+                    {c.label}
+                    <small>{c.fact(ticker, day)}</small>
+                  </span>
+                </button>
+              )
+            })}
+            <p className="cl-note">체크하면 확인한 사실이 '왜 사고 싶어?' 칸에 들어가요. 다 체크하고 금지어 없이 쓰면 코인 +{RULES.goodOrderCoin}</p>
+          </section>
           {REASON_LABELS.map((label, i) => (
             <div key={label} className={`reason-field ${focus === i ? 'focus' : ''}`}>
               <label className="small-label">
@@ -766,6 +825,11 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
                 </span>
                 <textarea rows={3} value={reasons[i]} placeholder={REASON_PH[i]} onFocus={() => setFocus(i)} onChange={(e) => setReason(i, e.target.value)} />
               </label>
+              {bannedIn(reasons[i]).length > 0 && (
+                <p className="banned">
+                  <b>{bannedIn(reasons[i]).map((w) => `'${w}'`).join(', ')}</b> 같은 말은 근거가 아니라 기분이나 남의 말이에요. 직접 확인한 사실로 바꿔볼까요?
+                </p>
+              )}
               {focus === i && (
                 <div className="chips">
                   {REASON_CHIPS[i].map((c) => (
@@ -781,10 +845,39 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
             <button className="btn" onClick={() => (order ? onClose() : setStep(1))}>
               이전
             </button>
-            <button className="btn btn-primary" disabled={reasons.some((r) => r.trim().length < 4)} onClick={submit}>
+            <button className="btn btn-primary" disabled={reasons.some((r) => r.trim().length < 4)} onClick={trySubmit}>
               근거 확인받고 주문
             </button>
           </div>
+          {asked && (
+            <div className="ask-layer" onClick={() => setAsked(null)}>
+              <div className="ask-sheet" onClick={(e) => e.stopPropagation()}>
+                <div className="ask-cat">
+                  <img src={ART.t_think} alt="" style={{ height: 76 }} />
+                </div>
+                <div className="ask-bubble">
+                  <small>주문 전에 한 가지만</small>
+                  <p>{asked.ask}</p>
+                </div>
+                <div className="ask-choices">
+                  <button
+                    className="ask-choice"
+                    onClick={() => {
+                      setChecked([...checked, asked.id])
+                      const f = asked.fact(ticker, day)
+                      if (!reasons[0].includes(f)) setReason(0, (reasons[0] ? reasons[0].trimEnd() + ' ' : '') + f)
+                      setAsked(null)
+                    }}
+                  >
+                    지금 확인할래 · {asked.fact(ticker, day)}
+                  </button>
+                  <button className="ask-choice" onClick={submit}>
+                    그래도 이대로 주문할래
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
