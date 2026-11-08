@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Sunflower:wght@500;700&family=Yeon+Sung&family=Gamja+Flower&family=Dongle:wght@700&display=swap');
 /* ═══════════════════════════════════════════════════════════
    FLOCO 디자인 시스템 (Kync 디자인 시스템 기반)
    - 바탕은 귀리색, 카드는 흰 면. 그림자는 떠 있는 것(시트·토스트)에만.
@@ -11134,15 +11133,15 @@ label.set2-row:active {
 /* 플로월드 머리: 게임 간판 + HUD */
 .wh { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 4px 0 2px; }
 .wh-sign { position: relative; display: flex; flex-direction: column; align-items: center; padding: 10px 26px 12px; background: linear-gradient(180deg, #fff6df, #ffe7b3); border: 3px solid #e7b766; border-radius: 22px; box-shadow: 0 5px 0 #d29a45, 0 10px 18px rgba(120,80,20,.18); }
-.wh-sign h1 { font-family: 'Jua', var(--font); font-weight: 400; font-size: 34px; line-height: 1; color: #fff; letter-spacing: .02em;
+.wh-sign h1 { font-family: var(--font); font-weight: 400; font-size: 34px; line-height: 1; color: #fff; letter-spacing: .02em;
   -webkit-text-stroke: 6px #6a8fd8; paint-order: stroke fill; text-shadow: 0 4px 0 #4b6fb8; }
 .wh-ch { position: absolute; top: -12px; background: #6a8fd8; color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .12em; padding: 3px 10px; border-radius: 999px; }
-.wh-region { margin-top: 6px; font-family: 'Jua', var(--font); font-size: 15px; color: #a0661c; }
+.wh-region { margin-top: 6px; font-family: var(--font); font-size: 15px; color: #a0661c; }
 .wh-hud { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px; padding: 5px 12px 5px 6px; box-shadow: var(--card-shadow); width: min(100%, 300px); }
 .wh-hud img { width: 30px; height: 30px; object-fit: contain; }
 .wh-bar { flex: 1; height: 10px; border-radius: 999px; background: #e6eef9; overflow: hidden; }
 .wh-bar i { display: block; height: 100%; border-radius: inherit; background: repeating-linear-gradient(-45deg, #7ea7ef 0 8px, #6a8fd8 8px 16px); }
-.wh-hud b { font-family: 'Jua', var(--font); font-weight: 400; font-size: 16px; }
+.wh-hud b { font-family: var(--font); font-weight: 400; font-size: 16px; }
 .wh .tool-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .wh .tag-label { font-size: 12px; font-weight: 700; padding: 4px 10px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
 .wh .tag-label.on { color: var(--blue); background: #fff; }
@@ -11158,8 +11157,8 @@ label.set2-row:active {
 .wi-cloud.c3 { top: 8%; left: 30%; width: 120px; animation: wi-c1 2.6s ease-out both; }
 .wi-title { position: absolute; top: 30%; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .wi-logo { display: flex; gap: 2px; }
-.wi-logo span { font-family: 'Jua', var(--font); font-size: 58px; line-height: 1; color: #fff; -webkit-text-stroke: 9px #5b82d1; paint-order: stroke fill; text-shadow: 0 6px 0 #3f62ad; animation: wi-pop .5s cubic-bezier(.3,1.6,.5,1) both; }
-.wi-stage { font-family: 'Jua', var(--font); font-size: 16px; color: #3f62ad; background: rgba(255,255,255,.85); padding: 6px 16px; border-radius: 999px; letter-spacing: .04em; animation: wi-rise .5s .75s ease both; }
+.wi-logo span { font-family: var(--font); font-size: 58px; line-height: 1; color: #fff; -webkit-text-stroke: 9px #5b82d1; paint-order: stroke fill; text-shadow: 0 6px 0 #3f62ad; animation: wi-pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+.wi-stage { font-family: var(--font); font-size: 16px; color: #3f62ad; background: rgba(255,255,255,.85); padding: 6px 16px; border-radius: 999px; letter-spacing: .04em; animation: wi-rise .5s .75s ease both; }
 .wi-town { position: absolute; bottom: 21%; left: 0; right: 0; display: flex; justify-content: center; align-items: flex-end; gap: 2px; }
 .wi-town img { width: 70px; height: 70px; object-fit: contain; animation: wi-build .45s cubic-bezier(.3,1.5,.5,1) both; }
 .wi-town img:nth-child(3) { width: 86px; height: 86px; }
@@ -11186,7 +11185,7 @@ label.set2-row:active {
 .sf-front { position: relative; background: #fff8ec; padding: 26px 14px 12px; min-height: 120px; display: flex; align-items: flex-end; border-left: 6px solid #f0d6a8; border-right: 6px solid #f0d6a8; }
 .sf-sign { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .sf-sign small { font-size: 10.5px; font-weight: 900; letter-spacing: .14em; color: #fff; background: #5cbf8a; padding: 2px 8px; border-radius: 6px; }
-.sf-sign h1 { font-family: 'Do Hyeon', var(--font); font-weight: 400; font-size: 28px; line-height: 1.1; color: #8a4b2a; word-break: keep-all; }
+.sf-sign h1 { font-family: var(--font); font-weight: 400; font-size: 28px; line-height: 1.1; color: #8a4b2a; word-break: keep-all; }
 .sf-keeper { position: absolute; right: 18px; bottom: -6px; height: 104px; z-index: 2; }
 .sf-wallet { position: absolute; top: 22px; right: 12px; display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 2px solid #f3dfb8; border-radius: 999px; padding: 4px 10px 4px 6px; font-weight: 900; font-size: 14px; z-index: 3; }
 .sf-counter { height: 18px; background: linear-gradient(180deg, #e2b77d, #c98f52); border-radius: 0 0 14px 14px; box-shadow: 0 4px 10px rgba(120,70,20,.18); position: relative; z-index: 1; }
@@ -11205,12 +11204,12 @@ label.set2-row:active {
 
 /* v6.1 — 플로월드 글씨: 두꺼운 테두리 대신 통통한 글꼴 + 부드러운 그림자 */
 .wh-sign { padding: 12px 28px 10px; background: #fff; border: 0; box-shadow: 0 6px 0 #b9cdee, 0 12px 22px rgba(60,90,150,.16); }
-.wh-sign h1 { font-family: 'Single Day', var(--font); font-weight: 400; font-size: 40px; line-height: 1; color: #4d74c6; -webkit-text-stroke: 0; text-shadow: 0 3px 0 #dbe7fa; letter-spacing: 0; }
+.wh-sign h1 { font-family: var(--font); font-weight: 400; font-size: 40px; line-height: 1; color: #4d74c6; -webkit-text-stroke: 0; text-shadow: 0 3px 0 #dbe7fa; letter-spacing: 0; }
 .wh-ch { background: #ffb547; top: -11px; }
-.wh-region { font-family: 'Single Day', var(--font); font-size: 18px; color: #8a9bbd; margin-top: 2px; }
-.wh-hud b { font-family: 'Single Day', var(--font); font-size: 20px; }
-.wi-logo span { font-family: 'Single Day', var(--font); font-size: 72px; -webkit-text-stroke: 0; color: #fff; text-shadow: 0 5px 0 #6f93d6, 0 10px 22px rgba(40,70,140,.3); }
-.wi-stage { font-family: 'Single Day', var(--font); font-size: 19px; }
+.wh-region { font-family: var(--font); font-size: 18px; color: #8a9bbd; margin-top: 2px; }
+.wh-hud b { font-family: var(--font); font-size: 20px; }
+.wi-logo span { font-family: var(--font); font-size: 72px; -webkit-text-stroke: 0; color: #fff; text-shadow: 0 5px 0 #6f93d6, 0 10px 22px rgba(40,70,140,.3); }
+.wi-stage { font-family: var(--font); font-size: 19px; }
 
 /* v6.1 — 길드 배너: 커버 사진 + 흰 카드 (커뮤니티 프로필 모양) */
 .gb2 { background: #fff; border-radius: 24px; overflow: hidden; box-shadow: var(--card-shadow); }
@@ -11231,3 +11230,12 @@ label.set2-row:active {
 .gb-preview .gb2-cover { height: 72px; }
 .gd-fonts { grid-template-columns: repeat(3, 1fr); }
 .gd-fonts .f-dongle { font-size: 28px !important; }
+
+/* v6.2 — 글꼴은 SUIT 하나만 (다른 글꼴 금지) */
+.wh-sign h1 { font-family: var(--font); font-weight: 900; font-size: 30px; letter-spacing: -0.02em; }
+.wh-region { font-family: var(--font); font-weight: 800; font-size: 14px; }
+.wh-hud b { font-family: var(--font); font-weight: 900; font-size: 15px; }
+.wi-logo span { font-family: var(--font); font-weight: 900; font-size: 54px; letter-spacing: -0.02em; }
+.wi-stage { font-family: var(--font); font-weight: 800; font-size: 14px; }
+.sf-sign h1 { font-family: var(--font); font-weight: 900; font-size: 26px; letter-spacing: -0.02em; }
+.gb2-text h1 { font-family: var(--font); font-weight: 900; font-size: 26px; letter-spacing: -0.02em; }

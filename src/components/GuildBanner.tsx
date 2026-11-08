@@ -13,21 +13,10 @@ export const GUILD_THEMES = [
   { id: 'night', name: '밤 도시', art: 'sc_night' },
   { id: 'snow', name: '눈 마을', art: 'sc_snow' },
 ]
-export const GUILD_FONTS = [
-  { id: 'single', name: '통통', css: "'Single Day', 'SUIT Variable', sans-serif" },
-  { id: 'sunflower', name: '깔끔', css: "'Sunflower', 'SUIT Variable', sans-serif" },
-  { id: 'yeonsung', name: '레트로', css: "'Yeon Sung', 'SUIT Variable', sans-serif" },
-  { id: 'gamja', name: '손글씨', css: "'Gamja Flower', 'SUIT Variable', sans-serif" },
-  { id: 'dongle', name: '말랑', css: "'Dongle', 'SUIT Variable', sans-serif" },
-]
 export const GUILD_EMBLEMS = ['i_paw', 'i_star', 'i_heart', 'i_fish', 'i_cake', 'i_duck', 'i_yarn', 'i_boba']
 
-const DEFAULT: GuildLook = { theme: 'cherry', font: 'single', emblem: 'i_paw', motto: '' }
-export const lookOf = (g: Guild): GuildLook => {
-  const l = { ...DEFAULT, ...(g.look ?? {}) }
-  return GUILD_FONTS.some((f) => f.id === l.font) ? l : { ...l, font: DEFAULT.font }
-}
-const fontCss = (id: string) => (GUILD_FONTS.find((f) => f.id === id) ?? GUILD_FONTS[0]).css
+const DEFAULT: GuildLook = { theme: 'cherry', emblem: 'i_paw', motto: '' }
+export const lookOf = (g: Guild): GuildLook => ({ ...DEFAULT, ...(g.look ?? {}) })
 const themeArt = (id: string) => ART[(GUILD_THEMES.find((t) => t.id === id) ?? GUILD_THEMES[0]).art]
 
 export function GuildBanner({ g, days }: { g: Guild; days: number }) {
@@ -47,7 +36,7 @@ export function GuildBanner({ g, days }: { g: Guild; days: number }) {
             <img src={ART[look.emblem]} alt="" />
           </span>
           <div className="gb2-text">
-            <h1 style={{ fontFamily: fontCss(look.font) }} className={`f-${look.font}`}>
+            <h1>
               {g.name}
             </h1>
             {look.motto && <p className="gb2-motto">{look.motto}</p>}
@@ -86,7 +75,7 @@ function GuildDeco({ g, onClose }: { g: Guild; onClose: () => void }) {
               <img src={ART[look.emblem]} alt="" />
             </span>
             <div className="gb2-text">
-              <h1 style={{ fontFamily: fontCss(look.font) }} className={`f-${look.font}`}>
+              <h1>
                 {name || '길드 이름'}
               </h1>
               {look.motto && <p className="gb2-motto">{look.motto}</p>}
@@ -105,15 +94,6 @@ function GuildDeco({ g, onClose }: { g: Guild; onClose: () => void }) {
             <button key={t.id} className={look.theme === t.id ? 'on' : ''} onClick={() => put('theme', t.id)}>
               <img src={ART[t.art]} alt="" />
               <small>{t.name}</small>
-            </button>
-          ))}
-        </div>
-
-        <label className="gd-label">글꼴</label>
-        <div className="gd-fonts">
-          {GUILD_FONTS.map((f) => (
-            <button key={f.id} className={`${look.font === f.id ? 'on' : ''} f-${f.id}`} style={{ fontFamily: f.css }} onClick={() => put('font', f.id)}>
-              {f.name}
             </button>
           ))}
         </div>
