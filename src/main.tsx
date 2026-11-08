@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import '@fontsource/single-day'
 import App from './App.tsx'
 import { startSync } from './sync'
 import { loadPrices } from './data/market'
