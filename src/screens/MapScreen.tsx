@@ -1,11 +1,11 @@
 // 플로월드 지도 (F1·F2·F3): 장 = 마을 구역, 퀘스트 = 건물.
 // 퀘스트를 끝낼 때마다 그 건물이 잠금 해제되어 마을이 하나씩 지어진다.
 // 고양이는 지금 지을 건물 옆에서 기다린다.
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { questsDone, unlocked, useGame } from '../store'
 import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
 import { Page } from '../components/Page'
-import { TabHeader } from '../components/TabHeader'
+import { WorldIntro } from '../components/WorldIntro'
 import { Book, Lock } from '../components/Icons'
 import { ART } from '../components/CatView'
 import { Lesson } from './Lesson'
@@ -27,12 +27,15 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   const [lesson, setLesson] = useState<Quest | null>(null)
   const [popup, setPopup] = useState<string | null>(null)
   const [guide, setGuide] = useState<string | null>(null)
+  const [intro, setIntro] = useState(true)
   const tools = unlocked(s)
   // 순서대로 열린다: 기초 마을 → 시장 거리 → ETF 숲, 나머지는 준비 중
   const locked = (r: string) => (r === 'village' ? false : r === 'market' ? !questsDone(s, 'village') : r === 'forest' ? !questsDone(s, 'market') : true)
   const current = QUESTS.find((q) => !locked(q.region) && !s.quests[q.id]?.done)
   const doneN = QUESTS.filter((q) => s.quests[q.id]?.done).length
   const nowRef = useRef<HTMLDivElement>(null)
+  const curRegion = REGIONS.find((r) => r.id === (current?.region ?? 'village'))
+  const endIntro = useCallback(() => setIntro(false), [])
 
   useEffect(() => {
     nowRef.current?.scrollIntoView({ block: 'center' })
@@ -43,18 +46,20 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel live path-panel" onClick={() => setPopup(null)}>
-      <TabHeader
-        title="플로월드"
-        sub="퀘스트를 깨면 마을 건물이 하나씩 지어져요"
-        right={
-          <span className="head-pill">
-            <img src={ART.t_navy} alt="" />
+      <header className="wh">
+        <div className="wh-sign">
+          <span className="wh-ch">CHAPTER {curRegion ? CHAPTER[curRegion.id as keyof typeof CHAPTER] : 1}</span>
+          <h1>플로월드</h1>
+          <span className="wh-region">{curRegion?.name ?? '기초 마을'}</span>
+        </div>
+        <div className="wh-hud">
+          <img src={ART.t_navy} alt="" />
+          <div className="wh-bar">
+            <i style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
+          </div>
+          <b>
             {doneN}/{QUESTS.length}
-          </span>
-        }
-      >
-        <div className="map-progress">
-          <div style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
+          </b>
         </div>
         <div className="tool-tags">
           {Object.entries(TOOLS).filter(([id]) => id !== 'invest').map(([id, t]) => (
@@ -64,7 +69,8 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
             </span>
           ))}
         </div>
-      </TabHeader>
+      </header>
+      {intro && <WorldIntro chapter={curRegion ? CHAPTER[curRegion.id as keyof typeof CHAPTER] : 1} region={curRegion?.name ?? '기초 마을'} onDone={endIntro} />}
 
       {REGIONS.map((r) => {
         const qs = QUESTS.filter((q) => q.region === r.id)

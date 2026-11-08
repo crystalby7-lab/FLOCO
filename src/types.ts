@@ -66,6 +66,8 @@ export type Retro = {
 
 export type FeedItem = { id: string; text: string; at: number; icon: string }
 
+export type GuildLook = { theme: string; font: string; emblem: string; motto: string }
+
 export type Guild = {
   name: string
   code: string
@@ -83,6 +85,7 @@ export type Guild = {
   day?: number // 길드 공용 거래일 (서버 연결 시 모두 같은 날)
   memberIds?: string[] // 서버 보안 규칙용 멤버 id 목록
   levelSeen: number // 레벨업 축하를 본 마지막 레벨
+  look?: GuildLook // 길드 꾸미기 (배경·글꼴·문장·구호)
   createdAt: number
 }
 

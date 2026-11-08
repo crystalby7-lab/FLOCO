@@ -4,7 +4,7 @@ import { actions, memberName, today, useGame } from '../store'
 import { priceOf, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
-import { TabHeader } from '../components/TabHeader'
+import { GuildBanner } from '../components/GuildBanner'
 import type { Tab } from '../App'
 import type { FeedItem, Post, Proposal, Retro } from '../types'
 
@@ -70,17 +70,7 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel">
-      <TabHeader
-        title={g.name}
-        sub={`멤버 ${g.members.length}/5 · 같이 키운 지 ${days}일`}
-        right={
-          <span className="head-avatars">
-            {g.members.slice(0, 4).map((m) => (
-              <Avatar key={m.id} g={g} id={m.id} size={30} />
-            ))}
-          </span>
-        }
-      />
+      <GuildBanner g={g} days={days} />
 
       <div className="cm-tabs">
         {(

@@ -5,7 +5,6 @@ import { SHOP } from '../data/shop'
 import { Gold } from '../components/ui'
 import { Backdrop, timeOfDay } from '../components/Playground'
 import { Coin, ItemIcon } from '../components/Icons'
-import { TabHeader } from '../components/TabHeader'
 import { ART } from '../components/CatView'
 
 const ICON: Record<string, string> = {
@@ -23,6 +22,7 @@ export function Shop() {
   const s = useGame()
   const g = s.guild!
   const [msg, setMsg] = useState('')
+  const [shelf, setShelf] = useState<'food' | 'deco' | 'place'>('food')
 
   const buy = (id: string) => {
     const err = actions.buyItem(id)
@@ -77,20 +77,41 @@ export function Shop() {
 
   return (
     <div className="tab-panel">
-      <TabHeader
-        title="상점"
-        sub="게임 코인으로 돌보기·꾸미기"
-        right={
-          <span className="head-pill">
+      <header className="sf">
+        <div className="sf-awning" />
+        <div className="sf-front">
+          <div className="sf-sign">
+            <small>OPEN</small>
+            <h1>{g.cat.name}네 잡화점</h1>
+          </div>
+          <img className="sf-keeper" src={ART.chef} alt="" />
+          <span className="sf-wallet">
             <Coin size={18} />
             {g.gold.toLocaleString()}
           </span>
-        }
-      />
+        </div>
+        <div className="sf-counter" />
+      </header>
+      <div className="sf-tabs">
+        {(
+          [
+            ['food', '먹이·장난감', ART.i_fish],
+            ['deco', '옷·가구', ART.bow],
+            ['place', '장소 테마', ART.bg_house],
+          ] as const
+        ).map(([k, l, img]) => (
+          <button key={k} className={shelf === k ? 'on' : ''} onClick={() => setShelf(k)}>
+            <img src={img} alt="" />
+            {l}
+          </button>
+        ))}
+      </div>
       {msg && <p className="toast-inline">{msg}</p>}
-      {section('food', '먹이·장난감', '사면 보관함에 쌓여요. 홈에서 주기')}
-      {section('deco', '옷·가구', '홈 옷장에서 입히고 둬요')}
-      {section('place', '장소 테마', '홈에서 화살표로 넘겨 가요')}
+      <div className="sf-shelf">
+        {shelf === 'food' && section('food', '먹이·장난감', '사면 보관함에 쌓여요. 홈에서 주기')}
+        {shelf === 'deco' && section('deco', '옷·가구', '홈 옷장에서 입히고 둬요')}
+        {shelf === 'place' && section('place', '장소 테마', '홈에서 화살표로 넘겨 가요')}
+      </div>
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
   )

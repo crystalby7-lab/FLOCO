@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Dongle:wght@400;700&family=Gamja+Flower&family=Do+Hyeon&display=swap');
 /* ═══════════════════════════════════════════════════════════
    FLOCO 디자인 시스템 (Kync 디자인 시스템 기반)
    - 바탕은 귀리색, 카드는 흰 면. 그림자는 떠 있는 것(시트·토스트)에만.
@@ -11086,3 +11087,118 @@ label.set2-row:active {
 .cm-week-kings li span { font-weight: 800; color: var(--sub); width: 70px; flex: none; }
 .cm-week-kings li small { margin-left: auto; color: var(--muted); font-size: 12px; }
 .cm-week-empty { color: var(--muted); }
+
+/* ═══════════ v6 — 탭마다 다른 얼굴: 길드 배너 · 플로월드 입장 · 잡화점 ═══════════ */
+.f-jua { font-weight: 400 !important; }
+.f-dongle { font-weight: 700 !important; font-size: 1.45em !important; line-height: 1 !important; }
+.f-gamja { font-weight: 400 !important; font-size: 1.15em !important; }
+.f-dohyeon { font-weight: 400 !important; }
+
+/* 길드 배너 */
+.gb { position: relative; overflow: hidden; border-radius: 24px; min-height: 150px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; box-shadow: var(--card-shadow); isolation: isolate; }
+.gb-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; filter: saturate(1.05); }
+.gb::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.55) 100%); }
+.gb.theme-night::after, .gb.theme-sunset::after { background: linear-gradient(180deg, rgba(20,20,60,0) 20%, rgba(20,20,60,.45) 100%); }
+.gb-edit { position: absolute; top: 10px; right: 10px; border: 0; background: rgba(255,255,255,.88); backdrop-filter: blur(6px); font-size: 12.5px; font-weight: 800; padding: 6px 11px; border-radius: 999px; color: var(--ink); }
+.gb-main { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
+.gb-emblem { flex: none; width: 58px; height: 58px; border-radius: 50%; background: #fff; border: 3px solid rgba(255,255,255,.9); box-shadow: 0 4px 12px rgba(30,40,80,.18); display: grid; place-items: center; }
+.gb-emblem img { width: 38px; height: 38px; object-fit: contain; }
+.gb-text { min-width: 0; }
+.gb h1 { font-size: 30px; line-height: 1.1; color: #fff; letter-spacing: 0; word-break: keep-all;
+  text-shadow: 0 2px 0 rgba(40,50,90,.35), 2px 0 0 rgba(40,50,90,.25), -2px 0 0 rgba(40,50,90,.25), 0 -2px 0 rgba(40,50,90,.25), 0 4px 12px rgba(0,0,0,.18); }
+.gb-motto { margin-top: 4px; font-size: 13px; font-weight: 800; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.35); word-break: keep-all; }
+.gb-foot { display: flex; align-items: center; gap: 6px; }
+.gb-chip { background: rgba(255,255,255,.9); font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; color: var(--ink); }
+.gb .head-avatars .breed-av { border: 2px solid #fff; }
+
+.gd { padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; gap: 8px; }
+.gb-preview { min-height: 120px; margin-bottom: 6px; }
+.gb-preview .gb-main { margin-top: 18px; }
+.gd-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-top: 8px; }
+.gd-input { border: 1.5px solid #dbe5f1; border-radius: 12px; padding: 11px 12px; font-size: 15px; font-family: var(--font); background: #f7faff; }
+.gd-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gd-themes button { border: 2.5px solid transparent; border-radius: 14px; overflow: hidden; padding: 0; background: #fff; display: flex; flex-direction: column; }
+.gd-themes button img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+.gd-themes button small { font-size: 12px; font-weight: 800; padding: 5px 0; }
+.gd-themes button.on { border-color: var(--blue); }
+.gd-fonts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.gd-fonts button { border: 2px solid #e3eaf3; background: #fff; border-radius: 14px; padding: 10px; font-size: 19px; color: var(--ink); }
+.gd-fonts button.on { border-color: var(--blue); background: #eef4ff; }
+.gd-emblems { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.gd-emblems button { aspect-ratio: 1; border: 2px solid #e3eaf3; background: #fff; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+.gd-emblems button img { width: 70%; height: 70%; object-fit: contain; }
+.gd-emblems button.on { border-color: var(--blue); background: #eef4ff; }
+.gd-foot { display: flex; gap: 8px; margin-top: 12px; }
+.gd-foot .btn { flex: 1; }
+
+/* 플로월드 머리: 게임 간판 + HUD */
+.wh { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 4px 0 2px; }
+.wh-sign { position: relative; display: flex; flex-direction: column; align-items: center; padding: 10px 26px 12px; background: linear-gradient(180deg, #fff6df, #ffe7b3); border: 3px solid #e7b766; border-radius: 22px; box-shadow: 0 5px 0 #d29a45, 0 10px 18px rgba(120,80,20,.18); }
+.wh-sign h1 { font-family: 'Jua', var(--font); font-weight: 400; font-size: 34px; line-height: 1; color: #fff; letter-spacing: .02em;
+  -webkit-text-stroke: 6px #6a8fd8; paint-order: stroke fill; text-shadow: 0 4px 0 #4b6fb8; }
+.wh-ch { position: absolute; top: -12px; background: #6a8fd8; color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .12em; padding: 3px 10px; border-radius: 999px; }
+.wh-region { margin-top: 6px; font-family: 'Jua', var(--font); font-size: 15px; color: #a0661c; }
+.wh-hud { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px; padding: 5px 12px 5px 6px; box-shadow: var(--card-shadow); width: min(100%, 300px); }
+.wh-hud img { width: 30px; height: 30px; object-fit: contain; }
+.wh-bar { flex: 1; height: 10px; border-radius: 999px; background: #e6eef9; overflow: hidden; }
+.wh-bar i { display: block; height: 100%; border-radius: inherit; background: repeating-linear-gradient(-45deg, #7ea7ef 0 8px, #6a8fd8 8px 16px); }
+.wh-hud b { font-family: 'Jua', var(--font); font-weight: 400; font-size: 16px; }
+.wh .tool-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.wh .tag-label { font-size: 12px; font-weight: 700; padding: 4px 10px; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.wh .tag-label.on { color: var(--blue); background: #fff; }
+
+/* 플로월드 입장 화면 */
+.wi { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 440px); z-index: 400; overflow: hidden; cursor: pointer;
+  background: linear-gradient(180deg, #8fbaf0 0%, #bcd7f7 48%, #e9f3ff 72%); animation: wi-in .35s ease both; transition: opacity .45s ease, transform .45s ease; }
+.wi.out { opacity: 0; transform: translateX(-50%) scale(1.08); }
+.wi-sun { position: absolute; top: 12%; right: 14%; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, #fff8d6 0 45%, rgba(255,240,180,0) 70%); animation: wi-pulse 2s ease-in-out infinite; }
+.wi-cloud { position: absolute; width: 170px; opacity: .95; }
+.wi-cloud.c1 { top: 16%; left: -10%; animation: wi-c1 2.2s ease-out both; }
+.wi-cloud.c2 { top: 30%; right: -12%; width: 210px; animation: wi-c2 2.2s ease-out both; }
+.wi-cloud.c3 { top: 8%; left: 30%; width: 120px; animation: wi-c1 2.6s ease-out both; }
+.wi-title { position: absolute; top: 30%; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.wi-logo { display: flex; gap: 2px; }
+.wi-logo span { font-family: 'Jua', var(--font); font-size: 58px; line-height: 1; color: #fff; -webkit-text-stroke: 9px #5b82d1; paint-order: stroke fill; text-shadow: 0 6px 0 #3f62ad; animation: wi-pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+.wi-stage { font-family: 'Jua', var(--font); font-size: 16px; color: #3f62ad; background: rgba(255,255,255,.85); padding: 6px 16px; border-radius: 999px; letter-spacing: .04em; animation: wi-rise .5s .75s ease both; }
+.wi-town { position: absolute; bottom: 21%; left: 0; right: 0; display: flex; justify-content: center; align-items: flex-end; gap: 2px; }
+.wi-town img { width: 70px; height: 70px; object-fit: contain; animation: wi-build .45s cubic-bezier(.3,1.5,.5,1) both; }
+.wi-town img:nth-child(3) { width: 86px; height: 86px; }
+.wi-ground { position: absolute; bottom: 0; left: -10%; right: -10%; height: 23%; background: linear-gradient(180deg, #bfe3a6, #a3d38a); border-radius: 50% 50% 0 0 / 30px 30px 0 0; }
+.wi-cat { position: absolute; bottom: 14%; width: 86px; animation: wi-run 2.1s linear both; }
+.wi-load { position: absolute; bottom: 7%; left: 50%; transform: translateX(-50%); width: 56%; height: 10px; border-radius: 999px; background: rgba(255,255,255,.7); overflow: hidden; }
+.wi-load i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, #7ea7ef 0 8px, #6a8fd8 8px 16px); animation: wi-load 2s ease-in-out both; }
+.wi-skip { position: absolute; bottom: calc(2.5% + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; font-size: 11.5px; font-weight: 700; color: #4f7a43; }
+@keyframes wi-in { from { opacity: 0 } }
+@keyframes wi-pop { from { opacity: 0; transform: translateY(30px) scale(.4) } }
+@keyframes wi-rise { from { opacity: 0; transform: translateY(10px) } }
+@keyframes wi-build { from { opacity: 0; transform: translateY(40px) scale(.3) } }
+@keyframes wi-c1 { from { transform: translateX(60px) scale(1.4) } }
+@keyframes wi-c2 { from { transform: translateX(-70px) scale(1.4) } }
+@keyframes wi-pulse { 50% { transform: scale(1.12) } }
+@keyframes wi-run { from { left: -100px } to { left: 105% } }
+@keyframes wi-load { from { width: 0 } to { width: 100% } }
+@media (prefers-reduced-motion: reduce) { .wi *, .wi { animation-duration: .01s !important; } }
+
+/* 잡화점 */
+.sf { position: relative; margin-top: 4px; }
+.sf-awning { height: 34px; border-radius: 18px 18px 0 0; background: repeating-linear-gradient(90deg, #ff9fb4 0 30px, #fff 30px 60px); position: relative; box-shadow: 0 3px 0 rgba(200,90,120,.25); z-index: 1; }
+.sf-awning::after { content: ''; position: absolute; left: 0; right: 0; bottom: -12px; height: 14px; background: radial-gradient(circle at 15px 0, #ff9fb4 14px, transparent 15px) 0 0 / 60px 14px repeat-x, radial-gradient(circle at 45px 0, #fff 14px, transparent 15px) 0 0 / 60px 14px repeat-x; }
+.sf-front { position: relative; background: #fff8ec; padding: 26px 14px 12px; min-height: 120px; display: flex; align-items: flex-end; border-left: 6px solid #f0d6a8; border-right: 6px solid #f0d6a8; }
+.sf-sign { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.sf-sign small { font-size: 10.5px; font-weight: 900; letter-spacing: .14em; color: #fff; background: #5cbf8a; padding: 2px 8px; border-radius: 6px; }
+.sf-sign h1 { font-family: 'Do Hyeon', var(--font); font-weight: 400; font-size: 28px; line-height: 1.1; color: #8a4b2a; word-break: keep-all; }
+.sf-keeper { position: absolute; right: 18px; bottom: -6px; height: 104px; z-index: 2; }
+.sf-wallet { position: absolute; top: 22px; right: 12px; display: inline-flex; align-items: center; gap: 5px; background: #fff; border: 2px solid #f3dfb8; border-radius: 999px; padding: 4px 10px 4px 6px; font-weight: 900; font-size: 14px; z-index: 3; }
+.sf-counter { height: 18px; background: linear-gradient(180deg, #e2b77d, #c98f52); border-radius: 0 0 14px 14px; box-shadow: 0 4px 10px rgba(120,70,20,.18); position: relative; z-index: 1; }
+.sf-tabs { display: flex; gap: 6px; margin-top: 4px; }
+.sf-tabs button { flex: 1; border: 0; background: rgba(255,255,255,.65); border-radius: 14px; padding: 8px 4px; font-size: 12.5px; font-weight: 800; color: var(--sub); display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.sf-tabs button img { width: 28px; height: 28px; object-fit: contain; }
+.sf-tabs button.on { background: #fff; color: #8a4b2a; box-shadow: 0 0 0 2px #f0d6a8 inset, var(--card-shadow); }
+.sf-shelf { background: #fff8ec; border-radius: 20px; padding: 10px 12px 18px; box-shadow: var(--card-shadow); background-image: repeating-linear-gradient(180deg, transparent 0 calc(100% - 0px)); }
+.sf-shelf .shop-sec-head h2 { display: none; }
+.sf-shelf .shop-sec-head { margin: 0 0 8px; }
+.sf-shelf .shop-item { box-shadow: 0 6px 0 #e7c999, 0 8px 12px rgba(120,70,20,.08); }
+.gb h1 { -webkit-text-stroke: 6px #42548f; paint-order: stroke fill; text-shadow: 0 3px 0 #2f3d6e, 0 6px 14px rgba(0,0,0,.2); }
+.gd-emblems { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.gd > * { flex: none; }
+.gb-preview { position: sticky; top: -16px; z-index: 5; }

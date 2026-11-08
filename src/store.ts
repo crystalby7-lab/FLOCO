@@ -605,6 +605,11 @@ export const actions = {
     updateGuild((g) => addFeed({ ...g, cat: { ...g.cat, name } }, '✏️', `고양이 이름이 ${name}(으)로 바뀌었어요.`))
   },
 
+  // 길드 꾸미기: 이름·구호·배경·글꼴·문장
+  decorateGuild(name: string, look: import('./types').GuildLook) {
+    updateGuild((g) => (g.name !== name ? addFeed({ ...g, name, look }, '✏️', `길드 이름이 ${name}(으)로 바뀌었어요.`) : { ...g, look }))
+  },
+
   renameGuild(name: string) {
     updateGuild((g) => addFeed({ ...g, name }, '✏️', `길드 이름이 ${name}(으)로 바뀌었어요.`))
   },
