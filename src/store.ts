@@ -54,7 +54,7 @@ export const DEFAULT_PREFS: Prefs = {
   quietTo: 7,
 }
 
-const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' } }
+const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [] }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
@@ -63,6 +63,7 @@ function migrate(raw: Partial<GameState>): GameState {
   if (s.user) s.tutorialDone = true
   s.prefs = { ...DEFAULT_PREFS, ...(s.prefs ?? {}) }
   s.streak = s.streak ?? { count: 0, last: '' }
+  s.watch = s.watch ?? []
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
@@ -501,14 +502,19 @@ export const actions = {
     markDaily('vote')
   },
 
-  sell(proposalId: string) {
+  // 관심 종목 별 켜고 끄기
+  toggleWatch(code: string) {
+    set((s) => ({ ...s, watch: s.watch.includes(code) ? s.watch.filter((c) => c !== code) : [...s.watch, code] }))
+  },
+
+  sell(proposalId: string, reason?: string) {
     updateGuild((g, s) => {
       const p = g.proposals.find((x) => x.id === proposalId)
       if (!p || p.status !== 'holding' || !p.qty || !p.buyPrice) return g
       const price = priceOf(p.ticker, s.day)
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
-      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, ...(asOfDate() ? { soldDate: asOfDate()! } : {}) }
+      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
       const ng = { ...g, cash: g.cash + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,
@@ -675,7 +681,7 @@ export const actions = {
     })
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' } }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [] }))
   },
 }
 

@@ -50,7 +50,7 @@ function fromRemoteGuild(g: Guild, uid: string): Guild {
   return { ...g, members }
 }
 const personal = (s: GameState) =>
-  clean({ user: s.user, quests: s.quests, daily: s.daily, prefs: s.prefs, streak: s.streak, tutorialDone: s.tutorialDone, guildCode: s.guild?.code ?? null })
+  clean({ user: s.user, quests: s.quests, daily: s.daily, prefs: s.prefs, streak: s.streak, watch: s.watch, tutorialDone: s.tutorialDone, guildCode: s.guild?.code ?? null })
 
 export async function startSync() {
   try {

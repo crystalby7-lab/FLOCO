@@ -1,11 +1,11 @@
 // 투자 탭 윗부분: 실제 증권 앱처럼 생긴 '플로코 모의투자 계좌'.
 // 숫자마다 ⓘ를 누르면 고양이가 그 말이 무슨 뜻인지 설명해줘서, 화면을 보면서 용어를 배운다.
 import { useState, type ReactNode } from 'react'
-import { RULES, vault } from '../store'
-import { asOfLabel, changePct, history, kospiChange, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { RULES, useGame, vault } from '../store'
+import { TickerRow } from './Market'
+import { asOfLabel, changePct, kospiChange, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Page } from '../components/Page'
-import { PriceChart } from '../components/Chart'
 import type { Guild } from '../types'
 import type { Tab } from '../App'
 
@@ -81,7 +81,8 @@ function sessionOf(kind: 'kr' | 'us') {
   return open
 }
 
-export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; go: (t: Tab) => void; onOpen: (code: string) => void }) {
+export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day: number; go: (t: Tab) => void; onOpen: (code: string) => void; onMarket: () => void }) {
+  const watch = useGame().watch
   const [tab, setTab] = useState<'own' | 'watch'>('own')
   const [region, setRegion] = useState<'all' | 'kr' | 'us'>('all')
   const [sort, setSort] = useState<'value' | 'rate'>('value')
@@ -220,10 +221,10 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
               <p>
                 아직 산 종목이 없어요.
                 <br />
-                관심 탭에서 종목을 살펴보고 길드에 제안해봐요.
+                '투자하러 가기'에서 종목을 고르고 근거를 써서 사봐요.
               </p>
-              <button className="btn btn-sm" onClick={() => setTab('watch')}>
-                관심 종목 보기
+              <button className="btn btn-sm" onClick={onMarket}>
+                투자하러 가기
               </button>
             </div>
           ) : (
@@ -258,37 +259,32 @@ export function InvestAccount({ g, day, go, onOpen }: { g: Guild; day: number; g
           )}
         </>
       ) : (
-        <ul className="watch-list">
-          {TICKERS.map((t) => {
-            const ch = changePct(t.code, day)
-            const sw = swingOf(t.code)
-            return (
-              <li key={t.code}>
-                <button onClick={() => onOpen(t.code)}>
-                  <span className="hold-ico">{flagOf(t.code)}</span>
-                  <span className="hold-name">
-                    <b>{t.name}</b>
-                    <small>
-                      {t.holds} · 흔들림 {sw.label}
-                    </small>
-                  </span>
-                  <span className="watch-chart">
-                    <PriceChart data={history(t.code, day, 12)} height={30} compact />
-                  </span>
-                  <span className="hold-num">
-                    <b>{won(priceOf(t.code, day))}</b>
-                    <small className={tone(ch)}>{pctTxt(ch)}</small>
-                  </span>
-                </button>
-              </li>
-            )
-          })}
-          <li className="watch-note">
+        <>
+          {watch.length === 0 ? (
+            <div className="hold-empty">
+              <img src={ART.t_think} alt="" />
+              <p>
+                아직 관심 종목이 없어요.
+                <br />
+                종목 옆 ☆를 누르면 여기 모여요.
+              </p>
+              <button className="btn btn-sm" onClick={onMarket}>
+                투자하러 가기
+              </button>
+            </div>
+          ) : (
+            <ul className="mk-list">
+              {watch.map((c) => (
+                <TickerRow key={c} code={c} day={day} onOpen={onOpen} />
+              ))}
+            </ul>
+          )}
+          <div className="watch-note">
             <Term id="today">
               <small>숫자 옆 % 는 무슨 뜻일까?</small>
             </Term>
-          </li>
-        </ul>
+          </div>
+        </>
       )}
 
       {page === 'assets' && <AssetsPage g={g} day={day} onClose={() => setPage(null)} />}

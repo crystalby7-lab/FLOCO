@@ -8,10 +8,10 @@ import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
 import { Avatar } from '../components/Avatar'
 import { ART } from '../components/CatView'
-import { Lock } from '../components/Icons'
 import type { AiResult, Guild, Proposal } from '../types'
 import type { Tab } from '../App'
 import { InvestAccount } from './InvestAccount'
+import { MarketPage, Star } from './Market'
 
 // 두 날짜(YYYY-MM-DD) 사이의 날수
 const daysBetween = (a: string, b: string) => Math.max(0, Math.round((Date.parse(`${b}T00:00:00`) - Date.parse(`${a}T00:00:00`)) / 86_400_000))
@@ -51,7 +51,9 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
   const [writing, setWriting] = useState<string | null>(null) // 제안할 종목 (null = 닫힘)
   const [viewing, setViewing] = useState<string | null>(null) // 종목 상세
   const [filter, setFilter] = useState<'all' | 'voting' | 'holding' | 'done'>('all')
-  const canPropose = tools.has('invest')
+  const canPropose = true // 근거 3칸 + AI 확인이 곧 관문이라 퀘스트 잠금 없이 바로 거래
+  const [market, setMarket] = useState(false)
+  const [selling, setSelling] = useState<Proposal | null>(null)
 
   const lists = {
     voting: g.proposals.filter((p) => p.status === 'voting'),
@@ -61,29 +63,16 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel">
-      <InvestAccount g={g} day={s.day} go={go} onOpen={setViewing} />
+      <InvestAccount g={g} day={s.day} go={go} onOpen={setViewing} onMarket={() => setMarket(true)} />
+
+      <button className="btn btn-primary btn-block go-market" onClick={() => setMarket(true)}>
+        투자하러 가기
+      </button>
 
       <div className="section-head invest-guild-head">
-        <h2>같이 투자 제안</h2>
-        <span className="muted">{majority(g)}명이 좋다고 하면 사요 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
+        <h2>주문 현황</h2>
+        <span className="muted">길드 {majority(g)}명이 확인하면 체결돼요 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
       </div>
-
-      {canPropose ? (
-        <button className="btn btn-primary btn-block" onClick={() => setWriting('')}>
-          새로 제안하기
-        </button>
-      ) : (
-        <div className="card locked-card">
-          <div className="lock-circle">
-            <Lock size={24} />
-          </div>
-          <h3>기초 마을부터 다녀와요</h3>
-          <p className="muted">퀘스트 3개를 끝내면 나도 제안할 수 있어요. 친구 제안엔 지금도 의견을 낼 수 있어요.</p>
-          <button className="btn btn-primary" onClick={() => go('map')}>
-            지도로 가기
-          </button>
-        </div>
-      )}
 
       <div className="seg filter">
         {(
@@ -110,15 +99,30 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
         <Section title="지난 이야기" empty="팔고 나면 여기서 같이 돌아봐요" list={lists.done} g={g} day={s.day} onOpen={setViewing} />
       )}
 
+      {market && <MarketPage day={s.day} onOpen={setViewing} onClose={() => setMarket(false)} />}
       {viewing && (
         <TickerSheet
           code={viewing}
           day={s.day}
           compare={tools.has('etf_compare')}
           canPropose={canPropose}
+          holding={g.proposals.filter((p) => p.status === 'holding' && tickerOf(p.ticker).code === tickerOf(viewing).code)}
           onClose={() => setViewing(null)}
           onPropose={() => {
             setWriting(viewing)
+            setViewing(null)
+            setMarket(false)
+          }}
+          onSell={(p) => setSelling(p)}
+        />
+      )}
+      {selling && (
+        <SellSheet
+          p={selling}
+          day={s.day}
+          onClose={() => setSelling(null)}
+          onDone={() => {
+            setSelling(null)
             setViewing(null)
           }}
         />
@@ -133,17 +137,20 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 function TickerSheet({
   code,
   day,
-  compare,
   canPropose,
+  holding,
   onClose,
   onPropose,
+  onSell,
 }: {
   code: string
   day: number
   compare: boolean
   canPropose: boolean
+  holding: Proposal[]
   onClose: () => void
   onPropose: () => void
+  onSell: (p: Proposal) => void
 }) {
   const t = tickerOf(code)
   const [span, setSpan] = useState(20)
@@ -154,6 +161,9 @@ function TickerSheet({
   return (
     <Page title={t.name} sub={asOfLabel() ?? '종목 자세히 보기'} onExit={onClose}>
       <div className="tk-head">
+        <div className="tk-star">
+          <Star code={t.code} size={26} />
+        </div>
         <div className="tk-price num">{priceOf(code, day).toLocaleString()}원</div>
         <div className="tk-changes">
           {[1, 5, 20].map((d) => {
@@ -197,9 +207,9 @@ function TickerSheet({
           <div>
             <dt>
               총보수 (1년)
-              {compare && <small className="fee-asof">{feeAsOf()}</small>}
+              <small className="fee-asof">{feeAsOf()}</small>
             </dt>
-            <dd>{compare ? t.fee : <span className="muted">ETF 숲 '비교하는 법'을 끝내면 보여요</span>}</dd>
+            <dd>{t.fee}</dd>
           </div>
         )}
       </dl>
@@ -283,11 +293,33 @@ function TickerSheet({
           ? `${asOfLabel()} · 한국거래소 종가예요(공공데이터포털). 사고파는 건 연습용 돈으로만 해요.`
           : '연습용 가격이에요. 종가를 못 받아와서 지금은 연습용 숫자로 움직여요.'}
       </p>
-      {canPropose && (
-        <button className="btn btn-primary btn-block" onClick={onPropose}>
-          이 종목으로 제안하기
-        </button>
+      {holding.length > 0 && (
+        <section className="tk-own">
+          <h3 className="card-title small">내 길드가 가진 것</h3>
+          {holding.map((p) => (
+            <div key={p.id} className="tk-own-row">
+              <span>
+                {p.qty}주 · 평균 {p.buyPrice!.toLocaleString()}원
+              </span>
+              <b className={priceOf(p.ticker, day) >= p.buyPrice! ? 'up' : 'down'}>
+                {(((priceOf(p.ticker, day) - p.buyPrice!) / p.buyPrice!) * 100).toFixed(2)}%
+              </b>
+            </div>
+          ))}
+        </section>
       )}
+      <div className="order-bar">
+        {holding.length > 0 && (
+          <button className="btn order-sell" onClick={() => onSell(holding[0])}>
+            매도
+          </button>
+        )}
+        {canPropose && (
+          <button className="btn order-buy" onClick={onPropose}>
+            매수
+          </button>
+        )}
+      </div>
     </Page>
   )
 }
@@ -570,18 +602,20 @@ function RetroForm({ g, p, onClose }: { g: Guild; p: Proposal; onClose: () => vo
 
 // ───────── 제안 쓰기 (단계별) ─────────
 
-const STEPS = ['종목', '금액', '이유', '확인']
+const STEPS = ['종목', '수량', '근거', '확인']
 
 function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: number; start: string; compare: boolean; onClose: () => void }) {
   const [step, setStep] = useState(start ? 1 : 0)
   const [ticker, setTicker] = useState(start || '069500')
-  const [amount, setAmount] = useState(1_000_000)
+  const [qtyIn, setQtyIn] = useState(0)
   const [reasons, setReasons] = useState<[string, string, string]>(['', '', ''])
   const [focus, setFocus] = useState(0)
   const [result, setResult] = useState<AiResult | null>(null)
   const [checking, setChecking] = useState(false)
   const price = priceOf(ticker, day)
-  const qty = Math.floor(amount / price)
+  const maxQty = Math.floor(g.cash / price)
+  const qty = Math.min(qtyIn || Math.max(1, Math.floor(1_000_000 / price)), maxQty)
+  const amount = qty * price
   const share = Math.round((amount / vault(g, day).total) * 100)
 
   const submit = () => {
@@ -602,7 +636,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
   }
 
   return (
-    <Page title="친구들한테 제안하기" sub={`${step + 1}/4 · ${STEPS[step]}`} onExit={onClose} confirm={!result?.pass}>
+    <Page title="매수 주문" sub={`${step + 1}/4 · ${STEPS[step]}`} onExit={onClose} confirm={!result?.pass}>
       <ol className="stepper">
         {STEPS.map((l, i) => (
           <li key={l} className={i === step ? 'on' : i < step ? 'done' : ''}>
@@ -645,18 +679,31 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
       {step === 1 && (
         <>
           <div className="amount-box">
-            <small className="sub">{tickerOf(ticker).name} · 1주 {price.toLocaleString()}원</small>
-            <div className="amount-big num">{amount.toLocaleString()}원</div>
             <small className="sub">
-              {qty}주 살 수 있어요 · 내 계좌의 {share}%
+              {tickerOf(ticker).name} · 1주 {price.toLocaleString()}원
+            </small>
+            <div className="qty-step">
+              <button onClick={() => setQtyIn(Math.max(1, qty - 1))} disabled={qty <= 1} aria-label="한 주 빼기">
+                −
+              </button>
+              <div>
+                <b className="num">{qty.toLocaleString()}주</b>
+                <small className="num">{amount.toLocaleString()}원</small>
+              </div>
+              <button onClick={() => setQtyIn(Math.min(maxQty, qty + 1))} disabled={qty >= maxQty} aria-label="한 주 더하기">
+                +
+              </button>
+            </div>
+            <small className="sub">
+              주문가능금액 {g.cash.toLocaleString()}원 · 내 계좌의 {share}%
             </small>
           </div>
-          <div className="chips">
-            {[500_000, 1_000_000, 2_000_000, 3_000_000, 5_000_000].map((a) => {
-              const q = Math.floor(a / price)
+          <div className="chips qty-chips">
+            {[10, 25, 50, 100].map((r) => {
+              const q = Math.floor((g.cash * r) / 100 / price)
               return (
-                <button key={a} className={`chip ${amount === a ? 'on' : ''}`} disabled={q < 1 || a > g.cash} onClick={() => setAmount(a)}>
-                  {(a / 10000).toFixed(0)}만원 · {q}주
+                <button key={r} className="chip" disabled={q < 1} onClick={() => setQtyIn(q)}>
+                  {r === 100 ? '최대' : `${r}%`}
                 </button>
               )
             })}
@@ -700,7 +747,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
               이전
             </button>
             <button className="btn btn-primary" disabled={reasons.some((r) => r.trim().length < 4)} onClick={submit}>
-              이유 확인받기
+              근거 확인받고 주문
             </button>
           </div>
         </>
@@ -713,7 +760,7 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
             <p className="review-title">AI 친구가 이유를 읽는 중…</p>
           ) : result?.pass ? (
             <>
-              <p className="review-title">좋아요, 친구들한테 올렸어요!</p>
+              <p className="review-title">주문을 넣었어요! 길드 친구들이 확인하면 체결돼요</p>
               <p className="sub">이유 확인 통과 · 경험치 +{RULES.exp.proposalPass}</p>
               <div className="review-sum">
                 <span>{tickerOf(ticker).name}</span>
@@ -741,6 +788,56 @@ function ProposalForm({ g, day, start, compare, onClose }: { g: Guild; day: numb
           )}
         </div>
       )}
+    </Page>
+  )
+}
+
+// ───────── 매도: 왜 파는지 한 줄 쓰고 팔기 ─────────
+
+const SELL_CHIPS = ['산 이유가 달라졌어요', '목표했던 만큼 올랐어요', '다른 종목이 더 맞아 보여요', '손실이 더 커질까 걱정돼요']
+
+function SellSheet({ p, day, onClose, onDone }: { p: Proposal; day: number; onClose: () => void; onDone: () => void }) {
+  const [why, setWhy] = useState('')
+  const price = priceOf(p.ticker, day)
+  const pnl = (price - p.buyPrice!) * p.qty!
+  return (
+    <Page title="매도 주문" sub={tickerOf(p.ticker).name} onExit={onClose} confirm={why.length > 0}>
+      <div className="amount-box">
+        <small className="sub">
+          {p.qty}주 × {price.toLocaleString()}원
+        </small>
+        <div className="amount-big num">{(p.qty! * price).toLocaleString()}원</div>
+        <small className={pnl >= 0 ? 'up' : 'down'}>
+          산 값보다 {pnl >= 0 ? '+' : ''}
+          {pnl.toLocaleString()}원
+        </small>
+      </div>
+      <div className="sell-why">
+        <small>처음 산 이유</small>
+        <p>{p.reasons[0]}</p>
+      </div>
+      <label className="small-label">
+        왜 지금 팔아요?
+        <textarea rows={3} value={why} onChange={(e) => setWhy(e.target.value)} placeholder="처음 이유와 비교해서 써봐요 (5자 이상)" />
+      </label>
+      <div className="chips">
+        {SELL_CHIPS.map((c) => (
+          <button key={c} className="chip" onClick={() => setWhy(c + ' ')}>
+            + {c}
+          </button>
+        ))}
+      </div>
+      <button
+        className="btn btn-block order-sell"
+        disabled={why.trim().length < 5}
+        onClick={() => {
+          actions.sell(p.id, why.trim())
+          onDone()
+        }}
+      >
+        매도하기
+      </button>
+      <p className="fineprint">팔고 나면 '지난 이야기'에서 길드와 같이 돌아봐요.</p>
     </Page>
   )
 }

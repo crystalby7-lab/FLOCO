@@ -10770,3 +10770,61 @@ label.set2-row:active {
   font-weight: 800;
   color: var(--ink);
 }
+
+/* ═══════════ 투자하러 가기 · 매수/매도 ═══════════ */
+.go-market { height: 52px; font-size: 16px; }
+.mk-search {
+  width: 100%; border: 0; border-radius: 14px; padding: 12px 14px; font-size: 15px;
+  background: #fff; box-shadow: var(--card-shadow); margin-bottom: 10px;
+}
+.mk-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.mk-chips::-webkit-scrollbar { display: none; }
+.mk-chips button {
+  flex: none; border: 0; background: #fff; color: var(--sub); font-size: 13px; font-weight: 700;
+  padding: 7px 12px; border-radius: 999px; box-shadow: 0 2px 6px -4px rgba(30,70,120,.5);
+}
+.mk-chips button.on { background: var(--blue); color: #fff; }
+.mk-group { margin-top: 14px; }
+.mk-group h3 { font-size: 15px; font-weight: 800; color: var(--sub); margin: 0 4px 8px; }
+.mk-group ul, .mk-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.mk-row {
+  display: flex; align-items: center; background: #fff; border-radius: 18px; box-shadow: var(--card-shadow);
+  padding-right: 6px;
+}
+.mk-row > button:first-child {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 12px 6px 12px 12px; text-align: left;
+}
+.mk-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mk-name b { font-size: 14.5px; font-weight: 800; line-height: 1.3; word-break: keep-all; }
+.mk-name small { font-size: 11.5px; color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.mk-hot { font-style: normal; color: #d4566e; font-weight: 800; margin-left: 4px; }
+.mk-chart { width: 52px; flex: none; }
+.star-btn { border: 0; background: none; padding: 6px; display: grid; place-items: center; flex: none; }
+.star-btn svg { transition: transform .15s var(--ease); }
+.star-btn:active svg { transform: scale(1.25); }
+.mk-foot { text-align: center; margin: 16px 0 8px; }
+.tk-head { position: relative; }
+.tk-star { position: absolute; right: 0; top: -4px; }
+.tk-own { background: #fff; border-radius: 18px; padding: 14px 16px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.tk-own-row { display: flex; justify-content: space-between; font-size: 14px; }
+.order-bar {
+  position: sticky; bottom: 0; z-index: 5; display: flex; gap: 8px; padding: 12px 0 calc(8px + var(--safe-b));
+  background: linear-gradient(transparent, var(--paper) 30%);
+}
+.order-bar .btn { flex: 1; height: 52px; font-size: 16px; font-weight: 800; border: 0; color: #fff; }
+.order-buy { background: #e5484d !important; color: #fff !important; }
+.order-sell { background: var(--blue) !important; color: #fff !important; }
+.qty-step { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 10px 0; }
+.qty-step button {
+  width: 44px; height: 44px; border-radius: 50%; border: 0; background: #eaf1fb; color: var(--blue);
+  font-size: 24px; font-weight: 800; line-height: 1;
+}
+.qty-step button:disabled { opacity: .35; }
+.qty-step div { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+.qty-step b { font-size: 30px; font-weight: 900; }
+.qty-step small { font-size: 13px; color: var(--sub); font-weight: 700; }
+.qty-chips { justify-content: center; }
+.sell-why { background: #f6f9fd; border-radius: 14px; padding: 12px 14px; margin: 12px 0; }
+.sell-why small { font-size: 12px; font-weight: 800; color: var(--blue); }
+.sell-why p { font-size: 14px; line-height: 1.55; margin-top: 2px; word-break: keep-all; }
+.locked-card { display: none; }

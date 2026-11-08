@@ -44,6 +44,7 @@ export type Proposal = {
   qty?: number
   sellPrice?: number
   soldDay?: number
+  sellReason?: string // 왜 팔았는지
 }
 
 export type Retro = {
@@ -130,4 +131,5 @@ export type GameState = {
   tutorialDone: boolean
   prefs: Prefs
   streak: { count: number; last: string } // 연속 출석 (하루에 하나라도 하면 이어짐)
+  watch: string[] // 관심 종목 (별 표시한 것만)
 }
