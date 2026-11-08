@@ -14,13 +14,12 @@ const KEY = 'floco-mvp-v1'
 export const RULES = {
   startGold: 10_000, // 게임 코인 (상점·돌보기)
   startCash: 10_000_000, // 모의투자 시작 자산 (원)
-  questCash: 500_000, // 퀘스트 첫 완료 시 투자금 (원)
   goldPerHour: 60, // F8 자동 훈련
   trainCapHours: 8, // 상한: 8시간치까지만 쌓임
   hungerDecayPerHour: 4,
   moodDecayPerHour: 3,
   cleanDecayPerHour: 2,
-  questReward: 200, // 퀘스트 첫 완료 시 금고 골드 (레벨은 근거·돌아보기로만)
+  questReward: 500, // 퀘스트 첫 완료 시 금고 골드 (레벨은 근거·돌아보기로만)
   dailyReward: 300, // 오늘의 미션 3개 완료 보상
   talksPerDay: 3, // 고양이 질문에 답하면 기분 +5 (하루 3번)
   floor: 10, // 손실이 나도, 오래 안 들어와도 고양이는 이 아래로 안 떨어짐
@@ -453,9 +452,9 @@ export const actions = {
       let ns: GameState = { ...s, quests: { ...s.quests, [questId]: { done: true, score: Math.max(score, s.quests[questId]?.score ?? 0), at: now() } } }
       if (first && ns.guild) {
         let g = addFeed(
-          { ...ns.guild, gold: ns.guild.gold + RULES.questReward, cash: ns.guild.cash + RULES.questCash },
+          { ...ns.guild, gold: ns.guild.gold + RULES.questReward },
           '📘',
-          `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 코인 +${RULES.questReward} · 투자금 +${(RULES.questCash / 10000).toLocaleString()}만원`,
+          `${ns.user?.nickname}님이 '${quest.title}' 퀘스트를 완료했어요 · 코인 +${RULES.questReward}`,
         )
         if (questsDone(ns, 'village') && !questsDone(s, 'village')) g = addFeed(g, '🔓', '기초 마을 완료! ETF 숲이 열렸어요.')
         if (quest.unlocks) g = addFeed(g, '🔓', 'ETF 비교 도구가 해금됐어요.')

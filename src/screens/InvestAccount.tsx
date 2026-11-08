@@ -174,7 +174,7 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
 
           <button className="acct-learn" onClick={() => go('map')}>
             <img src={ART.t_sprout} alt="" />
-            학습을 완료하면 가상 자산이 늘어나요 ›
+            퀘스트로 투자 공부하고 코인 받기 ›
           </button>
 
           <div className="acct-region">

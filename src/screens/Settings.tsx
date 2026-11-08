@@ -480,7 +480,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
             <li>
               <b>돈은 두 가지예요</b>
               <span>
-                모의투자 계좌(원): 시작 {(RULES.startCash / 10000).toLocaleString()}만원, 퀘스트 첫 완료마다 +{RULES.questCash / 10000}만원. 게임 코인: 고양이 돌보기·상점용으로, 혼자 하는 훈련(한 시간 {RULES.goldPerHour}개, 최대 {RULES.trainCapHours}시간)·퀘스트 +{RULES.questReward}·오늘의 미션 +{RULES.dailyReward}로 모아요. 둘은 서로 바꿀 수 없어요.
+                모의투자 계좌(원): 시작 {(RULES.startCash / 10000).toLocaleString()}만원, 사고팔아서만 늘거나 줄어요. 게임 코인: 고양이 돌보기·상점용으로, 혼자 하는 훈련(한 시간 {RULES.goldPerHour}개, 최대 {RULES.trainCapHours}시간)·퀘스트 +{RULES.questReward}·오늘의 미션 +{RULES.dailyReward}로 모아요. 둘은 서로 바꿀 수 없어요.
               </span>
             </li>
             <li>

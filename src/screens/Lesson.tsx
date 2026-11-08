@@ -115,7 +115,7 @@ export function Lesson({ quest, onExit, onInvest }: { quest: Quest; onExit: () =
             <li>
               <span>보상</span>
               <i />
-              <b className="gold-ink">{done && first ? `투자금 +${RULES.questCash / 10000}만원 · 코인 +${RULES.questReward}` : '없음'}</b>
+              <b className="gold-ink">{done && first ? `코인 +${RULES.questReward}` : '없음'}</b>
             </li>
             <li>
               <span>맞힌 문제</span>
