@@ -49,7 +49,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
       <header className="wh">
         <div className="wh-sign">
           <span className="wh-ch">CHAPTER {curRegion ? CHAPTER[curRegion.id as keyof typeof CHAPTER] : 1}</span>
-          <h1>플로월드</h1>
+          <h1>FLOWORLD</h1>
           <span className="wh-region">{curRegion?.name ?? '기초 마을'}</span>
         </div>
         <div className="wh-hud">

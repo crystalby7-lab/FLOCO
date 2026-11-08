@@ -11239,3 +11239,8 @@ label.set2-row:active {
 .wi-stage { font-family: var(--font); font-weight: 800; font-size: 14px; }
 .sf-sign h1 { font-family: var(--font); font-weight: 900; font-size: 26px; letter-spacing: -0.02em; }
 .gb2-text h1 { font-family: var(--font); font-weight: 900; font-size: 26px; letter-spacing: -0.02em; }
+
+/* 플로월드 제목은 영어 FLOWORLD */
+.wi-logo { gap: 0; }
+.wi-logo span { font-size: 50px; letter-spacing: 0.01em; }
+.wh-sign h1 { font-size: 28px; letter-spacing: 0.04em; }

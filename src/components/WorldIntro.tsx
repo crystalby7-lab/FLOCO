@@ -23,8 +23,8 @@ export function WorldIntro({ chapter, region, onDone }: { chapter: number; regio
       <img className="wi-cloud c3" src={ART.bg_cloud} alt="" />
       <div className="wi-title">
         <div className="wi-logo">
-          {'플로월드'.split('').map((ch, i) => (
-            <span key={i} style={{ animationDelay: `${0.25 + i * 0.09}s` }}>
+          {'FLOWORLD'.split('').map((ch, i) => (
+            <span key={i} style={{ animationDelay: `${0.25 + i * 0.06}s` }}>
               {ch}
             </span>
           ))}
