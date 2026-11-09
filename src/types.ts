@@ -144,4 +144,5 @@ export type GameState = {
   streak: { count: number; last: string } // 연속 출석 (하루에 하나라도 하면 이어짐)
   watch: string[] // 관심 종목 (별 표시한 것만)
   guides: string[] // 본 초보 가이드 id
+  decor: Record<string, { style: string; slots: Record<string, number> }> // 마을 상점 꾸미기 (상점 id별 스타일·자리마다 고른 가구 번호)
 }

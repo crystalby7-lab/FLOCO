@@ -59,7 +59,7 @@ export const DEFAULT_PREFS: Prefs = {
   quietTo: 7,
 }
 
-const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [] }
+const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {} }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
@@ -70,6 +70,7 @@ function migrate(raw: Partial<GameState>): GameState {
   s.streak = s.streak ?? { count: 0, last: '' }
   s.watch = s.watch ?? []
   s.guides = s.guides ?? []
+  s.decor = s.decor ?? {}
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
@@ -537,6 +538,19 @@ export const actions = {
   },
 
   // 관심 종목 별 켜고 끄기
+  // 마을 상점 꾸미기: 스타일이나 자리 하나를 바꾼다 (num이 null이면 그 자리를 비움)
+  decorate(shop: string, patch: { style?: string; slot?: string; num?: number | null }) {
+    set((s) => {
+      const cur = s.decor[shop] ?? { style: 'base', slots: {} }
+      const slots = { ...cur.slots }
+      if (patch.slot) {
+        if (patch.num == null) delete slots[patch.slot]
+        else slots[patch.slot] = patch.num
+      }
+      return { ...s, decor: { ...s.decor, [shop]: { style: patch.style ?? cur.style, slots } } }
+    })
+  },
+
   toggleWatch(code: string) {
     set((s) => ({ ...s, watch: s.watch.includes(code) ? s.watch.filter((c) => c !== code) : [...s.watch, code] }))
   },
@@ -746,7 +760,7 @@ export const actions = {
     })
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [] }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {} }))
   },
 }
 

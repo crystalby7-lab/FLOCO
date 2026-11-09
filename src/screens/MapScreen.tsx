@@ -1,9 +1,10 @@
-// 플로월드 지도 (F1·F2·F3): 장 = 마을 구역, 퀘스트 = 건물.
-// 퀘스트를 끝낼 때마다 그 건물이 잠금 해제되어 마을이 하나씩 지어진다.
-// 고양이는 지금 지을 건물 옆에서 기다린다.
+// 플로월드: 마을 한 장 위에 빈 땅 10곳. 퀘스트(단원)를 끝내면 그 땅에 상점이 지어지고,
+// 지어진 상점을 누르면 안으로 들어가 꾸민다. 고양이는 지금 지을 땅 옆에서 기다린다.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { questsDone, unlocked, useGame } from '../store'
-import { QUESTS, REGIONS, TOOLS, type Quest } from '../data/quests'
+import { questsDone, useGame } from '../store'
+import { QUESTS, REGIONS, type Quest } from '../data/quests'
+import { SHOPS, VILLAGE } from '../data/world'
+import { ShopInterior } from './ShopInterior'
 import { Page } from '../components/Page'
 import { WorldIntro } from '../components/WorldIntro'
 import { Book, Lock } from '../components/Icons'
@@ -12,14 +13,6 @@ import { Lesson } from './Lesson'
 import type { Tab } from '../App'
 
 const CHAPTER = { village: 1, market: 2, forest: 3, risk: 4, reason: 5, review: 6, deep: 7 } as const
-const OFFSETS = [-40, 50, -10, 64, -56, 18, -30, 46]
-const ROW = 150
-// 퀘스트마다 지어지는 건물 (마을 시트 그림)
-const BUILD: Record<string, string> = { v1: 't_navy', v2: 't_bluehouse', v3: 't_cafe', m1: 't_shop', m2: 't_bluecat', m3: 't_pink', m4: 't_clock', f1: 't_greenhouse', f2: 't_dome', f3: 't_church' }
-// 아직 준비 중인 구역에 미리 보이는 잠긴 건물
-const PREVIEW: Record<string, string[]> = { risk: ['t_redroof', 't_fountain'], reason: ['t_school', 't_dome'], review: ['t_church', 't_greenhouse'], deep: ['t_stadium', 't_tram'] }
-const TREES = ['t_tree', 't_sakura', 't_pine']
-
 type NodeState = 'done' | 'now' | 'open' | 'locked'
 
 export function MapScreen({ go }: { go: (t: Tab) => void }) {
@@ -28,7 +21,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   const [popup, setPopup] = useState<string | null>(null)
   const [guide, setGuide] = useState<string | null>(null)
   const [intro, setIntro] = useState(true)
-  const tools = unlocked(s)
+  const [shopOpen, setShopOpen] = useState<string | null>(null)
   // 순서대로 열린다: 기초 마을 → 시장 거리 → ETF 숲, 나머지는 준비 중
   const locked = (r: string) => (r === 'village' ? false : r === 'market' ? !questsDone(s, 'village') : r === 'forest' ? !questsDone(s, 'market') : true)
   const current = QUESTS.find((q) => !locked(q.region) && !s.quests[q.id]?.done)
@@ -42,7 +35,6 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
   }, [])
 
   const stateOf = (q: Quest): NodeState => (s.quests[q.id]?.done ? 'done' : locked(q.region) ? 'locked' : q === current ? 'now' : 'open')
-  let n = 0
 
   return (
     <div className="tab-panel live path-panel" onClick={() => setPopup(null)}>
@@ -53,7 +45,7 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
           <span className="wh-region">{curRegion?.name ?? '기초 마을'}</span>
         </div>
         <div className="wh-hud">
-          <img src={ART.t_navy} alt="" />
+          <img src={ART.t_shop} alt="" />
           <div className="wh-bar">
             <i style={{ width: `${(doneN / QUESTS.length) * 100}%` }} />
           </div>
@@ -61,168 +53,105 @@ export function MapScreen({ go }: { go: (t: Tab) => void }) {
             {doneN}/{QUESTS.length}
           </b>
         </div>
-        <div className="tool-tags">
-          {Object.entries(TOOLS).filter(([id]) => id !== 'invest').map(([id, t]) => (
-            <span key={id} className={`tag-label ${tools.has(id) ? 'on' : ''}`} title={t.desc}>
-              {!tools.has(id) && <Lock size={11} />}
-              {t.name}
-            </span>
-          ))}
-        </div>
+        <button className="tag-btn" onClick={() => setGuide(current?.region ?? 'village')}>
+          <Book size={16} />
+          개념 노트
+        </button>
       </header>
       {intro && <WorldIntro chapter={curRegion ? CHAPTER[curRegion.id as keyof typeof CHAPTER] : 1} region={curRegion?.name ?? '기초 마을'} onDone={endIntro} />}
 
-      {REGIONS.map((r) => {
-        const qs = QUESTS.filter((q) => q.region === r.id)
-        const isLocked = locked(r.id)
-        const done = qs.filter((q) => s.quests[q.id]?.done).length
-        const pts = qs.map(() => ({ x: OFFSETS[n++ % OFFSETS.length] }))
-        const H = qs.length * ROW + 40
-        const path = pts
-          .map((p, i) => {
-            const y = 40 + i * ROW + 34
-            if (i === 0) return `M ${p.x} ${y}`
-            const py = 40 + (i - 1) * ROW + 34
-            return `C ${pts[i - 1].x} ${py + ROW / 2}, ${p.x} ${y - ROW / 2}, ${p.x} ${y}`
-          })
-          .join(' ')
-        return (
-          <section key={r.id} className={`chapter ch-${r.id} ${isLocked ? 'locked' : ''}`}>
-            <div className="chapter-head">
-              <span className="ch-no">{CHAPTER[r.id]}장</span>
-              <div className="grow">
-                <h2>{r.name}</h2>
-                <p>{isLocked && r.id === 'market' ? '기초 마을을 다 채우면 열려요' : isLocked && r.id === 'forest' ? '시장 거리를 다 채우면 열려요' : r.desc}</p>
-              </div>
-              {qs.length > 0 ? (
-                <button
-                  className="tag-btn"
-                  disabled={isLocked}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setGuide(r.id)
-                  }}
-                >
-                  <Book size={16} />
-                  개념 노트
-                </button>
-              ) : (
-                <span className="tag-label">
-                  <Lock size={11} /> 준비 중
+      <div className="vl" style={{ backgroundImage: `url(${VILLAGE})` }}>
+        {SHOPS.map((shop, qi) => {
+          const q = QUESTS[qi]
+          if (!q) return null
+          const st = stateOf(q)
+          const open = popup === q.id
+          return (
+            <div key={shop.id} className={`vl-lot ${st} ${open ? 'open' : ''} ${shop.lot.y > 68 ? 'pop-up' : ''} ${shop.lot.x > 70 ? 'pop-r' : shop.lot.x < 30 ? 'pop-l' : ''}`} style={{ left: `${shop.lot.x}%`, top: `${shop.lot.y}%` }} ref={st === 'now' ? nowRef : undefined}>
+              <button
+                className="vl-hit"
+                aria-label={`${shop.name} · ${q.title}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (st === 'locked') {
+                    setPopup('locked:' + q.id)
+                    return
+                  }
+                  setPopup(open ? null : q.id)
+                }}
+              >
+                {st === 'done' ? (
+                  <img className="vl-bld" src={ART[shop.building]} alt="" />
+                ) : (
+                  <span className={`vl-mark ${st}`}>{st === 'locked' ? <Lock size={14} /> : qi + 1}</span>
+                )}
+                {st === 'now' && <span className="pulse" aria-hidden />}
+              </button>
+              <span className="vl-name">{st === 'done' || st === 'now' ? shop.name : ''}</span>
+              {st === 'now' && (
+                <span className="vl-cat" aria-hidden>
+                  <img src={ART.sit} alt="" />
                 </span>
               )}
-            </div>
-            {qs.length > 0 && (
-              <div className={`ch-progress ${done === qs.length ? 'complete' : ''}`}>{done === qs.length ? `${r.name} 완성!` : `건물 ${done}/${qs.length}`}</div>
-            )}
-            {qs.length === 0 && PREVIEW[r.id] && (
-              <div className="ch-preview" aria-hidden>
-                {PREVIEW[r.id].map((b) => (
-                  <span key={b}>
-                    <img src={ART[b]} alt="" />
-                    <Lock size={14} />
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {qs.length > 0 && (
-              <div className="ch-trail" style={{ height: H }}>
-                <svg className="trail-line" height={H} aria-hidden>
-                  <path d={path} />
-                </svg>
-                {qs.map((q, i) => {
-                  const st = stateOf(q)
-                  const off = pts[i].x
-                  const open = popup === q.id
-                  const qi = QUESTS.indexOf(q)
-                  return (
-                    <div
-                      key={q.id}
-                      className={`spot-row ${open ? 'open' : ''}`}
-                      style={{ top: 40 + i * ROW, left: `calc(50% + ${off}px)` }}
-                      ref={st === 'now' ? nowRef : undefined}
-                    >
-                      {st === 'now' && (
-                        <span className={`spot-cat ${off > 0 ? 'right' : 'left'}`} aria-hidden>
-                          <span className="spot-cat-say">여기부터!</span>
-                          <img src={ART.sit} alt="" />
-                        </span>
-                      )}
+              {popup === 'locked:' + q.id && <div className="vl-pop small" onClick={(e) => e.stopPropagation()}>앞 가게를 먼저 지어야 열려요</div>}
+              {open && (
+                <div className="vl-pop" onClick={(e) => e.stopPropagation()}>
+                  <small>
+                    {qi + 1}. {shop.name}
+                  </small>
+                  <b>{q.title}</b>
+                  <small className="sub">{q.type === 'judge' ? '판단 퀘스트 · 상황 4개' : q.type === 'mission' ? '앱에서 직접 해보기' : '개념 노트 + 퀴즈'}</small>
+                  {q.mission && st !== 'done' && (
+                    <ol className="mission-steps">
+                      {q.mission.steps.map((m) => (
+                        <li key={m}>{m}</li>
+                      ))}
+                    </ol>
+                  )}
+                  {st === 'done' ? (
+                    <>
                       <button
-                        className={`spot ${st}`}
-                        disabled={st === 'locked'}
-                        aria-label={q.title}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setPopup(open ? null : q.id)
+                        className="btn btn-primary btn-block"
+                        onClick={() => {
+                          setPopup(null)
+                          setShopOpen(shop.id)
                         }}
-                        style={{ ['--tilt' as string]: `${(qi % 2 ? 1 : -1) * (3 + (qi % 3) * 2)}deg` }}
                       >
-                        <img className="spot-bld" src={ART[BUILD[q.id] ?? 't_navy']} alt="" />
-                        <span className="spot-badge">
-                          {st === 'done' ? (
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                              <path d="M5 12.5 L10 17.5 L19 7" />
-                            </svg>
-                          ) : st === 'locked' ? (
-                            <Lock size={12} />
-                          ) : (
-                            qi + 1
-                          )}
-                        </span>
-                        {st === 'now' && <span className="pulse" aria-hidden />}
+                        가게 들어가서 꾸미기
                       </button>
-                      <span className={`spot-label ${off > 0 ? 'left' : 'right'} ${st}`}>
-                        <small>{st === 'done' ? '지었어요' : st === 'locked' ? '잠김' : st === 'now' ? '퀘스트를 깨면 지어져요' : q.type === 'judge' ? '판단 퀘스트' : q.type === 'mission' ? '실전 미션' : '개념 + 퀴즈'}</small>
-                        <b>{q.title}</b>
-                      </span>
-                      {open && (
-                        <div className="spot-pop" onClick={(e) => e.stopPropagation()}>
-                          <b>{q.title}</b>
-                          <small>
-                            {q.type === 'judge' ? '판단 퀘스트 · 상황 4개' : q.type === 'mission' ? '앱에서 직접 해보기' : '개념 노트 + 퀴즈 3문제'}
-                            {q.unlocks ? ' · 도구 해금' : ''}
-                          </small>
-                          {q.mission && (
-                            <ol className="mission-steps">
-                              {q.mission.steps.map((m) => (
-                                <li key={m}>{m}</li>
-                              ))}
-                            </ol>
-                          )}
-                          <button
-                            className="btn btn-primary btn-block"
-                            onClick={() => {
-                              setPopup(null)
-                              if (q.type === 'mission') go('invest')
-                              else setLesson(q)
-                            }}
-                          >
-                            {q.type === 'mission' ? (st === 'done' ? '완료했어요 · 투자 탭 가기' : '투자 탭으로 가기') : st === 'done' ? '다시 펼쳐 보기' : `퀘스트 시작 · 건물 짓기`}
-                          </button>
-                        </div>
+                      {q.type !== 'mission' && (
+                        <button
+                          className="btn btn-ghost btn-block"
+                          onClick={() => {
+                            setPopup(null)
+                            setLesson(q)
+                          }}
+                        >
+                          다시 배우기
+                        </button>
                       )}
-                    </div>
-                  )
-                })}
-                {qs.map((_, i) => (
-                  <img
-                    key={'tree' + i}
-                    className="trail-tree"
-                    src={ART[TREES[(i + CHAPTER[r.id]) % TREES.length]]}
-                    alt=""
-                    aria-hidden
-                    style={{ top: 40 + i * ROW + 70, left: `calc(50% + ${-pts[i].x * 1.9}px)` }}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        )
-      })}
+                    </>
+                  ) : (
+                    <button
+                      className="btn btn-primary btn-block"
+                      onClick={() => {
+                        setPopup(null)
+                        if (q.type === 'mission') go('invest')
+                        else setLesson(q)
+                      }}
+                    >
+                      {q.type === 'mission' ? '투자 탭으로 가기' : `배우고 ${shop.name} 짓기`}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       {guide && <Guide region={guide} onClose={() => setGuide(null)} />}
+      {shopOpen && <ShopInterior shop={SHOPS.find((x) => x.id === shopOpen)!} onExit={() => setShopOpen(null)} />}
       {lesson && (
         <Lesson
           quest={lesson}
