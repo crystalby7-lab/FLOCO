@@ -8,6 +8,7 @@
 - `npm install` → `npm run dev` (휴대폰 화면처럼 보이게 만든 웹앱, 폭 440px 기준)
 - `npm run build` — 타입 검사 + 빌드 (작업 끝나면 꼭 통과 확인)
 - `npm run build:single` — 파일 하나짜리 미리보기(dist-single)
+- 배포: main에 push하면 `.github/workflows/pages.yml`이 빌드해서 GitHub Pages(https://crystalby7-lab.github.io/floco/)에 올림. `vite.config.ts`의 `base: './'`는 지우지 말 것.
 
 ## 구조
 - `src/store.ts` — 전체 상태(useSyncExternalStore + localStorage `floco-mvp-v1`), 규칙 `RULES`, 모든 동작 `actions`. 새 필드를 넣으면 `migrate()`에 기본값을 꼭 추가.
