@@ -182,8 +182,18 @@ export function Home({ go }: { go: (t: Tab) => void }) {
       </section>
 
       <div className="care-wrap care-row">
+        {CARE.every((c) => !inv(c.id)) ? (
+          <button className="care-empty" onClick={() => go('shop')}>
+            <img src={ART[CARE[0].art]} alt="" />
+            <span className="grow">
+              <b>{cat.name}에게 줄 게 없어요</b>
+              <small>상점에서 밥·간식을 사 와요</small>
+            </span>
+            <i>›</i>
+          </button>
+        ) : (
         <div className="care-dock">
-          {CARE.map((c) => (
+          {CARE.filter((c) => inv(c.id) > 0).map((c) => (
             <button key={c.id} className={`care-btn ${sel === c.id ? 'on' : ''} ${inv(c.id) ? '' : 'empty'}`} onClick={() => setSel(sel === c.id ? null : c.id)}>
               <span className="care-face">
                 <img src={ART[c.art]} alt="" />
@@ -192,6 +202,16 @@ export function Home({ go }: { go: (t: Tab) => void }) {
               <b>{c.label}</b>
             </button>
           ))}
+        </div>
+        )}
+        <div className="exp-mini">
+          <b>경험치</b>
+          <div className="bar grow">
+            <div style={{ width: `${(cat.exp / RULES.expPerLevel) * 100}%` }} />
+          </div>
+          <small>
+            {cat.exp}/{RULES.expPerLevel}
+          </small>
         </div>
         {selC && (
           <div className="give-bar">
@@ -212,21 +232,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         )}
       </div>
 
-      <section className="card exp-card">
-        <div className="exp-line">
-          <span className="exp-label">경험치</span>
-          <div className="bar grow">
-            <div style={{ width: `${(cat.exp / RULES.expPerLevel) * 100}%` }} />
-          </div>
-          <span className="small num">
-            {cat.exp}/{RULES.expPerLevel}
-          </span>
-        </div>
-        <p className="exp-note">이유를 쓰고, 걱정을 말하고, 같이 돌아볼 때 올라요</p>
-      </section>
 
-      <section className="card next-card">
-        <img className="perch" src={ART.lielook} alt="" aria-hidden />
+      <section className="card next-card hero">
         {p ? (
           <>
             <span className="next-label">친구가 의견을 기다려요</span>
@@ -275,7 +282,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </div>
         <div className="mission-bar">
           <div style={{ width: `${(doneCount / 3) * 100}%` }} />
-          <img src={ART.walk} alt="" style={{ left: `${(doneCount / 3) * 100}%` }} aria-hidden />
         </div>
         <ul>
           {missions.map((m) => (
@@ -288,26 +294,28 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             </li>
           ))}
         </ul>
-        <button className="btn btn-primary btn-block" disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
-          {d.claimed ? '오늘 출석 보상 받았어요' : `다 하면 출석 보상 · 코인 +${RULES.dailyReward}`}
-        </button>
+        {d.claimed ? (
+          <p className="claim-note done">오늘 출석 보상 받았어요</p>
+        ) : doneCount < 3 ? (
+          <p className="claim-note">
+            3개 다 하면 <Gold value={RULES.dailyReward} size={14} />
+          </p>
+        ) : (
+          <button className="btn btn-primary btn-block" onClick={actions.claimDaily}>
+            출석 보상 받기 · 코인 +{RULES.dailyReward}
+          </button>
+        )}
       </section>
 
-      <section className="card train">
-        <div className="train-art">
-          <img src={ART[train.full ? 'stretch' : 'walk']} alt="" className={train.full ? '' : 'jog'} />
-        </div>
+      <section className="card mini-row">
         <div className="grow">
-          <h3 className="card-title small">혼자 하는 훈련</h3>
-          <p className="sub small">
-            {train.full ? '보상이 가득 찼어요' : `한 시간에 ${RULES.goldPerHour}G · 최대 ${RULES.trainCapHours}시간`}
-          </p>
+          <b>혼자 하는 훈련</b>
           <div className="bar thin">
             <div style={{ width: `${(train.hours / RULES.trainCapHours) * 100}%` }} />
           </div>
         </div>
         <button className="btn btn-primary btn-sm" disabled={train.gold <= 0} onClick={actions.claimTraining}>
-          <Gold value={train.gold} size={14} />
+          <Gold value={train.gold} size={14} /> 받기
         </button>
       </section>
 

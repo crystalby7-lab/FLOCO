@@ -1,6 +1,5 @@
 // 경제 뉴스 바로가기: 요약 없이 카테고리별로 믿을 만한 뉴스 페이지로 연결만 한다.
 import { useState } from 'react'
-import { ART } from './CatView'
 
 type Link = { title: string; desc: string; url: string; source: string }
 const CATS: { id: string; label: string; cat: string; links: Link[] }[] = [
@@ -50,13 +49,16 @@ const CATS: { id: string; label: string; cat: string; links: Link[] }[] = [
 
 export function NewsLinks() {
   const [cat, setCat] = useState(CATS[0].id)
+  const [open, setOpen] = useState(false)
   const c = CATS.find((x) => x.id === cat)!
   return (
     <section className="card news-links">
-      <div className="nl-head">
-        <h3 className="card-title">경제 뉴스 보러 가기</h3>
-        <small>누르면 뉴스 사이트로 이동해요</small>
-      </div>
+      <button className="nl-head nl-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <b>경제 뉴스 보러 가기</b>
+        <i className={open ? 'up' : ''}>›</i>
+      </button>
+      {open && (
+      <>
       <div className="nl-chips">
         {CATS.map((x) => (
           <button key={x.id} className={cat === x.id ? 'on' : ''} onClick={() => setCat(x.id)}>
@@ -68,7 +70,6 @@ export function NewsLinks() {
         {c.links.map((l) => (
           <li key={l.url}>
             <a href={l.url} target="_blank" rel="noreferrer">
-              <img src={ART[c.cat]} alt="" />
               <span>
                 <b>{l.title}</b>
                 <small>
@@ -80,6 +81,8 @@ export function NewsLinks() {
           </li>
         ))}
       </ul>
+      </>
+      )}
     </section>
   )
 }
