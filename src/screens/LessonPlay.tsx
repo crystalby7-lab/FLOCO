@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { actions, useGame } from '../store'
 import { Page } from '../components/Page'
 import { ART } from '../components/CatView'
-import { qsFor, type LessonDef, type Q, type Track } from '../data/curriculum'
+import { type LessonDef, type Q, type Track } from '../data/curriculum'
 
 const shuffle = <T,>(a: T[], seed: number) => {
   const r = [...a]
@@ -22,7 +22,7 @@ type Item = { q: Q; retry: boolean; n: number }
 export function LessonPlay({ lesson, chapterTitle, onExit }: { lesson: LessonDef; chapterTitle: string; onExit: () => void }) {
   const s = useGame()
   const track: Track = s.learn.track
-  const base = useMemo(() => qsFor(lesson, track), [lesson, track])
+  const base = lesson.qs
   const [queue, setQueue] = useState<Item[]>(() => base.map((q, n) => ({ q, retry: false, n })))
   const [i, setI] = useState(-1) // -1 = 개념 카드
   const [checked, setChecked] = useState<null | boolean>(null)
@@ -118,21 +118,16 @@ export function LessonPlay({ lesson, chapterTitle, onExit }: { lesson: LessonDef
         <div className="lp-card">
           <img className="lp-cat" src={ART.t_wave} alt="" />
           <h2>{lesson.title}</h2>
+          <p className="lp-goal">{lesson.goal}</p>
           <ul>
             {lesson.core?.map((c) => (
               <li key={c}>{c}</li>
             ))}
           </ul>
-          {track === 'basic' && lesson.basic && (
-            <div className="lp-box basic">
-              <small>쉽게 보면</small>
-              <p>{lesson.basic}</p>
-            </div>
-          )}
-          {track === 'adv' && lesson.adv && (
-            <div className="lp-box adv">
-              <small>더 깊이</small>
-              <p>{lesson.adv}</p>
+          {lesson.case && (
+            <div className="lp-box case">
+              <small>자료</small>
+              <p>{lesson.case}</p>
             </div>
           )}
           <button className="btn btn-primary btn-block" onClick={() => setI(0)}>
@@ -143,6 +138,7 @@ export function LessonPlay({ lesson, chapterTitle, onExit }: { lesson: LessonDef
         <div className="lp-q">
           {cur?.retry && <span className="lp-retry">다시 풀어 봐요</span>}
           <span className="lp-kind">{KIND[q.k]}</span>
+          {lesson.case && <p className="lp-case">{lesson.case}</p>}
           <h3>{q.q}</h3>
 
           {q.k === 'ox' && (

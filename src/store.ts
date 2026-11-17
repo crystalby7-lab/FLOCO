@@ -7,7 +7,7 @@ import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Pro
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { OUTFIT_OPEN, itemOf } from './data/shop'
-import { allLessons, lessonById } from './data/curriculum'
+import { chapterDone, lessonById } from './data/curriculum'
 import { SHOPS } from './data/world'
 import { reviewReasons } from './aiReview'
 
@@ -573,15 +573,14 @@ export const actions = {
       let ns: GameState = { ...s, learn }
       if (first && ns.guild) {
         let coins = RULES.lessonReward + (score >= total ? RULES.lessonPerfect : 0)
-        const chDone = hit.c.lessons.every((l) => done[l.id])
-        if (chDone) coins += RULES.chapterReward
-        const bDone = allLessons(hit.b).every((l) => done[l.id])
         let g = { ...ns.guild, gold: ns.guild.gold + coins }
-        if (bDone && !learn.built[hit.b.id]) {
-          learn = { ...learn, built: { ...learn.built, [hit.b.id]: now() } }
-          const shop = SHOPS.find((x) => x.id === hit.b.id)
-          g = addFeed({ ...g, gold: g.gold + RULES.regionBonus }, '🏘️', `${ns.user?.nickname}님이 ${shop?.name ?? '건물'}을(를) 지었어요! 코인 +${RULES.regionBonus}`)
-          out.built = hit.b.id
+        // 챕터 N의 레슨 5개를 다 끝내면 N번째 건물이 열린다
+        const chDone = chapterDone(hit.c, done)
+        const shop = SHOPS[hit.c.no - 1]
+        if (chDone && shop && !learn.built[shop.id]) {
+          learn = { ...learn, built: { ...learn.built, [shop.id]: now() } }
+          g = addFeed({ ...g, gold: g.gold + RULES.regionBonus }, '🏘️', `${ns.user?.nickname}님이 ${shop.name}을(를) 열었어요! 코인 +${RULES.regionBonus}`)
+          out.built = shop.id
           coins += RULES.regionBonus
         }
         out.coins = coins

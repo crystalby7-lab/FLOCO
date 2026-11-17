@@ -105,9 +105,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
               <img src={ART.sit} alt="" />
             </span>
           </span>
-          <span className="hh-plate">{cat.name}네 집</span>
+          <span className="hh-plate">눌러서 들어가기</span>
         </button>
-        <span className="hh-hint">눌러서 들어가기</span>
       </section>
 
 

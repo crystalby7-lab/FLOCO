@@ -11749,3 +11749,22 @@ label.set2-row:active {
 .zoom-gl.gl-open .zg-flash { animation: zg-flash .4s ease both; }
 @keyframes zg-flash { 0% { opacity: 1 } 100% { opacity: 0 } }
 .zoom-gl.gl-open .zg-sky, .zoom-gl.gl-open .zg-ground, .zoom-gl.gl-open .zg-house { opacity: 0; }
+/* 경험치 별: 흰 동그라미 배경 없이 별 그림만 */
+.cw-star { background: transparent !important; box-shadow: none !important; width: 46px; height: 46px; }
+.cw-star img { width: 44px; height: 44px; filter: drop-shadow(0 3px 6px rgba(20,40,90,.25)); }
+.cw-star b { bottom: -2px; right: -2px; }
+.cw-exp-bar { margin-left: -14px; }
+/* v11 — 두 과정 커리큘럼 */
+.bp-path .t { display: flex; flex-direction: column; gap: 2px; }
+.bp-path .t small { font-size: 11.5px; font-weight: 600; color: var(--muted); line-height: 1.4; word-break: keep-all; }
+.bp-path em.apply { color: #7b59cf; background: #f3eefe; }
+.bp-path button { align-items: flex-start; }
+.bp-path .dot { margin-top: 2px; }
+.bp-path li:not(:last-child)::after { top: 44px; height: calc(100% - 40px); }
+.lp-goal { font-size: 13px; color: var(--sub); text-align: center; line-height: 1.5; word-break: keep-all; margin-top: -6px; }
+.lp-box.case { background: #fff8e8; } .lp-box.case small { color: #c98a1a; }
+.lp-case { font-size: 13px; line-height: 1.55; color: #7a5a1a; background: #fff8e8; border-radius: 12px; padding: 8px 10px; word-break: keep-all; }
+.cn-shop { font-size: 11px; font-weight: 800; color: var(--muted); margin-left: 4px; }
+.mn-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.mn-tabs button { border: 0; background: rgba(255,255,255,.7); border-radius: 12px; padding: 9px 0; font-weight: 800; font-size: 13px; color: var(--sub); }
+.mn-tabs button.on { background: #fff; color: #e45d86; box-shadow: var(--card-shadow); }
