@@ -5,11 +5,10 @@ import { actions, catNow, me, memberName, mustRetro, RULES, today, trainingAvail
 import { changePct, tickerOf } from '../data/market'
 import { QUESTS } from '../data/quests'
 import { ART, CatFace } from '../components/CatView'
-import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
+import { timeOfDay, type PlayEvent } from '../components/Playground'
 import { ConfirmDialog } from '../components/Page'
-import { Lock } from '../components/Icons'
 import { itemOf, PLACES, OUTFIT_OPEN } from '../data/shop'
-import { pickAsk, type Ask } from '../data/catTalk'
+import { type Ask } from '../data/catTalk'
 import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
 import { Gold } from '../components/ui'
@@ -44,10 +43,9 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const v = vault(g, s.day)
   const tod = timeOfDay()
   const [toast, setToast] = useState('')
-  const [ev, setEv] = useState<PlayEvent>(null)
-  const [slide, setSlide] = useState(0)
+  const [, setEv] = useState<PlayEvent>(null)
+  const [slide] = useState(0)
   const [buying, setBuying] = useState<string | null>(null)
-  const [asking, setAsking] = useState<Ask | null>(null)
   const track = useRef<HTMLDivElement>(null)
   const [world, setWorld] = useState<{ dress: boolean } | null>(null)
 
@@ -89,10 +87,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const hasAsk = talks < RULES.talksPerDay
   const owns = (id: string) => id === 'room' || g.ownedItems.includes(id)
 
-  const onScroll = () => {
-    const el = track.current
-    if (el) setSlide(Math.round(el.scrollLeft / el.clientWidth))
-  }
   const goSlide = (i: number) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: 'smooth' })
 
   const buyPlace = (id: string) => {
@@ -102,11 +96,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
     setTimeout(() => setToast(''), 1800)
   }
 
-  const tapCat = () => {
-    if (!hasAsk) return false
-    setAsking(pickAsk(s, talks))
-    return true
-  }
   const missions = [
     { done: d.quest, label: '퀘스트 하나 배우기', go: () => go('map') },
     { done: d.vote, label: '친구 제안에 의견 내기', go: () => go('invest') },
@@ -120,73 +109,27 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel home live">
-      <section className={`scene tod-${tod}`}>
-        <div className="places" ref={track} onScroll={onScroll}>
-          {PLACES.map((pl, i) => (
-            <div key={pl.id} className="place-slide">
-              {owns(pl.id) ? (
-                i === slide ? (
-                  <Playground
-                    cat={cat}
-                    event={ev}
-                    lines={s.prefs.chatter ? lines : []}
-                    height={330}
-                    catHeight={124}
-                    place={pl.id}
-                    ask={hasAsk}
-                    onTapCat={tapCat}
-                  />
-                ) : (
-                  <div className={`room tod-${tod} place-${pl.id}`} style={{ height: 330 }}>
-                    <Backdrop place={pl.id} tod={tod} />
-                  </div>
-                )
-              ) : (
-                <div className={`room tod-${tod} place-${pl.id} locked`} style={{ height: 330 }}>
-                  <Backdrop place={pl.id} tod={tod} />
-                  <div className="lock-veil">
-                    <span className="lock-ico">
-                      <Lock size={18} />
-                    </span>
-                    <b>{pl.name}</b>
-                    <small>{itemOf(pl.id)?.desc}</small>
-                    <button className="btn btn-primary btn-sm" onClick={() => setBuying(pl.id)}>
-                      잠금 해제 · {itemOf(pl.id)!.price.toLocaleString()}G
-                    </button>
-                  </div>
-                  <span className="lock-cat" aria-hidden>
-                    <span className="say">가보고 싶다…</span>
-                    <img src={ART.back} alt="" />
-                  </span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        {asking && <CatAsk cat={cat} ask={asking} onClose={() => setAsking(null)} />}
-        {slide > 0 && (
-          <button className="place-arrow prev" onClick={() => goSlide(slide - 1)} aria-label={PLACES[slide - 1].name}>
-            <Chevron />
-          </button>
-        )}
-        {slide < PLACES.length - 1 && (
-          <button className="place-arrow next" onClick={() => goSlide(slide + 1)} aria-label={PLACES[slide + 1].name}>
-            <Chevron />
-          </button>
-        )}
-        <button className="enter-world" onClick={() => setWorld({ dress: false })}>
-          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5" />
-          </svg>
-          들어가기
+      <section className={`home-house tod-${tod}`}>
+        <img className="hh-cloud c1" src={ART.bg_cloud} alt="" aria-hidden />
+        <img className="hh-cloud c2" src={ART.bg_cloud} alt="" aria-hidden />
+        <div className="hh-ground" aria-hidden />
+        <button className="hh-house" onClick={() => setWorld({ dress: false })} aria-label={`${cat.name}네 집 들어가기`}>
+          <span className="hh-chimney" aria-hidden />
+          <span className="hh-roof" aria-hidden />
+          <span className="hh-body" aria-hidden>
+            <span className="hh-window l" />
+            <span className="hh-window r" />
+            <span className="hh-door">
+              <img src={ART.sit} alt="" />
+            </span>
+          </span>
+          <span className="hh-plate">{cat.name}네 집</span>
+          {hasAsk && <span className="hh-bubble">?</span>}
         </button>
-        <div className="scene-status">
-          <div className="status-row">
-            <button className="closet-btn" onClick={() => setWorld({ dress: true })} aria-label="드레스룸">
-              <Hanger />
-            </button>
-          </div>
-        </div>
+        <span className="hh-hint">눌러서 들어가기</span>
+        <button className="hh-dress" onClick={() => setWorld({ dress: true })} aria-label="드레스룸">
+          <Hanger />
+        </button>
       </section>
 
       <div className="care-wrap care-row">
@@ -413,13 +356,6 @@ function Tick() {
   )
 }
 
-function Chevron() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M9 5 L16 12 L9 19" />
-    </svg>
-  )
-}
 
 function Hanger() {
   return (
