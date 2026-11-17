@@ -11709,3 +11709,7 @@ label.set2-row:active {
 .home-gl .hg-center small { color: #8a4b2a; background: #ffe9c9; }
 .home-gl .hg-paws i { color: #8a5a3a; opacity: .4; }
 @keyframes hg-paw { to { color: #ffe0a8; opacity: 1 } }
+/* 월드: 고양이를 화면 가운데쯤에 */
+.cw-stage .cat-actor { bottom: 34% !important; }
+.cw-stage .room-bowl { bottom: 34% !important; }
+.cw-stage .photo-ground { height: 36% !important; }
