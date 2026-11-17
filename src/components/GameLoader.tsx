@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import { ART } from './CatView'
 
-export type Hop = { label: string; sub?: string; key: number }
+export type Hop = { label: string; sub?: string; key: number; kind?: 'house' | 'door' }
 
 export function GameLoader({ hop, onSwap, onDone }: { hop: Hop; onSwap: () => void; onDone: () => void }) {
   const [phase, setPhase] = useState<'close' | 'load' | 'open'>('close')
@@ -19,6 +19,30 @@ export function GameLoader({ hop, onSwap, onDone }: { hop: Hop; onSwap: () => vo
     return () => [t1, t2, t3].forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hop.key])
+  if (hop.kind === 'house')
+    return (
+      <div className={`gl zoom-gl gl-${phase}`} aria-live="polite">
+        <div className="zg-sky" />
+        <div className="zg-ground" />
+        <div className="zg-house">
+          <span className="hh-chimney" />
+          <span className="hh-roof" />
+          <span className="hh-body">
+            <span className="hh-window l" />
+            <span className="hh-window r" />
+            <span className="zg-door">
+              <span className="zg-glow" />
+              <img src={ART.walk} alt="" />
+            </span>
+          </span>
+        </div>
+        <div className="zg-text">
+          <b>{hop.label}</b>
+          {hop.sub && <small>{hop.sub}</small>}
+        </div>
+        <div className="zg-flash" />
+      </div>
+    )
   return (
     <div className={`gl home-gl gl-${phase}`} aria-live="polite">
       <div className="hg-wall" />

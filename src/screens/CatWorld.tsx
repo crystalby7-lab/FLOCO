@@ -20,7 +20,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
   const tod = timeOfDay()
   const [place, setPlace] = useState(start)
   const [inDress, setInDress] = useState(false)
-  const [hop, setHop] = useState<Hop | null>({ label: `${cat.name}네 집으로 가는 중`, sub: PLACES[start].name, key: 1 })
+  const [hop, setHop] = useState<Hop | null>(dress ? { label: '드레스룸으로 들어가는 중', key: 1, kind: 'door' } : { label: `${cat.name}네 집으로 들어가는 중`, sub: PLACES[start].name, key: 1, kind: 'house' })
   const [pending, setPending] = useState<(() => void) | null>(() => (dress ? () => setInDress(true) : null))
   const [ev, setEv] = useState<PlayEvent>(null)
   const [toast, setToast] = useState('')
@@ -31,17 +31,21 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
   useEffect(() => {
     const el = box.current
     if (!el) return
-    const ro = new ResizeObserver(() => setH(el.clientHeight))
+    setH(el.clientHeight || 560)
+    const ro = new ResizeObserver(() => {
+      if (el.isConnected && el.clientHeight > 0) setH(el.clientHeight)
+    })
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+    // 드레스룸에서 돌아오면 새로 생긴 무대를 다시 잰다
+  }, [inDress])
 
   const owns = (id: string) => id === 'room' || g.ownedItems.includes(id)
   const pl = PLACES[place]
 
-  const travel = (label: string, sub: string | undefined, then: () => void) => {
+  const travel = (label: string, sub: string | undefined, then: () => void, kind: Hop['kind'] = 'door') => {
     setPending(() => then)
-    setHop({ label, sub, key: Date.now() })
+    setHop({ label, sub, key: Date.now(), kind })
   }
   // 장소 이동은 로딩 없이 살짝 미끄러지듯
   const [slideDir, setSlideDir] = useState<'l' | 'r' | null>(null)
@@ -97,7 +101,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
           </div>
 
           <header className="cw-hud">
-            <button className="cw-round" onClick={() => travel('홈으로 돌아가는 중', undefined, onExit)} aria-label="나가기">
+            <button className="cw-round" onClick={() => travel('홈으로 나가는 중', undefined, onExit, 'house')} aria-label="나가기">
               <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12.5 4 L6.5 10 L12.5 16" />
               </svg>
@@ -252,12 +256,7 @@ function ExpStar({ cat }: { cat: Cat }) {
   return (
     <div className="cw-exp">
       <span key={pop} className={`cw-star ${pop ? 'pop' : ''}`}>
-        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden>
-          <path d="M12 2.5l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.4l-5.6 3.1 1.3-6.2L3 9l6.3-.7z" fill="#ffd257" stroke="#f0a92e" strokeWidth="1.4" strokeLinejoin="round" />
-          <circle cx="9.6" cy="11" r="1" fill="#7a5532" />
-          <circle cx="14.4" cy="11" r="1" fill="#7a5532" />
-          <path d="M10.6 13.2q1.4 1.1 2.8 0" stroke="#7a5532" strokeWidth="1" fill="none" strokeLinecap="round" />
-        </svg>
+        <img src={ART.i_star} alt="" />
         <b>{cat.level}</b>
       </span>
       <div className="cw-exp-bar">

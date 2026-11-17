@@ -11713,3 +11713,39 @@ label.set2-row:active {
 .cw-stage .cat-actor { bottom: 34% !important; }
 .cw-stage .room-bowl { bottom: 34% !important; }
 .cw-stage .photo-ground { height: 36% !important; }
+
+/* v10.2 — 월드 HUD 코인 칩: 나가기 버튼과 같은 높이의 알약 모양 */
+.cw-coin { height: 42px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px 0 10px; font-size: 15px; line-height: 1; }
+.cw-coin .gold, .cw-coin > * { display: inline-flex; align-items: center; gap: 6px; }
+.cw-star img { width: 32px; height: 32px; object-fit: contain; }
+
+/* v10.2 — 집 들어갈 때 전환: 집이 다가오고 문 안으로 쏙 (드레스룸은 나무 문 그대로) */
+.gl.zoom-gl { background: transparent !important; clip-path: none !important; animation: none !important; display: block; overflow: hidden; }
+.zoom-gl .zg-sky { position: absolute; inset: 0; background: linear-gradient(180deg, #a9cdf3 0%, #cfe3f8 55%, #e9f3fc 100%); }
+.zoom-gl .zg-ground { position: absolute; left: -20%; right: -20%; bottom: 0; height: 30%; background: linear-gradient(180deg, #bfe3a6, #a7d48c); border-radius: 50% 50% 0 0 / 40px 40px 0 0; }
+.zoom-gl.gl-close { animation: zg-in .38s ease both !important; }
+@keyframes zg-in { from { opacity: 0 } }
+.zg-house { position: absolute; left: 50%; bottom: 26%; width: 220px; height: 200px; margin-left: -110px; transform-origin: 50% 88%; }
+.zg-house .hh-roof { position: absolute; left: 0; right: 0; top: 0; height: 92px; background: linear-gradient(180deg, #6f98e6, #557fd4); clip-path: polygon(50% 0, 100% 78%, 100% 100%, 0 100%, 0 78%); border-radius: 18px; }
+.zg-house .hh-chimney { position: absolute; right: 38px; top: 18px; width: 22px; height: 40px; background: #e8a87c; border-radius: 6px 6px 0 0; }
+.zg-house .hh-body { position: absolute; left: 18px; right: 18px; top: 82px; bottom: 0; background: #fff8ec; border-radius: 0 0 18px 18px; box-shadow: inset 0 -10px 0 #f3e3c8; }
+.zg-house .hh-window { position: absolute; top: 18px; width: 34px; height: 34px; border-radius: 10px; background: #ffe39a; border: 4px solid #fff; box-shadow: 0 0 0 2px #e6d3b3; }
+.zg-house .hh-window.l { left: 14px; } .zg-house .hh-window.r { right: 14px; }
+.zg-door { position: absolute; left: 50%; bottom: 0; width: 70px; height: 92px; margin-left: -35px; border-radius: 35px 35px 0 0; background: #8a6248; overflow: hidden; box-shadow: inset 0 0 0 4px #a7795a; }
+.zg-glow { position: absolute; inset: 6px 6px 0; border-radius: 30px 30px 0 0; background: radial-gradient(circle at 50% 70%, #fff6d8 0%, #ffd98a 70%); opacity: 0; }
+.zg-door img { position: absolute; bottom: 2px; left: -60px; height: 44px; }
+.zoom-gl.gl-load .zg-glow { animation: zg-glow .3s ease .05s both; }
+@keyframes zg-glow { to { opacity: 1 } }
+.zoom-gl.gl-load .zg-door img { animation: zg-walk .5s ease-in 0s both; }
+@keyframes zg-walk { from { left: -60px } 70% { left: 14px; transform: scale(1) } to { left: 14px; transform: scale(.4); opacity: 0 } }
+.zoom-gl.gl-load .zg-house, .zoom-gl.gl-open .zg-house { animation: zg-zoom .95s cubic-bezier(.7,0,.3,1) .12s both; }
+@keyframes zg-zoom { to { transform: scale(9) } }
+.zg-text { position: absolute; left: 0; right: 0; top: 22%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.zg-text b { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 3px 0 #6f93d6, 0 8px 18px rgba(40,70,140,.3); }
+.zg-text small { font-size: 12.5px; font-weight: 800; color: #3f62ad; background: rgba(255,255,255,.9); padding: 4px 12px; border-radius: 999px; }
+.zoom-gl.gl-load .zg-text { animation: wi-rise .35s cubic-bezier(.3,1.5,.5,1) both; }
+.zoom-gl.gl-open .zg-text { opacity: 0; transition: opacity .15s; }
+.zg-flash { position: absolute; inset: 0; background: #fff4dc; opacity: 0; pointer-events: none; }
+.zoom-gl.gl-open .zg-flash { animation: zg-flash .4s ease both; }
+@keyframes zg-flash { 0% { opacity: 1 } 100% { opacity: 0 } }
+.zoom-gl.gl-open .zg-sky, .zoom-gl.gl-open .zg-ground, .zoom-gl.gl-open .zg-house { opacity: 0; }
