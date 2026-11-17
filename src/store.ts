@@ -7,6 +7,8 @@ import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Pro
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { OUTFIT_OPEN, itemOf } from './data/shop'
+import { allLessons, lessonById } from './data/curriculum'
+import { SHOPS } from './data/world'
 import { reviewReasons } from './aiReview'
 
 const KEY = 'floco-mvp-v1'
@@ -20,7 +22,10 @@ export const RULES = {
   moodDecayPerHour: 3,
   cleanDecayPerHour: 2,
   // 코인 보상: 결과(수익)가 아니라 과정(배우기·근거·돌아보기)에만 준다
-  questReward: 300, // 퀘스트 첫 완료
+  questReward: 300,
+  lessonReward: 30,
+  lessonPerfect: 10,
+  chapterReward: 100, // 퀘스트 첫 완료
   perfectBonus: 100, // 퀘스트 만점 보너스 (첫 완료 때)
   regionBonus: 1000, // 한 지역(단원) 다 끝내면
   retroCoin: 200, // 돌아보기 작성
@@ -59,7 +64,7 @@ export const DEFAULT_PREFS: Prefs = {
   quietTo: 7,
 }
 
-const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {} }
+const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
@@ -71,6 +76,7 @@ function migrate(raw: Partial<GameState>): GameState {
   s.watch = s.watch ?? []
   s.guides = s.guides ?? []
   s.decor = s.decor ?? {}
+  s.learn = Object.assign({ track: 'basic', done: {}, built: {} }, s.learn)
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
@@ -551,6 +557,43 @@ export const actions = {
     })
   },
 
+  // 커리큘럼: 트랙 바꾸기 / 레슨 끝내기 (처음 끝내면 코인, 챕터·건물 완성 보너스)
+  setTrack(track: 'basic' | 'adv') {
+    set((s) => ({ ...s, learn: { ...s.learn, track } }))
+  },
+  completeLesson(lessonId: string, score: number, total: number): { coins: number; chapterDone: boolean; built: string | null } {
+    const hit = lessonById(lessonId)
+    const out = { coins: 0, chapterDone: false, built: null as string | null }
+    if (!hit) return out
+    set((s) => {
+      const first = !s.learn.done[lessonId]
+      const prev = s.learn.done[lessonId]
+      const done = { ...s.learn.done, [lessonId]: { score: Math.max(score, prev?.score ?? 0), total, at: prev?.at ?? now() } }
+      let learn = { ...s.learn, done }
+      let ns: GameState = { ...s, learn }
+      if (first && ns.guild) {
+        let coins = RULES.lessonReward + (score >= total ? RULES.lessonPerfect : 0)
+        const chDone = hit.c.lessons.every((l) => done[l.id])
+        if (chDone) coins += RULES.chapterReward
+        const bDone = allLessons(hit.b).every((l) => done[l.id])
+        let g = { ...ns.guild, gold: ns.guild.gold + coins }
+        if (bDone && !learn.built[hit.b.id]) {
+          learn = { ...learn, built: { ...learn.built, [hit.b.id]: now() } }
+          const shop = SHOPS.find((x) => x.id === hit.b.id)
+          g = addFeed({ ...g, gold: g.gold + RULES.regionBonus }, '🏘️', `${ns.user?.nickname}님이 ${shop?.name ?? '건물'}을(를) 지었어요! 코인 +${RULES.regionBonus}`)
+          out.built = hit.b.id
+          coins += RULES.regionBonus
+        }
+        out.coins = coins
+        out.chapterDone = chDone
+        ns = { ...ns, learn, guild: g }
+      }
+      return ns
+    })
+    markDaily('quest')
+    return out
+  },
+
   setDecor(shop: string, value: { style: string; slots: Record<string, number> }) {
     set((s) => ({ ...s, decor: { ...s.decor, [shop]: value } }))
   },
@@ -766,7 +809,7 @@ export const actions = {
     })
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {} }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }))
   },
 }
 

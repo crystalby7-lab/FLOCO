@@ -116,18 +116,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      <section className="card exp-card">
-        <div className="exp-line">
-          <span className="exp-label">경험치</span>
-          <div className="bar grow">
-            <div style={{ width: `${(cat.exp / RULES.expPerLevel) * 100}%` }} />
-          </div>
-          <span className="small num">
-            {cat.exp}/{RULES.expPerLevel}
-          </span>
-        </div>
-        <p className="exp-note">이유를 쓰고, 걱정을 말하고, 같이 돌아볼 때 올라요</p>
-      </section>
 
       <section className="card next-card">
         <img className="perch" src={ART.lielook} alt="" aria-hidden />

@@ -2,6 +2,7 @@
 // 위: 나가기·장소 이름·코인 / 가운데: 고양이가 사는 장면(장소는 좌우 화살표로 이동) / 아래: 돌보기 + 드레스룸.
 // 장소를 옮기거나 드레스룸에 들어갈 때마다 GameLoader 전환 화면이 끼어든다.
 import { useEffect, useRef, useState } from 'react'
+import type { Cat } from '../types'
 import { actions, catNow, RULES, today, useGame } from '../store'
 import { ART } from '../components/CatView'
 import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
@@ -120,6 +121,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
               <Gold value={g.gold} size={16} />
             </span>
           </header>
+          <ExpStar cat={cat} />
 
           {place > 0 && (
             <button className="cw-arrow l" onClick={() => goPlace(place - 1)} aria-label={PLACES[place - 1].name}>
@@ -242,6 +244,36 @@ function DressRoom({ onBack }: { onBack: () => void }) {
             이 옷 입기
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+// 경험치: 별이 통통 튀고, 오르면 반짝이며 빙글 돈다
+function ExpStar({ cat }: { cat: Cat }) {
+  const pct = Math.min(100, (cat.exp / RULES.expPerLevel) * 100)
+  const prev = useRef(cat.exp)
+  const [pop, setPop] = useState(0)
+  useEffect(() => {
+    if (cat.exp > prev.current) setPop(Date.now())
+    prev.current = cat.exp
+  }, [cat.exp])
+  return (
+    <div className="cw-exp">
+      <span key={pop} className={`cw-star ${pop ? 'pop' : ''}`}>
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden>
+          <path d="M12 2.5l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.4l-5.6 3.1 1.3-6.2L3 9l6.3-.7z" fill="#ffd257" stroke="#f0a92e" strokeWidth="1.4" strokeLinejoin="round" />
+          <circle cx="9.6" cy="11" r="1" fill="#7a5532" />
+          <circle cx="14.4" cy="11" r="1" fill="#7a5532" />
+          <path d="M10.6 13.2q1.4 1.1 2.8 0" stroke="#7a5532" strokeWidth="1" fill="none" strokeLinecap="round" />
+        </svg>
+        <b>{cat.level}</b>
+      </span>
+      <div className="cw-exp-bar">
+        <i style={{ width: `${pct}%` }} />
+        <small>
+          {cat.exp}/{RULES.expPerLevel}
+        </small>
       </div>
     </div>
   )
