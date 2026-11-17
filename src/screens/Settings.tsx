@@ -457,7 +457,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
           <ul className="rules">
             <li>
               <b>고양이는 길드가 같이 키워요</b>
-              <span>길드는 2~5명. 금고 골드로 밥·간식·목욕·옷을 사요.</span>
+              <span>길드는 2~5명. 고양이와 코인은 같이, 투자 계좌는 각자 써요.</span>
             </li>
             <li>
               <b>투자는 이유 3칸부터</b>
@@ -610,7 +610,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
       {dialog === 'leave' && (
         <ConfirmDialog
           title="길드를 나갈까요?"
-          message={`${g.name}에서 나가면 ${g.cat.name}와 금고, 지금까지의 제안·돌아보기를 더는 볼 수 없어요.`}
+          message={`${g.name}에서 나가면 ${g.cat.name}와 지금까지의 거래 노트·피드백·돌아보기를 더는 볼 수 없어요.`}
           ok="나가기"
           cancel="그대로 두기"
           onOk={() => {

@@ -1,6 +1,6 @@
 // 길드: 커뮤니티처럼. 피드(글·댓글·좋아요 + 길드에서 일어난 일) / 멤버(응원·초대) / 우리 길드(고양이·기록·이번 주 목표)
 import { useState } from 'react'
-import { actions, memberName, today, useGame } from '../store'
+import { actions, memberName, needReview, today, useGame } from '../store'
 import { priceOf, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
@@ -59,7 +59,7 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
     ...(showActs ? acts.map((f) => ({ kind: 'act' as const, at: f.at, f })) : []),
     ...trades,
   ].sort((a, b) => b.at - a.at)
-  const voting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId))
+  const voting = needReview(g, myId)
 
   const post = () => {
     if (!draft.trim()) return
@@ -127,14 +127,14 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
             </button>
           )}
 
-          {/* 의견 기다리는 제안 (고정) */}
+          {/* 피드백 기다리는 친구 거래 (고정) */}
           {voting.map((p) => (
             <button key={p.id} className="cm-pin" onClick={() => go?.('invest')}>
               <Avatar g={g} id={p.proposerId} size={34} />
               <span>
-                <small>📌 의견을 기다려요</small>
+                <small>📌 피드백을 기다려요</small>
                 <b>
-                  {memberName(g, p.proposerId)}님이 {tickerOf(p.ticker).name} 매수를 제안했어요
+                  {memberName(g, p.proposerId)}님의 {tickerOf(p.ticker).name} 거래 근거 보기
                 </b>
               </span>
               <i>›</i>
@@ -312,21 +312,20 @@ function PostCard({ p, myId }: { p: Post; myId: string }) {
 function GuildInfo() {
   const s = useGame()
   const g = s.guild!
-  const decided = g.proposals.filter((p) => p.status !== 'voting')
-  const passed = decided.filter((p) => p.status !== 'rejected').length
+  const reviews = g.proposals.reduce((n, p) => n + (p.reviews?.length ?? 0), 0)
   const days = Math.max(1, Math.floor((Date.now() - g.createdAt) / 86_400_000) + 1)
   const stats = [
     { label: '함께한 날', value: `${days}일` },
-    { label: '올라온 제안', value: `${g.proposals.length}개` },
-    { label: '통과율', value: decided.length ? `${Math.round((passed / decided.length) * 100)}%` : '-' },
+    { label: '거래 노트', value: `${g.proposals.length}개` },
+    { label: '주고받은 피드백', value: `${reviews}개` },
     { label: '같이 돌아보기', value: `${g.retros.length}번` },
   ]
   const recent = g.proposals.filter((p) => p.createdDay >= s.day - 4)
   const recentIds = new Set(recent.map((p) => p.id))
   const week = Date.now() - 7 * 86_400_000
   const goals = [
-    { label: '제안 올리기', now: recent.length, goal: 2 },
-    { label: '의견 내기', now: recent.reduce((n, p) => n + p.votes.length, 0), goal: 6 },
+    { label: '근거 쓰고 사기', now: recent.length, goal: 2 },
+    { label: '피드백 주고받기', now: recent.reduce((n, p) => n + (p.reviews?.length ?? 0), 0), goal: 6 },
     { label: '같이 돌아보기', now: g.retros.filter((r) => recentIds.has(r.proposalId)).length, goal: 1 },
     { label: '글·댓글 남기기', now: g.board.filter((p) => p.at >= week).reduce((n, p) => n + 1 + (p.comments?.length ?? 0), 0), goal: 8 },
   ]

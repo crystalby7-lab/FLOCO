@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { me, mustRetro, streakNow, useGame } from './store'
+import { me, mustRetro, needReview, streakNow, useGame } from './store'
 import { Onboarding } from './screens/Onboarding'
 import { Home } from './screens/Home'
 import { MapScreen } from './screens/MapScreen'
@@ -41,7 +41,7 @@ export default function App() {
   const g = s.guild
   const myId = me(g).id
   const investBadge =
-    g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((v) => v.memberId === myId)).length +
+    needReview(g, myId).length +
     g.proposals.filter((p) => mustRetro(g, p, myId)).length
 
   const go = (t: Tab) => {

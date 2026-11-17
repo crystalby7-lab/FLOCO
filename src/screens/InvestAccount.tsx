@@ -349,7 +349,7 @@ function AssetsPage({ g, day, onClose }: { g: Guild; day: number; onClose: () =>
   const v = vault(g, day)
   const parts = [{ name: '현금', value: v.cash, color: '#c9d6e6' }, ...v.holdings.map((h, i) => ({ name: tickerOf(h.p.ticker).name, value: h.value, color: COLORS[i % COLORS.length] }))]
   return (
-    <Page title="자산 구성" sub="금고가 어디에 나뉘어 있나요" onExit={onClose}>
+    <Page title="자산 구성" sub="내 계좌가 어디에 나뉘어 있나요" onExit={onClose}>
       <section className="card">
         <div className="alloc big">
           {parts.map((p) => (
@@ -367,7 +367,7 @@ function AssetsPage({ g, day, onClose }: { g: Guild; day: number; onClose: () =>
           ))}
         </ul>
       </section>
-      <Tip text="한 곳에 다 넣지 않고 나눠 담으면, 하나가 크게 흔들려도 금고 전체는 덜 흔들려요. 이걸 '분산'이라고 해요." />
+      <Tip text="한 곳에 다 넣지 않고 나눠 담으면, 하나가 크게 흔들려도 계좌 전체는 덜 흔들려요. 이걸 '분산'이라고 해요." />
     </Page>
   )
 }
@@ -408,7 +408,7 @@ function TradesPage({ g, onClose }: { g: Guild; onClose: () => void }) {
   return (
     <Page title="거래내역" sub="언제, 무엇을, 왜 샀고 팔았나" onExit={onClose}>
       {rows.length === 0 ? (
-        <p className="pp-empty">아직 거래가 없어요. 길드 제안이 통과되면 여기에 기록돼요.</p>
+        <p className="pp-empty">아직 거래가 없어요. 근거를 쓰고 사면 여기에 기록돼요.</p>
       ) : (
         <ul className="hist-list card">
           {rows.map((r) => (

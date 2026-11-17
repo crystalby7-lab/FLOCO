@@ -27,7 +27,10 @@ export type AiResult = { pass: boolean; message: string; hint?: string }
 
 export type Vote = { memberId: string; agree: boolean; reason?: string }
 
-export type ProposalStatus = 'voting' | 'holding' | 'rejected' | 'sold'
+export type ProposalStatus = 'voting' | 'holding' | 'rejected' | 'sold' // voting은 예전 저장본 호환용 (지금은 바로 체결)
+
+// 친구 거래에 남기는 피어 피드백: 룰북의 체크 3개 + 한 줄
+export type Review = { memberId: string; checks: [boolean, boolean, boolean]; text: string; at: number }
 
 export type Proposal = {
   id: string
@@ -52,6 +55,7 @@ export type Proposal = {
   boughtAt?: number // 체결 시각 (피드 정렬용)
   soldAt?: number
   likes?: string[] // 피드 거래 카드 좋아요
+  reviews?: Review[] // 친구들이 남긴 피어 피드백
 }
 
 export type Retro = {
@@ -73,7 +77,7 @@ export type Guild = {
   code: string
   members: Member[]
   gold: number // 게임 코인 (고양이 돌보기·상점·테마용, 현금화 불가)
-  cash: number // 모의투자 계좌 현금 (원, 가상)
+  cash: number // (예전 공동 계좌, 안 씀) 계좌는 사람마다 따로: cashOf(g, id)
   cat: Cat
   proposals: Proposal[]
   retros: Retro[]

@@ -1,7 +1,7 @@
-// 홈: 길드 고양이 방 · 상태 · 돌보기 · 지금 할 일 · 오늘의 미션 · 자동 훈련 (F7·F8) · 오늘의 플로코 신문
+// 홈: 고양이 집(누르면 풀스크린) · 지금 할 일 · 오늘 할 일 · 오늘의 플로코 신문
 // 길드 소식(피드)은 길드 탭으로 옮겼다.
 import { useEffect, useState } from 'react'
-import { actions, catNow, me, memberName, mustRetro, RULES, today, trainingAvailable, unlocked, useGame, vault } from '../store'
+import { actions, catNow, me, memberName, mustRetro, needReview, RULES, today, unlocked, useGame, vault } from '../store'
 import { changePct, tickerOf } from '../data/market'
 import { QUESTS } from '../data/quests'
 import { ART, CatFace } from '../components/CatView'
@@ -11,7 +11,6 @@ import { itemOf, OUTFIT_OPEN } from '../data/shop'
 import { type Ask } from '../data/catTalk'
 import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
-import { Gold } from '../components/ui'
 import type { Tab } from '../App'
 import { CatWorld } from './CatWorld'
 
@@ -38,7 +37,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const s = useGame()
   const g = s.guild!
   const cat = catNow(g.cat)
-  const train = trainingAvailable(g.cat)
   const myId = me(g).id
   const v = vault(g, s.day)
   const tod = timeOfDay()
@@ -47,18 +45,18 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const [buying, setBuying] = useState<string | null>(null)
   const [world, setWorld] = useState<{ dress: boolean } | null>(null)
 
-  const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
+  const waiting = needReview(g, myId)
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
   const nextQuest = QUESTS.find((q) => !s.quests[q.id]?.done && (q.region === 'village' || unlocked(s).has('invest')))
 
 
   // 고양이 혼잣말: 지금 길드 상황에서 뽑는다
   const lines: string[] = [
-    `금고에 ${v.cash.toLocaleString()}G 있대`,
+    `내 계좌에 ${v.cash.toLocaleString()}원 있대`,
     tod === 'morning' ? '아침 공기 좋다' : tod === 'night' ? '하암… 졸려' : '창밖 구경 중',
     `${g.members.find((m) => !m.isMe)?.nickname ?? '친구'}는 뭐 하고 있을까`,
   ]
-  if (waiting[0]) lines.push(`${memberName(g, waiting[0].proposerId)}가 낸 제안 봤어?`)
+  if (waiting[0]) lines.push(`${memberName(g, waiting[0].proposerId)}가 쓴 근거 봤어?`)
   if (nextQuest) lines.push(`'${nextQuest.title}' 같이 배울래?`)
   v.holdings.forEach((h) => lines.push(`${tickerOf(h.p.ticker).name} ${h.pct >= 0 ? '올랐대!' : '조금 내렸대'}`))
   if (v.holdings[0]) {
@@ -79,9 +77,9 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   }
 
   const missions = [
-    { done: d.quest, label: '퀘스트 하나 배우기', go: () => go('map') },
-    { done: d.vote, label: '친구 제안에 의견 내기', go: () => go('invest') },
-    { done: d.care, label: `${cat.name} 돌보기`, go: () => setWorld({ dress: false }) },
+    { done: d.quest, label: '레슨 하나 배우기', sub: '플로월드 건물에서', art: 'i_star', tone: 'mint', go: () => go('map') },
+    { done: d.vote, label: '친구 거래에 피드백', sub: '근거 읽고 한 줄', art: 'i_heart', tone: 'pink', go: () => go('invest') },
+    { done: d.care, label: `${cat.name} 돌보기`, sub: '집에 들어가서', art: 'i_fish', tone: 'yellow', go: () => setWorld({ dress: false }) },
   ]
   const doneCount = missions.filter((m) => m.done).length
 
@@ -95,18 +93,42 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         <img className="hh-cloud c1" src={ART.bg_cloud} alt="" aria-hidden />
         <img className="hh-cloud c2" src={ART.bg_cloud} alt="" aria-hidden />
         <div className="hh-ground" aria-hidden />
+        <img className="hh-sun" src={ART[tod === 'night' ? 'bg_moon' : 'bg_sun']} alt="" aria-hidden />
+        <img className="hh-fence l" src={ART.bg_fence} alt="" aria-hidden />
+        <img className="hh-fence r" src={ART.bg_fence} alt="" aria-hidden />
+        <img className="hh-bush l" src={ART.bg_bush} alt="" aria-hidden />
+        <img className="hh-bush r" src={ART.bg_bush2} alt="" aria-hidden />
         <button className="hh-house" onClick={() => setWorld({ dress: false })} aria-label={`${cat.name}네 집 들어가기`}>
-          <span className="hh-chimney" aria-hidden />
-          <span className="hh-roof" aria-hidden />
-          <span className="hh-body" aria-hidden>
-            <span className="hh-window l" />
-            <span className="hh-window r" />
-            <span className="hh-door">
-              <img src={ART.sit} alt="" />
-            </span>
+          <svg className="hh-svg" viewBox="0 0 220 200" aria-hidden>
+            <rect className="hh-chim" x="148" y="26" width="22" height="40" rx="5" />
+            <rect className="hh-wall" x="24" y="88" width="172" height="110" rx="16" />
+            <path className="hh-roofp" d="M12 100 Q4 94 11 86 L100 16 Q110 8 120 16 L209 86 Q216 94 208 100 Z" />
+            <g className="hh-scallop">
+              {[22, 42, 62, 82, 102, 122, 142, 162, 182, 198].map((x) => (
+                <circle key={x} cx={x} cy={100} r={10} />
+              ))}
+            </g>
+            <circle className="hh-attic" cx="110" cy="62" r="14" />
+            <path className="hh-heart" d="M110 70 C100 62 102 54 107 54 C109 54 110 56 110 57 C110 56 111 54 113 54 C118 54 120 62 110 70 Z" />
+            {[38, 146].map((x) => (
+              <g key={x}>
+                <rect className="hh-win" x={x} y="118" width="36" height="32" rx="9" />
+                <path className="hh-pane" d={`M${x + 18} 120 V148 M${x + 2} 134 H${x + 34}`} />
+                <rect className="hh-box" x={x - 3} y="150" width="42" height="9" rx="4" />
+                <circle className="hh-f1" cx={x + 6} cy="148" r="4" />
+                <circle className="hh-f2" cx={x + 18} cy="147" r="4" />
+                <circle className="hh-f1" cx={x + 30} cy="148" r="4" />
+              </g>
+            ))}
+          </svg>
+          <span className="hh-door">
+            <img src={ART.sit} alt="" />
           </span>
           <span className="hh-plate">눌러서 들어가기</span>
         </button>
+        <img className="hh-flowers l" src={ART.bg_flowers} alt="" aria-hidden />
+        <img className="hh-flowers r" src={ART.bg_flower} alt="" aria-hidden />
+        <img className="hh-flowers r2" src={ART.bg_flowers} alt="" aria-hidden />
       </section>
 
 
@@ -114,13 +136,13 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         <img className="perch" src={ART.lielook} alt="" aria-hidden />
         {p ? (
           <>
-            <span className="next-label">친구가 의견을 기다려요</span>
+            <span className="next-label">친구가 피드백을 기다려요</span>
             <h2>
-              {memberName(g, p.proposerId)}가 {tickerOf(p.ticker).name}를 사자고 했어요
+              {memberName(g, p.proposerId)}가 {tickerOf(p.ticker).name}를 샀어요
             </h2>
             <p className="next-quote">"{p.reasons[0]}"</p>
             <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
-              이유 읽고 의견 쓰기
+              근거 읽고 피드백 남기기
             </button>
           </>
         ) : r ? (
@@ -145,18 +167,26 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         ) : (
           <>
             <span className="next-label">오늘은 여유로워요</span>
-            <h2>새 투자 아이디어를 제안해볼까요?</h2>
+            <h2>근거 세 줄 쓰고 하나 사 볼까요?</h2>
             <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
-              제안 쓰기
+              종목 보러 가기
             </button>
           </>
         )}
       </section>
 
-      <section className="card checklist">
-        <div className="card-row">
-          <h3 className="card-title">오늘 할 일</h3>
-          <span className="count">{doneCount}/3</span>
+      <section className="card checklist cute">
+        <span className="cl-tape" aria-hidden />
+        <div className="card-row cl-head">
+          <div>
+            <small className="cl-date">
+              {new Date().getMonth() + 1}월 {new Date().getDate()}일
+            </small>
+            <h3 className="card-title">오늘 할 일</h3>
+          </div>
+          <span className="cl-count">
+            <b>{doneCount}</b>/3
+          </span>
         </div>
         <div className="mission-bar">
           <div style={{ width: `${(doneCount / 3) * 100}%` }} />
@@ -165,34 +195,22 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         <ul>
           {missions.map((m) => (
             <li key={m.label}>
-              <button className={`todo ${m.done ? 'done' : ''}`} onClick={m.go} disabled={m.done}>
-                <span className="box">{m.done && <Tick />}</span>
-                <span className="grow todo-text">{m.label}</span>
-                {!m.done && <span className="go">하러 가기 ›</span>}
+              <button className={`todo cl-item ${m.tone} ${m.done ? 'done' : ''}`} onClick={m.go} disabled={m.done}>
+                <span className="cl-ic">
+                  <img src={ART[m.art]} alt="" />
+                </span>
+                <span className="grow todo-text">
+                  <b>{m.label}</b>
+                  <small>{m.sub}</small>
+                </span>
+                {m.done ? <img className="cl-stamp" src={ART.i_paw} alt="완료" /> : <span className="go">›</span>}
               </button>
             </li>
           ))}
         </ul>
-        <button className="btn btn-primary btn-block" disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
+        <button className={`btn btn-primary btn-block cl-reward ${doneCount === 3 && !d.claimed ? 'ready' : ''}`} disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
+          <img src={ART.i_cake} alt="" aria-hidden />
           {d.claimed ? '오늘 출석 보상 받았어요' : `다 하면 출석 보상 · 코인 +${RULES.dailyReward}`}
-        </button>
-      </section>
-
-      <section className="card train">
-        <div className="train-art">
-          <img src={ART[train.full ? 'stretch' : 'walk']} alt="" className={train.full ? '' : 'jog'} />
-        </div>
-        <div className="grow">
-          <h3 className="card-title small">혼자 하는 훈련</h3>
-          <p className="sub small">
-            {train.full ? '보상이 가득 찼어요' : `한 시간에 ${RULES.goldPerHour}G · 최대 ${RULES.trainCapHours}시간`}
-          </p>
-          <div className="bar thin">
-            <div style={{ width: `${(train.hours / RULES.trainCapHours) * 100}%` }} />
-          </div>
-        </div>
-        <button className="btn btn-primary btn-sm" disabled={train.gold <= 0} onClick={actions.claimTraining}>
-          <Gold value={train.gold} size={14} />
         </button>
       </section>
 
@@ -202,7 +220,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
       {buying && (
         <ConfirmDialog
           title={`${itemOf(buying)!.name} 테마를 열까요?`}
-          message={`길드 금고에서 ${itemOf(buying)!.price.toLocaleString()}G를 써요. 길드 모두가 같이 쓸 수 있어요.`}
+          message={`길드 코인 ${itemOf(buying)!.price.toLocaleString()}개를 써요. 길드 모두가 같이 쓸 수 있어요.`}
           ok="열기"
           cancel="다음에"
           onOk={() => buyPlace(buying)}
@@ -282,12 +300,5 @@ export function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () 
   )
 }
 
-function Tick() {
-  return (
-    <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 8.5 L6.5 12 L13 4.5" />
-    </svg>
-  )
-}
 
 

@@ -3,7 +3,7 @@
 // 체결 규칙도 실제처럼: 사려는 값이 가장 싼 매도호가보다 낮으면 체결되지 않는다.
 import { useState } from 'react'
 import { priceOf, tickerOf } from '../data/market'
-import { actions, useGame } from '../store'
+import { actions, cashOf, useGame } from '../store'
 import { Coach, ORDER_GUIDE } from '../components/Coach'
 import { Term } from './InvestAccount'
 import type { Guild, Proposal } from '../types'
@@ -68,7 +68,7 @@ export function OrderBook({
   // 실제로 체결될 값
   const fill = side === 'buy' ? (type === 'market' ? b.ask : price >= b.ask ? b.ask : null) : type === 'market' ? b.bid : price <= b.bid ? b.bid : null
   const unit = type === 'market' ? (side === 'buy' ? b.ask : b.bid) : price
-  const maxQty = side === 'buy' ? Math.floor(g.cash / unit) : ownQty
+  const maxQty = side === 'buy' ? Math.floor(cashOf(g) / unit) : ownQty
   const [qtyIn, setQtyIn] = useState(0)
   const qty = Math.max(0, Math.min(qtyIn || (side === 'buy' ? Math.min(maxQty, Math.max(1, Math.floor(1_000_000 / unit))) : ownQty), maxQty))
   const total = qty * unit
@@ -163,7 +163,7 @@ export function OrderBook({
         {side === 'buy' && (
           <div className="ob-pcts">
             {[10, 25, 50, 100].map((r) => (
-              <button key={r} onClick={() => setQtyIn(Math.max(1, Math.floor((g.cash * r) / 100 / unit)))}>
+              <button key={r} onClick={() => setQtyIn(Math.max(1, Math.floor((cashOf(g) * r) / 100 / unit)))}>
                 {r === 100 ? '최대' : `${r}%`}
               </button>
             ))}
@@ -173,7 +173,7 @@ export function OrderBook({
         <div className="ob-sum">
           <div>
             <small>{side === 'buy' ? '주문가능' : '보유'}</small>
-            <span>{side === 'buy' ? `${won(g.cash)}원` : `${won(ownQty)}주`}</span>
+            <span>{side === 'buy' ? `${won(cashOf(g))}원` : `${won(ownQty)}주`}</span>
           </div>
           <div>
             <small>주문금액</small>

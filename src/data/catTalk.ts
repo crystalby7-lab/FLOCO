@@ -1,7 +1,7 @@
 // 고양이가 먼저 묻는 질문 (일방형). 답을 고르면 고양이가 한마디 하고 끝난다.
 // 정답은 없고, 돈·투자를 자기 말로 생각해보게 하는 게 목적. 종목 추천은 하지 않는다.
 import type { GameState } from '../types'
-import { memberName, me, vault } from '../store'
+import { memberName, me, needReview, vault } from '../store'
 import { tickerOf } from './market'
 import type { Face } from '../components/CatView'
 
@@ -72,13 +72,13 @@ export function pickAsk(s: GameState, n: number): Ask {
   const myId = me(g).id
   const v = vault(g, s.day)
   const ctx: Ask[] = []
-  const waiting = g.proposals.find((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
+  const waiting = needReview(g, myId)[0]
   if (waiting)
     ctx.push({
-      q: `${memberName(g, waiting.proposerId)}가 ${tickerOf(waiting.ticker).name} 사자고 했잖아. 어떻게 생각해?`,
+      q: `${memberName(g, waiting.proposerId)}가 ${tickerOf(waiting.ticker).name} 샀대. 근거 읽어봤어?`,
       choices: [
-        { t: '좋아 보여', reply: '그럼 투자 탭에서 좋아요 눌러줘! 이유도 한 줄', face: 'happy' },
-        { t: '좀 걱정돼', reply: '걱정도 소중한 의견이야. 적어주면 다 같이 볼 수 있어', face: 'calm' },
+        { t: '근거가 탄탄해', reply: '그럼 어디가 좋았는지 피드백 한 줄 남겨 줘!', face: 'happy' },
+        { t: '빠진 게 있어', reply: '같이 찾아볼 걸 적어 주면 친구한테 큰 도움이야', face: 'calm' },
         { t: '아직 안 읽었어', reply: '이유 세 칸만 읽어보자. 금방이야', face: 'wow' },
       ],
     })

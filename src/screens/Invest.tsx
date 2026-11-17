@@ -1,6 +1,6 @@
-// 같이 투자: 금고 → 종목 살펴보기 → 제안(종목·금액·이유 3칸·AI 검토) → 의견 → 모의매매 → 같이 돌아보기 (F4·F5·F6)
+// 투자: 계좌는 각자 따로. 종목 살펴보기 → 이유 3칸·AI 확인 → 바로 체결 → 친구들이 근거에 피어 피드백 → 팔고 돌아보기
 import { useState } from 'react'
-import { actions, majority, me, memberName, mustRetro, RULES, unlocked, useGame, vault } from '../store'
+import { actions, cashOf, me, memberName, mustRetro, needReview, RULES, unlocked, useGame, vault } from '../store'
 import { asOfDate, asOfLabel, changePct, comparePair, feeAsOf, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
 import { companyOf, moneyLabel } from '../data/companies'
 import { Empty } from '../components/ui'
@@ -40,7 +40,7 @@ const CHIP_TEXT: Record<string, string> = {
   '금리 변화': '금리가 바뀌면 ',
   '비슷한 다른 ETF': '비슷한 ',
   '한 종목만 사기': '회사 하나만 사는 건 ',
-  '지금 바로 사기': '금고를 한 번에 다 쓰는 건 ',
+  '지금 바로 사기': '계좌를 한 번에 다 쓰는 건 ',
 }
 
 // 근거 쓰기 전 확인 체크리스트: 누르면 종목 상세의 사실이 '왜 사고 싶어?' 칸에 들어간다
@@ -64,16 +64,18 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
   const tools = unlocked(s)
   const [writing, setWriting] = useState<string | null>(null) // 제안할 종목 (null = 닫힘)
   const [viewing, setViewing] = useState<string | null>(null) // 종목 상세
-  const [filter, setFilter] = useState<'all' | 'voting' | 'holding' | 'done'>('all')
+  const [filter, setFilter] = useState<'all' | 'friends' | 'holding' | 'done'>('all')
   const canPropose = true // 근거 3칸 + AI 확인이 곧 관문이라 퀘스트 잠금 없이 바로 거래
   const [market, setMarket] = useState(false)
   const [selling, setSelling] = useState<{ p: Proposal; price: number } | null>(null)
   const [order, setOrder] = useState<{ price: number; qty: number; type: 'limit' | 'market' } | null>(null)
 
+  const myId = me(g).id
+  const todo = needReview(g, myId)
   const lists = {
-    voting: g.proposals.filter((p) => p.status === 'voting'),
-    holding: g.proposals.filter((p) => p.status === 'holding'),
-    done: g.proposals.filter((p) => p.status === 'sold' || p.status === 'rejected'),
+    friends: [...todo, ...g.proposals.filter((p) => p.proposerId !== myId && p.status === 'holding' && !todo.includes(p))],
+    holding: g.proposals.filter((p) => p.proposerId === myId && p.status === 'holding'),
+    done: g.proposals.filter((p) => p.status === 'sold'),
   }
 
   return (
@@ -81,16 +83,16 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
       <InvestAccount g={g} day={s.day} go={go} onOpen={setViewing} onMarket={() => setMarket(true)} />
 
       <div className="section-head invest-guild-head">
-        <h2>주문 현황</h2>
-        <span className="muted">길드 {majority(g)}명이 확인하면 체결돼요 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
+        <h2>거래 노트</h2>
+        <span className="muted">계좌는 각자, 피드백은 같이 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
       </div>
 
       <div className="seg filter">
         {(
           [
             ['all', '전체'],
-            ['voting', `의견 ${lists.voting.length}`],
-            ['holding', `보유 ${lists.holding.length}`],
+            ['friends', `친구 거래${todo.length ? ` ${todo.length}` : ''}`],
+            ['holding', `내 보유 ${lists.holding.length}`],
             ['done', `지난 ${lists.done.length}`],
           ] as const
         ).map(([k, label]) => (
@@ -100,11 +102,11 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
         ))}
       </div>
 
-      {(filter === 'all' || filter === 'voting') && (
-        <Section title="의견 모으는 중" empty="지금은 조용해요" list={lists.voting} g={g} day={s.day} onOpen={setViewing} />
+      {(filter === 'all' || filter === 'friends') && (
+        <Section title="친구 거래 · 피드백 남기기" empty="친구가 사면 여기서 근거를 같이 봐요" list={lists.friends} g={g} day={s.day} onOpen={setViewing} />
       )}
       {(filter === 'all' || filter === 'holding') && (
-        <Section title="길드가 가진 것" empty="아직 산 게 없어요" list={lists.holding} g={g} day={s.day} onOpen={setViewing} />
+        <Section title="내가 가진 것" empty="아직 산 게 없어요" list={lists.holding} g={g} day={s.day} onOpen={setViewing} />
       )}
       {(filter === 'all' || filter === 'done') && (
         <Section title="지난 이야기" empty="팔고 나면 여기서 같이 돌아봐요" list={lists.done} g={g} day={s.day} onOpen={setViewing} />
@@ -117,7 +119,7 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
           day={s.day}
           compare={tools.has('etf_compare')}
           canPropose={canPropose}
-          holding={g.proposals.filter((p) => p.status === 'holding' && tickerOf(p.ticker).code === tickerOf(viewing).code)}
+          holding={g.proposals.filter((p) => p.proposerId === myId && p.status === 'holding' && tickerOf(p.ticker).code === tickerOf(viewing).code)}
           onClose={() => setViewing(null)}
           g={g}
           onPropose={() => {
@@ -373,36 +375,39 @@ function Section({ title, empty, list, g, day, onOpen }: { title: string; empty:
   )
 }
 
+const REVIEW_CHECKS = ['근거가 구체적이에요', '안 본 것도 적었어요', '확인할 수 있는 사실이에요'] as const
+
 function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: number; onOpen: (c: string) => void }) {
   const t = tickerOf(p.ticker)
   const myId = me(g).id
-  const myVote = p.votes.find((v) => v.memberId === myId)
+  const mine = p.proposerId === myId
+  const reviews = p.reviews ?? []
+  const myReview = reviews.find((r) => r.memberId === myId)
   const needRetro = mustRetro(g, p, myId)
-  const [open, setOpen] = useState((p.status === 'voting' && !myVote) || needRetro)
-  const [opposing, setOpposing] = useState(false)
+  const canReview = !mine && !myReview
+  const [open, setOpen] = useState(canReview || needRetro)
   const [retroOpen, setRetroOpen] = useState(false)
-  const [oppose, setOppose] = useState('')
-  const yes = p.votes.filter((v) => v.agree).length
-  const need = majority(g)
+  const [checks, setChecks] = useState<[boolean, boolean, boolean]>([false, false, false])
+  const [line, setLine] = useState('')
   const now = priceOf(p.ticker, day)
   const last = p.sellPrice ?? now
   const pnl = p.qty && p.buyPrice ? p.qty * (last - p.buyPrice) : 0
   const ret = p.buyPrice ? ((last - p.buyPrice) / p.buyPrice) * 100 : 0
   const retros = g.retros.filter((r) => r.proposalId === p.id)
-  const statusLabel = { voting: '의견 모으는 중', holding: '갖고 있어요', sold: '팔았어요', rejected: '이번엔 패스' }[p.status]
+  const statusLabel = p.status === 'sold' ? '팔았어요' : mine ? '내가 가진 것' : '친구가 샀어요'
   // 들고 있은 날: 실제 종가로 샀으면 진짜 날짜 차이로, 아니면 데모 거래일 차이로
   const heldByDate = p.createdDate ? daysBetween(p.createdDate, p.soldDate ?? asOfDate() ?? p.createdDate) : null
   const held = heldByDate ?? (p.status === 'holding' ? day - p.createdDay : (p.soldDay ?? day) - p.createdDay)
 
   return (
-    <article className={`proposal ${p.status}`}>
+    <article className={`proposal ${p.status} ${mine ? 'mine' : 'friend'}`}>
       <button className="proposal-head" onClick={() => setOpen(!open)}>
         <Avatar g={g} id={p.proposerId} size={40} />
         <div className="grow">
           <span className={`badge ${p.status}`}>{statusLabel}</span>
           <h3>{t.name}</h3>
           <small>
-            {memberName(g, p.proposerId)} · <span className="num">{p.amount.toLocaleString()}원</span>
+            {memberName(g, p.proposerId)} · <span className="num">{p.qty ? `${p.qty}주` : `${p.amount.toLocaleString()}원`}</span> · 피드백 {reviews.length}
           </small>
         </div>
         <div className="proposal-right">
@@ -413,29 +418,10 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
               <small>{pct(ret)}</small>
             </span>
           )}
+          {canReview && <span className="dot-alert">피드백</span>}
           {needRetro && <span className="dot-alert">돌아보기</span>}
         </div>
       </button>
-
-      {p.status === 'voting' && (
-        <div className="vote-meter">
-          <div className="vote-track">
-            {Array.from({ length: g.members.length }, (_, i) => (
-              <i key={i} className={i < yes ? 'yes' : i < p.votes.length ? 'no' : ''} />
-            ))}
-          </div>
-          <span className="small sub">
-            좋아 {yes} / {need}명 필요
-          </span>
-          <span className="voters">
-            {p.votes.map((v) => (
-              <span key={v.memberId} className={`voter ${v.agree ? 'yes' : 'no'}`}>
-                <Avatar g={g} id={v.memberId} size={22} />
-              </span>
-            ))}
-          </span>
-        </div>
-      )}
 
       {open && (
         <div className="proposal-body">
@@ -454,58 +440,54 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
             {t.name} 자세히 보기 ›
           </button>
 
-          {p.votes.some((v) => v.reason) && (
-            <ul className="vote-list">
-              {p.votes
-                .filter((v) => v.reason)
-                .map((v) => (
-                  <li key={v.memberId}>
-                    <Avatar g={g} id={v.memberId} size={26} />
-                    <div>
-                      <b>{memberName(g, v.memberId)}의 걱정</b>
-                      <span>"{v.reason}"</span>
-                    </div>
-                  </li>
-                ))}
+          {reviews.length > 0 && (
+            <ul className="review-list">
+              {reviews.map((r) => (
+                <li key={r.memberId}>
+                  <Avatar g={g} id={r.memberId} size={26} />
+                  <div>
+                    <b>{memberName(g, r.memberId)}의 피드백</b>
+                    <span className="rv-checks">
+                      {REVIEW_CHECKS.map((c, i) => (
+                        <em key={c} className={r.checks[i] ? 'ok' : 'no'}>
+                          {r.checks[i] ? '✓' : '·'} {c}
+                        </em>
+                      ))}
+                    </span>
+                    <span>"{r.text}"</span>
+                  </div>
+                </li>
+              ))}
             </ul>
           )}
 
-          {p.status === 'voting' && !myVote && !opposing && (
-            <div className="row">
-              <button className="btn btn-primary" onClick={() => actions.vote(p.id, true)}>
-                좋아
-              </button>
-              <button className="btn" onClick={() => setOpposing(true)}>
-                글쎄, 걱정돼
-              </button>
-            </div>
-          )}
-          {p.status === 'voting' && !myVote && opposing && (
-            <div className="form">
-              <label className="small-label">
-                어떤 게 걱정돼? · 경험치 +{RULES.exp.opposeReason}
-                <input value={oppose} onChange={(e) => setOppose(e.target.value)} maxLength={80} placeholder="한 줄이면 충분해요" />
-              </label>
-              <div className="chips">
-                {['한 산업에 몰려 있어', '수수료가 높아', '금고에서 비중이 커', '최근에 너무 올랐어'].map((c) => (
-                  <button key={c} className="chip" onClick={() => setOppose(c)}>
+          {canReview && (
+            <div className="review-form">
+              <b>근거를 같이 봐 줘요 · 경험치 +{RULES.exp.review}</b>
+              <div className="rv-toggles">
+                {REVIEW_CHECKS.map((c, i) => (
+                  <button key={c} className={checks[i] ? 'on' : ''} onClick={() => setChecks(checks.map((v, k) => (k === i ? !v : v)) as [boolean, boolean, boolean])}>
+                    {checks[i] ? '✓ ' : ''}
                     {c}
                   </button>
                 ))}
               </div>
-              <div className="row">
-                <button className="btn" onClick={() => setOpposing(false)}>
-                  취소
-                </button>
-                <button className="btn btn-primary" disabled={oppose.trim().length < 6} onClick={() => actions.vote(p.id, false, oppose.trim())}>
-                  의견 보내기
-                </button>
+              <input value={line} onChange={(e) => setLine(e.target.value)} maxLength={80} placeholder="좋았던 점이나 같이 찾아볼 것 한 줄" />
+              <div className="chips">
+                {['환율 영향도 같이 보자', '총보수 비교해 보면 좋겠어', '한 회사 비중이 궁금해', '근거가 숫자라 믿음이 가'].map((c) => (
+                  <button key={c} className="chip" onClick={() => setLine(c)}>
+                    {c}
+                  </button>
+                ))}
               </div>
+              <button className="btn btn-primary btn-block" disabled={line.trim().length < 6} onClick={() => actions.review(p.id, checks, line.trim())}>
+                피드백 보내기
+              </button>
             </div>
           )}
-          {p.status === 'voting' && myVote && <p className="muted">의견 보냈어요 · 친구들 기다리는 중</p>}
+          {mine && reviews.length === 0 && p.status === 'holding' && <p className="muted">친구들이 근거를 읽는 중이에요</p>}
 
-          {p.status === 'holding' && (
+          {p.status === 'holding' && mine && (
             <div className="hold">
               <PriceChart data={history(p.ticker, day, Math.max(5, held + 3))} height={90} base={p.buyPrice} />
               <div className="hold-grid">
@@ -543,7 +525,7 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
                   <div className="retro-who">
                     <Avatar g={g} id={r.authorId} size={24} />
                     <small>
-                      {memberName(g, r.authorId)} · {r.role === 'proposer' ? '제안한 사람' : '걱정한 사람'}
+                      {memberName(g, r.authorId)} · {r.role === 'proposer' ? '산 사람' : '친구'}
                     </small>
                   </div>
                   {r.parts ? (
@@ -576,8 +558,7 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
 
 function RetroForm({ g, p, onClose }: { g: Guild; p: Proposal; onClose: () => void }) {
   const [parts, setParts] = useState<[string, string, string]>(['', '', ''])
-  const myId = me(g).id
-  const mine = p.proposerId === myId ? p.reasons[0] : p.votes.find((v) => v.memberId === myId)?.reason
+  const mine = p.reasons[0]
   const labels = ['내 이유 중 맞았던 것', '빗나간 것', '다음엔 이렇게']
   const last = p.sellPrice ?? 0
   const ret = p.buyPrice ? ((last - p.buyPrice) / p.buyPrice) * 100 : 0
@@ -607,6 +588,16 @@ function RetroForm({ g, p, onClose }: { g: Guild; p: Proposal; onClose: () => vo
         <div className="my-reason">
           <small>그때 내가 쓴 이유</small>
           <p>"{mine}"</p>
+        </div>
+      )}
+      {(p.reviews ?? []).length > 0 && (
+        <div className="my-reason">
+          <small>그때 친구들이 남긴 피드백</small>
+          {(p.reviews ?? []).map((r) => (
+            <p key={r.memberId}>
+              {memberName(g, r.memberId)}: "{r.text}"
+            </p>
+          ))}
         </div>
       )}
       {labels.map((l, i) => (
@@ -654,7 +645,8 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
   const [asked, setAsked] = useState<Check | null>(null)
   const [askedOnce, setAskedOnce] = useState(false)
   const price = order?.price ?? priceOf(ticker, day)
-  const maxQty = Math.floor(g.cash / price)
+  const cash = cashOf(g)
+  const maxQty = Math.floor(cash / price)
   const qty = order?.qty ?? Math.min(qtyIn || Math.max(1, Math.floor(1_000_000 / price)), maxQty)
   const amount = qty * price
   const share = Math.round((amount / vault(g, day).total) * 100)
@@ -749,12 +741,12 @@ function ProposalForm({ g, day, start, compare, order, onClose }: { g: Guild; da
               </button>
             </div>
             <small className="sub">
-              주문가능금액 {g.cash.toLocaleString()}원 · 내 계좌의 {share}%
+              주문가능금액 {cash.toLocaleString()}원 · 내 계좌의 {share}%
             </small>
           </div>
           <div className="chips qty-chips">
             {[10, 25, 50, 100].map((r) => {
-              const q = Math.floor((g.cash * r) / 100 / price)
+              const q = Math.floor((cash * r) / 100 / price)
               return (
                 <button key={r} className="chip" disabled={q < 1} onClick={() => setQtyIn(q)}>
                   {r === 100 ? '최대' : `${r}%`}

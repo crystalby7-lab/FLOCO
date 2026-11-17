@@ -11789,3 +11789,76 @@ label.set2-row:active {
 .cw-hud .cw-place.sign { position: absolute; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); width: 200px; flex: none; }
 .cw-hud .cw-coin { margin-left: auto; }
 .cw-hud .cw-place.sign { align-items: center; justify-content: flex-start; }
+
+/* ───── v12 홈 집: 우리 그림체(얇은 갈색 선·파스텔)에 맞춘 아기자기한 집과 마당 ───── */
+.home-house { height: 318px; background: linear-gradient(180deg, #bcd9f5 0%, #d9eafb 58%, #eef6fd 100%); }
+.home-house.tod-evening { background: linear-gradient(180deg, #f6c4b2 0%, #fadccd 58%, #fdeee6 100%); }
+.home-house.tod-night { background: linear-gradient(180deg, #4b5d95 0%, #7182b5 60%, #9aa5cd 100%); }
+.home-house .hh-ground { height: 86px; background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.35) 0 3px, transparent 4px) 0 0 / 34px 22px, linear-gradient(180deg, #d3ecb9, #bfe0a0); border-top: 2.5px solid #9cc483; border-radius: 50% 50% 0 0 / 30px 30px 0 0; }
+.tod-night .home-house .hh-ground, .home-house.tod-night .hh-ground { background: linear-gradient(180deg, #82a986, #6d9673); border-top-color: #5e8564; }
+.hh-sun { position: absolute; left: 22px; top: 20px; width: 38px; z-index: 1; animation: hh-pop 4s ease-in-out infinite; }
+.hh-fence { position: absolute; bottom: 70px; width: 104px; z-index: 1; opacity: .95; }
+.hh-fence.l { left: -6px; } .hh-fence.r { right: -6px; transform: scaleX(-1); }
+.hh-bush { position: absolute; bottom: 40px; z-index: 3; width: 92px; }
+.hh-bush.l { left: -18px; } .hh-bush.r { right: -16px; width: 84px; }
+.hh-flowers { position: absolute; bottom: 14px; z-index: 4; }
+.hh-flowers.l { left: 64px; width: 46px; } .hh-flowers.r { right: 92px; width: 18px; bottom: 18px; } .hh-flowers.r2 { right: 40px; width: 40px; bottom: 10px; }
+.home-house .hh-house { width: 214px; height: 196px; margin-bottom: 36px; }
+.home-house .hh-chimney, .home-house .hh-roof, .home-house .hh-body { display: none; }
+.hh-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 10px rgba(80,90,130,.16)); }
+.hh-svg * { stroke: #b88d70; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+.hh-chim { fill: #f0cfae; }
+.hh-wall { fill: #fff7ea; }
+.hh-roofp { fill: #f6b6a4; }
+.hh-scallop circle { fill: #f29f8b; }
+.hh-attic { fill: #fff7ea; }
+.hh-heart { fill: #f58f9a; stroke-width: 1.6; }
+.hh-win { fill: #d4e9fb; }
+.tod-night .hh-win { fill: #ffe7a3; }
+.hh-pane { fill: none; stroke-width: 2; }
+.hh-box { fill: #d9ac86; }
+.hh-f1 { fill: #fbb6c7; stroke-width: 1.6; } .hh-f2 { fill: #ffe08a; stroke-width: 1.6; }
+.home-house .hh-door { left: 50%; bottom: 0; width: 62px; height: 80px; border-radius: 31px 31px 6px 6px; background: #f1caa3; border: 2.6px solid #b88d70; box-shadow: inset 0 -8px 0 #e6b78d; overflow: hidden; z-index: 2; }
+.home-house .hh-door img { width: 70px; margin-bottom: -6px; }
+.home-house .hh-plate { top: auto; bottom: 86px; background: #fff7ea; color: #9a6f52; border: 2px solid #b88d70; font-size: 11.5px; padding: 3px 10px; box-shadow: 0 2px 0 #e7cdb6; z-index: 3; }
+
+/* ───── v12 오늘 할 일: 노트 한 장 느낌 ───── */
+.live .checklist.cute { position: relative; overflow: visible; background-color: #fffdf8; border: 2px dashed #d7e3f2; padding-top: 22px; }
+.cl-tape { position: absolute; top: -10px; left: 50%; width: 86px; height: 20px; transform: translateX(-50%) rotate(-3deg); background: repeating-linear-gradient(45deg, #ffd6df 0 8px, #ffe7ec 8px 16px); border-radius: 4px; opacity: .92; box-shadow: 0 2px 4px rgba(0,0,0,.06); }
+.cl-head { align-items: flex-end; }
+.cl-date { display: block; font-size: 11.5px; font-weight: 800; color: #8aa3c4; letter-spacing: .02em; }
+.cl-count { font-size: 13px; font-weight: 800; color: #8aa3c4; background: #eef4fb; padding: 4px 10px; border-radius: 999px; }
+.cl-count b { color: var(--blue); font-size: 16px; }
+.checklist.cute ul { display: grid; gap: 8px; }
+.cl-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 18px; border: 0; text-align: left; transition: transform .15s; }
+.cl-item:active { transform: scale(.98); }
+.cl-item.mint { background: #e6f6ef; } .cl-item.pink { background: #fdebf0; } .cl-item.yellow { background: #fff5d9; }
+.cl-ic { width: 40px; height: 40px; flex: none; border-radius: 14px; background: #fff; display: grid; place-items: center; box-shadow: 0 2px 0 rgba(0,0,0,.05); }
+.cl-ic img { width: 28px; height: 28px; object-fit: contain; }
+.cl-item .todo-text { display: flex; flex-direction: column; gap: 1px; }
+.cl-item .todo-text b { font-size: 14.5px; color: var(--ink, #23324d); }
+.cl-item .todo-text small { font-size: 11.5px; color: #8a97ab; font-weight: 700; }
+.cl-item .go { font-size: 20px; font-weight: 900; color: #a9b6c9; }
+.cl-item.done { opacity: 1; }
+.cl-item.done .todo-text b { text-decoration: line-through; text-decoration-color: rgba(0,0,0,.25); color: #8a97ab; }
+.cl-stamp { width: 30px; transform: rotate(-14deg); animation: cl-stamp .35s ease-out; }
+@keyframes cl-stamp { from { transform: scale(1.8) rotate(-14deg); opacity: 0; } to { transform: scale(1) rotate(-14deg); opacity: 1; } }
+.cl-reward { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+.cl-reward img { width: 22px; height: 22px; }
+.cl-reward.ready { animation: hh-pop 1.4s ease-in-out infinite; }
+
+/* ───── v12 친구 거래 피어 피드백 ───── */
+.review-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.review-list li { display: flex; gap: 8px; align-items: flex-start; background: #f5f8fd; border-radius: 14px; padding: 10px; }
+.review-list li > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.review-list b { font-size: 13px; }
+.review-list span { font-size: 13px; }
+.rv-checks { display: flex; flex-wrap: wrap; gap: 4px; }
+.rv-checks em { font-style: normal; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 999px; }
+.rv-checks em.ok { background: #e2f5ea; color: #2f8a57; } .rv-checks em.no { background: #eef1f5; color: #97a2b3; }
+.review-form { margin-top: 12px; display: grid; gap: 8px; background: #fdf3f6; border-radius: 16px; padding: 12px; }
+.review-form > b { font-size: 13.5px; }
+.rv-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.rv-toggles button { border: 1.5px solid #e5d5dc; background: #fff; border-radius: 999px; padding: 6px 10px; font-size: 12.5px; font-weight: 800; color: #6c7586; }
+.rv-toggles button.on { background: #ff8fab; border-color: #ff8fab; color: #fff; }
+.review-form input { width: 100%; border: 1.5px solid #e5d5dc; border-radius: 12px; padding: 10px 12px; font: inherit; background: #fff; }

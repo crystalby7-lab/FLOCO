@@ -11,7 +11,7 @@ import { Survey } from './Survey'
 const GRADES = ['중1', '중2', '중3', '고1', '고2', '고3', '기타']
 
 const SLIDES = [
-  { art: ['friend_grey', 'sit', 'friend_orange'], title: '친구들이랑\n고양이 한 마리를 같이 키워요', body: '길드는 2~5명. 금고도, 고양이도 함께 써요.' },
+  { art: ['friend_grey', 'sit', 'friend_orange'], title: '친구들이랑\n고양이 한 마리를 같이 키워요', body: '길드는 2~5명. 고양이는 같이, 투자 계좌는 각자. 서로 근거에 피드백해요.' },
   { art: ['hug'], title: '고양이 밥값은\n같이 투자해서 벌어요', body: '사고 싶은 이유를 3칸에 쓰고, 친구들이 좋다고 하면 연습용 골드로 사요.' },
   { art: ['crown'], title: '돈을 벌어서가 아니라\n생각해서 자라요', body: '레벨은 수익이 아니라 이유를 쓰고 같이 돌아볼 때만 올라요. 손해를 봐도 고양이는 괜찮아요.' },
 ]

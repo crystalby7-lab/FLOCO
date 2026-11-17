@@ -35,7 +35,7 @@ export const RULES = {
   talksPerDay: 3, // 고양이 질문에 답하면 기분 +5 (하루 3번)
   floor: 10, // 손실이 나도, 오래 안 들어와도 고양이는 이 아래로 안 떨어짐
   expPerLevel: 100,
-  exp: { proposalPass: 15, opposeReason: 5, retro: 30 },
+  exp: { proposalPass: 15, opposeReason: 5, review: 8, retro: 30 },
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10)
@@ -86,7 +86,13 @@ function migrate(raw: Partial<GameState>): GameState {
       cash: g.cash ?? RULES.startCash - g.proposals.filter((p) => p.status === 'holding' && p.qty && p.buyPrice).reduce((a, p) => a + p.qty! * p.buyPrice!, 0),
       gold: g.cash === undefined ? Math.min(g.gold, RULES.startGold) : g.gold,
       // 예전에 K200·SP500으로 저장된 제안을 실제 종목코드로 바꾼다
-      proposals: (g.proposals ?? []).map((p) => ({ ...p, ticker: realCode(p.ticker) })),
+      // 예전 '의견 모으는 중' 제안은 이제 투표가 없으니 그 가격으로 바로 체결된 걸로 본다
+      proposals: (g.proposals ?? []).map((p) => {
+        const q = { ...p, ticker: realCode(p.ticker) }
+        if (q.status !== 'voting' && q.status !== 'rejected') return q
+        const price = q.orderPrice ?? priceOf(q.ticker, s.day ?? 0)
+        return { ...q, status: 'holding' as const, buyPrice: price, qty: q.orderQty ?? Math.max(1, Math.floor(q.amount / price)), boughtAt: q.boughtAt ?? Date.now() }
+      }),
       board: (g.board ?? seedBoard(g.members)).filter((p) => !p.text.startsWith('[신문]')), // 예전 신문 공유 글은 정리
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
@@ -195,9 +201,17 @@ export function unlocked(s: GameState) {
 
 export const me = (g: Guild) => g.members.find((m) => m.isMe)!
 
-// 금고 평가: 현금 + 보유 종목 지금 가격
-export function vault(g: Guild, day: number) {
-  const holdings = g.proposals
+// 내 계좌는 사람마다 따로: 시작 금액 − 산 금액 + 판 금액 (거래로만 바뀐다)
+export function cashOf(g: Guild, memberId = me(g).id) {
+  return g.proposals
+    .filter((p) => p.proposerId === memberId && p.qty && p.buyPrice && (p.status === 'holding' || p.status === 'sold'))
+    .reduce((a, p) => a - p.qty! * p.buyPrice! + (p.status === 'sold' ? p.qty! * (p.sellPrice ?? p.buyPrice!) : 0), RULES.startCash)
+}
+
+// 계좌 평가: 내 현금 + 내가 가진 종목 지금 가격
+export function vault(g: Guild, day: number, memberId = me(g).id) {
+  const mine = g.proposals.filter((p) => p.proposerId === memberId)
+  const holdings = mine
     .filter((p) => p.status === 'holding' && p.qty && p.buyPrice)
     .map((p) => {
       const now = priceOf(p.ticker, day)
@@ -205,10 +219,16 @@ export function vault(g: Guild, day: number) {
     })
   const invested = holdings.reduce((a, h) => a + h.value, 0)
   const pnl = holdings.reduce((a, h) => a + h.pnl, 0)
-  const realized = g.proposals
+  const realized = mine
     .filter((p) => p.status === 'sold' && p.qty && p.buyPrice && p.sellPrice)
     .reduce((a, p) => a + p.qty! * (p.sellPrice! - p.buyPrice!), 0)
-  return { cash: g.cash, invested, total: g.cash + invested, pnl, realized, holdings }
+  const cash = cashOf(g, memberId)
+  return { cash, invested, total: cash + invested, pnl, realized, holdings }
+}
+
+// 내가 아직 피드백을 안 남긴 친구 거래
+export function needReview(g: Guild, memberId = me(g).id) {
+  return g.proposals.filter((p) => p.proposerId !== memberId && p.status !== 'rejected' && p.status !== 'voting' && !(p.reviews ?? []).some((r) => r.memberId === memberId))
 }
 
 const yesterday = () => {
@@ -231,7 +251,6 @@ function markDaily(key: 'quest' | 'vote' | 'care') {
   })
 }
 export const memberName = (g: Guild, id: string) => g.members.find((m) => m.id === id)?.nickname ?? '?'
-export const majority = (g: Guild) => Math.floor(g.members.length / 2) + 1
 
 // ───────── 내부 수정 도우미 ─────────
 
@@ -275,7 +294,7 @@ const BOT_ANSWER = ['지도 시장 거리에 그거 나와!', '종목 상세에�
 const BOT_OPPOSE = [
   '한 산업에만 몰려 있어서 너무 크게 흔들릴 것 같아.',
   '수수료가 다른 ETF보다 높아서 오래 들고 있기엔 아쉬워.',
-  '지금 금고에서 너무 큰 비중이라 나눠서 사는 게 좋겠어.',
+  '계좌에서 너무 큰 비중이라 나눠서 사는 게 좋겠어.',
   '최근에 많이 올라서 이유가 아직 유효한지 더 보고 싶어.',
 ]
 const BOT_RETRO_PROPOSER = [
@@ -307,23 +326,41 @@ function seedProposal(): Proposal {
       '나스닥100 ETF도 봤는데 기술 기업에만 몰려 있어서 이번엔 사지 않기로 했다.',
     ],
     ai: { pass: true, message: '근거가 확인됐어요.' },
-    votes: [{ memberId: 'bot-haneul', agree: true }],
-    status: 'voting',
+    votes: [],
+    status: 'holding',
+    buyPrice: priceOf('360750', 0),
+    qty: Math.floor(2_000_000 / priceOf('360750', 0)),
+    boughtAt: Date.now(),
+    reviews: [{ memberId: 'bot-doyun', checks: [true, false, true], text: '총보수까지 본 건 좋아. 환율은 다음에 같이 찾아보자.', at: Date.now() }],
     createdDay: 0,
   }
 }
 
-function scheduleBotVotes(proposalId: string) {
+// 데모 친구들이 내 거래에 피드백을 남겨 준다
+function scheduleBotReviews(proposalId: string) {
   const g = state.guild
   if (!g) return
   const p = g.proposals.find((x) => x.id === proposalId)
-  if (!p || p.status !== 'voting') return
-  const waiting = g.members.filter((m) => m.isBot && !p.votes.some((v) => v.memberId === m.id))
+  if (!p) return
+  const waiting = g.members.filter((m) => m.isBot && m.id !== p.proposerId && !(p.reviews ?? []).some((r) => r.memberId === m.id))
   waiting.forEach((bot, i) => {
     setTimeout(() => {
-      const agree = Math.random() < 0.7
-      castVote(proposalId, bot.id, agree, agree ? undefined : pick(BOT_OPPOSE))
-    }, 1200 + i * 1400)
+      const checks: [boolean, boolean, boolean] = [Math.random() < 0.8, Math.random() < 0.6, Math.random() < 0.7]
+      addReview(proposalId, bot.id, checks, pick(checks.every(Boolean) ? BOT_REVIEW_GOOD : BOT_OPPOSE))
+    }, 1500 + i * 1700)
+  })
+}
+
+const BOT_REVIEW_GOOD = ['근거가 구체적이라 나도 따라 찾아볼 수 있었어!', '안 본 것까지 적어 둔 게 좋다. 다음에 그거 같이 보자.', '숫자로 확인할 수 있게 써서 믿음이 가.']
+
+function addReview(proposalId: string, memberId: string, checks: [boolean, boolean, boolean], text: string) {
+  updateGuild((g) => {
+    const p = g.proposals.find((x) => x.id === proposalId)
+    if (!p || (p.reviews ?? []).some((r) => r.memberId === memberId)) return g
+    let ng: Guild = { ...g, proposals: g.proposals.map((x) => (x.id === proposalId ? { ...x, reviews: [...(x.reviews ?? []), { memberId, checks, text, at: now() }] } : x)) }
+    const who = memberName(g, memberId)
+    ng = addFeed(ng, '💬', `${who}님이 ${memberName(g, p.proposerId)}님의 ${tickerOf(p.ticker).name} 거래에 피드백을 남겼어요.`)
+    return addExp(ng, RULES.exp.review, `${who}님의 피드백`)
   })
 }
 
@@ -332,62 +369,12 @@ function scheduleBotRetros(proposalId: string) {
   if (!g) return
   const p = g.proposals.find((x) => x.id === proposalId)
   if (!p) return
-  const writers = g.members.filter(
-    (m) => m.isBot && (m.id === p.proposerId || p.votes.some((v) => v.memberId === m.id && !v.agree)),
-  )
+  const writers = g.members.filter((m) => m.isBot && m.id === p.proposerId)
   writers.forEach((bot, i) => {
     setTimeout(() => {
       const role = bot.id === p.proposerId ? 'proposer' : 'opponent'
       writeRetro(proposalId, bot.id, pick(role === 'proposer' ? BOT_RETRO_PROPOSER : BOT_RETRO_OPPONENT))
     }, 1500 + i * 1500)
-  })
-}
-
-// ───────── 투표 결과 처리 (F5) ─────────
-// 실제 서비스에서는 서버 함수가 한 번에 처리해 동시 투표 충돌을 막는다.
-
-function resolve(g: Guild, s: GameState, proposalId: string): Guild {
-  const p = g.proposals.find((x) => x.id === proposalId)
-  if (!p || p.status !== 'voting') return g
-  const yes = p.votes.filter((v) => v.agree).length
-  const no = p.votes.filter((v) => !v.agree).length
-  const need = majority(g)
-  const t = tickerOf(p.ticker)
-
-  if (yes >= need) {
-    const price = p.orderPrice ?? priceOf(p.ticker, s.day)
-    const qty = p.orderQty ?? Math.floor(p.amount / price)
-    if (g.cash < qty * price || qty < 1) {
-      const rejected: Proposal = { ...p, status: 'rejected' }
-      return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '⚠️', '투자금이 부족해 매수하지 못했어요.')
-    }
-    const cost = qty * price
-    const bought: Proposal = { ...p, status: 'holding', buyPrice: price, qty, boughtAt: now() }
-    return addFeed(
-      { ...g, cash: g.cash - cost, proposals: g.proposals.map((x) => (x.id === p.id ? bought : x)) },
-      '✅',
-      `모두 좋대요! ${t.name} ${qty}주를 ${price.toLocaleString()}원에 샀어요.`,
-    )
-  }
-  if (no > g.members.length - need) {
-    const rejected: Proposal = { ...p, status: 'rejected' }
-    return addFeed({ ...g, proposals: g.proposals.map((x) => (x.id === p.id ? rejected : x)) }, '🙅', `${t.name} 제안은 이번엔 패스!`)
-  }
-  return g
-}
-
-function castVote(proposalId: string, memberId: string, agree: boolean, reason?: string) {
-  updateGuild((g, s) => {
-    const p = g.proposals.find((x) => x.id === proposalId)
-    if (!p || p.status !== 'voting' || p.votes.some((v) => v.memberId === memberId)) return g
-    let ng: Guild = {
-      ...g,
-      proposals: g.proposals.map((x) => (x.id === proposalId ? { ...x, votes: [...x.votes, { memberId, agree, reason }] } : x)),
-    }
-    const who = memberName(g, memberId)
-    ng = addFeed(ng, agree ? '👍' : '✋', agree ? `${who}님이 좋대요.` : `${who}님이 걱정했어요: "${reason}"`)
-    if (!agree && reason) ng = addExp(ng, RULES.exp.opposeReason, `${who}님의 걱정 한 줄`)
-    return resolve(ng, s, proposalId)
   })
 }
 
@@ -496,7 +483,7 @@ export const actions = {
     const prev = g.proposals.filter((p) => p.proposerId === myId).map((p) => p.reasons[0])
     const ai = reviewReasons(reasons, prev)
     if (!ai.pass) return ai
-    if (amount > g.cash) return { pass: false, message: '주문가능금액보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
+    if (amount > cashOf(g, myId)) return { pass: false, message: '주문가능금액보다 많은 금액이에요.', hint: '금액을 줄여주세요.' }
     if (!order && amount < priceOf(ticker, state.day)) return { pass: false, message: '1주 가격보다 금액이 적어요.', hint: '금액을 늘리거나 다른 종목을 골라보세요.' }
     const p: Proposal = {
       id: uid(),
@@ -505,18 +492,22 @@ export const actions = {
       amount,
       reasons,
       ai,
-      votes: [{ memberId: myId, agree: true }],
-      status: 'voting',
+      votes: [],
+      status: 'holding',
+      buyPrice: order?.price ?? priceOf(ticker, state.day),
+      qty: order?.qty ?? Math.floor(amount / priceOf(ticker, state.day)),
+      boughtAt: now(),
+      reviews: [],
       createdDay: state.day,
       ...(order ? { orderPrice: order.price, orderQty: order.qty, orderType: order.type } : {}),
       ...(asOfDate() ? { createdDate: asOfDate()! } : {}),
     }
     updateGuild((gg) => {
-      let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '💡', `${me(gg).nickname}님이 ${tickerOf(ticker).name} 매수를 제안했어요.`)
+      let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '✅', `${me(gg).nickname}님이 ${tickerOf(ticker).name} ${p.qty}주를 샀어요. 근거에 피드백을 남겨 주세요!`)
       ng = addExp(ng, RULES.exp.proposalPass, '이유 확인 통과')
       return ng
     })
-    scheduleBotVotes(p.id)
+    scheduleBotReviews(p.id)
     // 체크리스트를 다 하고 금지어 없이 쓴 주문이면 코인 (하루 2번까지)
     if (good) {
       const d = state.daily
@@ -533,9 +524,9 @@ export const actions = {
     return ai
   },
 
-  vote(proposalId: string, agree: boolean, reason?: string) {
-    castVote(proposalId, me(state.guild!).id, agree, reason)
-    scheduleBotVotes(proposalId)
+  // 친구 거래에 피어 피드백 (체크 3개 + 한 줄)
+  review(proposalId: string, checks: [boolean, boolean, boolean], text: string) {
+    addReview(proposalId, me(state.guild!).id, checks, text)
     markDaily('vote')
   },
 
@@ -609,7 +600,7 @@ export const actions = {
       const income = p.qty * price
       const profit = income - p.qty * p.buyPrice
       const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, soldAt: now(), ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
-      const ng = { ...g, cash: g.cash + income, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
+      const ng = { ...g, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,
         profit >= 0 ? '📈' : '📉',
@@ -827,6 +818,5 @@ function writeRetro(proposalId: string, authorId: string, text: string, parts?: 
 // 복기를 써야 하는 사람인지
 export function mustRetro(g: Guild, p: Proposal, memberId: string) {
   if (p.status !== 'sold') return false
-  const involved = p.proposerId === memberId || p.votes.some((v) => v.memberId === memberId && !v.agree)
-  return involved && !g.retros.some((r) => r.proposalId === p.id && r.authorId === memberId)
+  return p.proposerId === memberId && !g.retros.some((r) => r.proposalId === p.id && r.authorId === memberId)
 }
