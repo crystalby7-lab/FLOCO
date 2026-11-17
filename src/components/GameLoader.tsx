@@ -13,22 +13,27 @@ export function GameLoader({ hop, onSwap, onDone }: { hop: Hop; onSwap: () => vo
       setPhase('load')
       onSwap()
     }, reduce ? 50 : 380)
-    const t2 = setTimeout(() => setPhase('open'), reduce ? 300 : 1250)
-    const t3 = setTimeout(onDone, reduce ? 400 : 1650)
+    const t2 = setTimeout(() => setPhase('open'), reduce ? 300 : 1500)
+    const t3 = setTimeout(onDone, reduce ? 400 : 1900)
     return () => [t1, t2, t3].forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hop.key])
   return (
     <div className={`gl gl-${phase}`} aria-live="polite">
-      <div className="gl-card">
-        <div className="gl-track">
-          <img src={ART.walk} alt="" />
-        </div>
+      <div className="gl-sun" />
+      <img className="gl-cloud c1" src={ART.bg_cloud} alt="" />
+      <img className="gl-cloud c2" src={ART.bg_cloud} alt="" />
+      <img className="gl-cloud c3" src={ART.bg_cloud} alt="" />
+      <div className="gl-title">
         <b>{hop.label}</b>
         {hop.sub && <small>{hop.sub}</small>}
-        <div className="gl-bar">
-          <i />
-        </div>
+      </div>
+      <div className="gl-hill" />
+      <img className="gl-house" src={ART.t_bluecat} alt="" />
+      <div className="gl-ground" />
+      <img className="gl-cat" src={ART.walk} alt="" />
+      <div className="gl-bar">
+        <i />
       </div>
     </div>
   )

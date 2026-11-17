@@ -45,7 +45,12 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
     setPending(() => then)
     setHop({ label, sub, key: Date.now() })
   }
-  const goPlace = (i: number) => travel(`${PLACES[i].name}(으)로 이동 중`, owns(PLACES[i].id) ? undefined : '아직 잠겨 있어요', () => setPlace(i))
+  // 장소 이동은 로딩 없이 살짝 미끄러지듯
+  const [slideDir, setSlideDir] = useState<'l' | 'r' | null>(null)
+  const goPlace = (i: number) => {
+    setSlideDir(i > place ? 'r' : 'l')
+    setPlace(i)
+  }
   const flash = (m: string) => {
     setToast(m)
     setTimeout(() => setToast(''), 1600)
@@ -63,6 +68,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
       {!inDress ? (
         <>
           <div className="cw-stage" ref={box}>
+            <div className={`cw-slide ${slideDir ? `slide-${slideDir}` : ''}`} key={`stage-${place}`}>
             {owns(pl.id) ? (
               <Playground
                 key={pl.id}
@@ -94,6 +100,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
                 </div>
               </div>
             )}
+            </div>
             {asking && <CatAsk cat={cat} ask={asking} onClose={() => setAsking(null)} />}
           </div>
 

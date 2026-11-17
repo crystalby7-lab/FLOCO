@@ -1,13 +1,13 @@
 // 홈: 길드 고양이 방 · 상태 · 돌보기 · 지금 할 일 · 오늘의 미션 · 자동 훈련 (F7·F8) · 오늘의 플로코 신문
 // 길드 소식(피드)은 길드 탭으로 옮겼다.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { actions, catNow, me, memberName, mustRetro, RULES, today, trainingAvailable, unlocked, useGame, vault } from '../store'
 import { changePct, tickerOf } from '../data/market'
 import { QUESTS } from '../data/quests'
 import { ART, CatFace } from '../components/CatView'
-import { timeOfDay, type PlayEvent } from '../components/Playground'
+import { timeOfDay } from '../components/Playground'
 import { ConfirmDialog } from '../components/Page'
-import { itemOf, PLACES, OUTFIT_OPEN } from '../data/shop'
+import { itemOf, OUTFIT_OPEN } from '../data/shop'
 import { type Ask } from '../data/catTalk'
 import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
@@ -43,10 +43,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const v = vault(g, s.day)
   const tod = timeOfDay()
   const [toast, setToast] = useState('')
-  const [, setEv] = useState<PlayEvent>(null)
   const [slide] = useState(0)
   const [buying, setBuying] = useState<string | null>(null)
-  const track = useRef<HTMLDivElement>(null)
   const [world, setWorld] = useState<{ dress: boolean } | null>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
@@ -68,26 +66,12 @@ export function Home({ go }: { go: (t: Tab) => void }) {
     if (Math.abs(ch) > 1) lines.push(`오늘 많이 움직였네… 이유가 아직 맞을까?`)
   }
 
-  const [sel, setSel] = useState<Care | null>(null)
   const [closet, setCloset] = useState(false)
-  const inv = (id: string) => g.inventory[id] ?? 0
-  const give = (c: (typeof CARE)[number]) => {
-    const err = actions.giveItem(c.id)
-    setToast(err ?? c.msg)
-    if (!err) {
-      setEv({ type: c.id, key: Date.now() })
-      if (slide !== 0 && !owns(PLACES[slide].id)) goSlide(0)
-    }
-    setTimeout(() => setToast(''), 1800)
-  }
-  const selC = CARE.find((c) => c.id === sel)
 
   const d = s.daily.date === today() ? s.daily : { quest: false, vote: false, care: false, claimed: false, talks: 0 }
   const talks = d.talks ?? 0
   const hasAsk = talks < RULES.talksPerDay
-  const owns = (id: string) => id === 'room' || g.ownedItems.includes(id)
 
-  const goSlide = (i: number) => track.current?.scrollTo({ left: i * track.current.clientWidth, behavior: 'smooth' })
 
   const buyPlace = (id: string) => {
     const err = actions.buyItem(id)
@@ -99,7 +83,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const missions = [
     { done: d.quest, label: '퀘스트 하나 배우기', go: () => go('map') },
     { done: d.vote, label: '친구 제안에 의견 내기', go: () => go('invest') },
-    { done: d.care, label: `${cat.name} 돌보기`, go: () => document.querySelector('.care-row')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) },
+    { done: d.care, label: `${cat.name} 돌보기`, go: () => setWorld({ dress: false }) },
   ]
   const doneCount = missions.filter((m) => m.done).length
 
@@ -131,37 +115,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           <Hanger />
         </button>
       </section>
-
-      <div className="care-wrap care-row">
-        <div className="care-dock">
-          {CARE.map((c) => (
-            <button key={c.id} className={`care-btn ${sel === c.id ? 'on' : ''} ${inv(c.id) ? '' : 'empty'}`} onClick={() => setSel(sel === c.id ? null : c.id)}>
-              <span className="care-face">
-                <img src={ART[c.art]} alt="" />
-                <span className="care-count">{inv(c.id)}</span>
-              </span>
-              <b>{c.label}</b>
-            </button>
-          ))}
-        </div>
-        {selC && (
-          <div className="give-bar">
-            <span className="grow">
-              <b>{itemOf(selC.id)!.name}</b>
-              <small>보유 {inv(selC.id)}개</small>
-            </span>
-            {inv(selC.id) > 0 ? (
-              <button className="btn btn-primary btn-sm" onClick={() => give(selC)}>
-                {cat.name}에게 주기
-              </button>
-            ) : (
-              <button className="btn btn-sm give-shop" onClick={() => go('shop')}>
-                상점에서 사기 ›
-              </button>
-            )}
-          </div>
-        )}
-      </div>
 
       <section className="card exp-card">
         <div className="exp-line">
