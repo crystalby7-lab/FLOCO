@@ -78,7 +78,7 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
                 event={ev}
                 lines={[]}
                 height={h}
-                catHeight={Math.round(Math.min(190, h * 0.26))}
+                catHeight={Math.round(Math.min(165, h * 0.22))}
                 place={pl.id}
               />
             ) : (
@@ -106,11 +106,17 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
                 <path d="M12.5 4 L6.5 10 L12.5 16" />
               </svg>
             </button>
-            <span className="cw-place">
-              <small>
-                {place + 1}/{PLACES.length}
-              </small>
-              {pl.name}
+            <span className="cw-place sign">
+              <span className="cw-rope l" />
+              <span className="cw-rope r" />
+              <span className="cw-plaque">
+                <b>{pl.name}</b>
+                <span className="cw-dots">
+                  {PLACES.map((p, k) => (
+                    <i key={p.id} className={k === place ? 'on' : ''} />
+                  ))}
+                </span>
+              </span>
             </span>
             <span className="cw-coin">
               <Gold value={g.gold} size={16} />

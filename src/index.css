@@ -11768,3 +11768,24 @@ label.set2-row:active {
 .mn-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
 .mn-tabs button { border: 0; background: rgba(255,255,255,.7); border-radius: 12px; padding: 9px 0; font-weight: 800; font-size: 13px; color: var(--sub); }
 .mn-tabs button.on { background: #fff; color: #e45d86; box-shadow: var(--card-shadow); }
+
+/* v11.1 — 월드: 고양이 조금 아래·작게, 장소 이름 걸린 간판, 경험치 바 흰 배경 없애기 */
+.cw-stage .cat-actor { bottom: 22% !important; }
+.cw-stage .room-bowl { bottom: 22% !important; }
+.cw-place.sign { position: relative; flex: 1; display: flex; justify-content: center; align-items: flex-start; text-shadow: none; }
+.cw-rope { position: absolute; top: -18px; width: 2px; height: 22px; background: #b98a5e; border-radius: 1px; }
+.cw-rope.l { left: calc(50% - 44px); } .cw-rope.r { left: calc(50% + 42px); }
+.cw-plaque { position: relative; margin-top: 2px; min-width: 112px; padding: 7px 18px 6px; border-radius: 16px; background: linear-gradient(180deg, #fff7ea, #fbe6c8); border: 3px solid #e2b583; box-shadow: 0 4px 0 #c99467, 0 8px 16px rgba(80,50,20,.22); display: flex; flex-direction: column; align-items: center; gap: 4px; animation: cw-swing 4s ease-in-out infinite; transform-origin: 50% -20px; }
+@keyframes cw-swing { 0%, 100% { transform: rotate(-1.5deg) } 50% { transform: rotate(1.5deg) } }
+.cw-plaque b { font-size: 16px; font-weight: 900; color: #8a4b2a; letter-spacing: .02em; line-height: 1; }
+.cw-plaque::before, .cw-plaque::after { content: ''; position: absolute; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: #c99467; }
+.cw-plaque::before { left: 8px; } .cw-plaque::after { right: 8px; }
+.cw-dots { display: flex; gap: 4px; }
+.cw-dots i { width: 5px; height: 5px; border-radius: 50%; background: #e7cba6; }
+.cw-dots i.on { width: 14px; border-radius: 3px; background: #e0874f; }
+.cw-exp-bar { background: rgba(40,50,80,.28) !important; box-shadow: inset 0 1px 3px rgba(0,0,0,.18) !important; backdrop-filter: blur(4px); }
+.cw-exp-bar small { color: #fff !important; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+.cw-star, .cw-star.pop { background: none !important; box-shadow: none !important; border: 0 !important; }
+.cw-hud .cw-place.sign { position: absolute; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); width: 200px; flex: none; }
+.cw-hud .cw-coin { margin-left: auto; }
+.cw-hud .cw-place.sign { align-items: center; justify-content: flex-start; }
