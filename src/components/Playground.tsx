@@ -3,6 +3,7 @@
 // 밥·간식·장난감을 주면 반응하고, 누르면 배를 보이며 뒹군다. 레벨이 오르면 왕관.
 import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
+import { ROOM } from '../data/world'
 import { ART, CatSprite, POSES, type Face, type Pose } from './CatView'
 
 export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy' | 'bath'; key: number } | null
@@ -281,6 +282,7 @@ function Light({ tod, lamp }: { tod: TimeOfDay; lamp?: boolean }) {
 }
 
 const PHOTO: Record<string, (night: boolean) => string> = {
+  room: () => 'home_room',
   yard: () => 'sc_country',
   rooftop: (n) => (n ? 'sc_night' : 'sc_sunset'),
   beach: () => 'sc_beach',
@@ -294,7 +296,7 @@ export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
     const photo = PHOTO[place](night)
     return (
       <>
-        <img className="scene-photo" src={ART[photo]} alt="" aria-hidden />
+        <img className={`scene-photo ${photo === 'home_room' ? 'home-room' : ''}`} src={ART[photo] ?? ROOM[photo]} alt="" aria-hidden />
         <div className="photo-ground" aria-hidden />
         {place === 'yard' && (
           <>

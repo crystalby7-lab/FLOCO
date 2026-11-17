@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react'
 import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
-import { itemOf } from './data/shop'
+import { OUTFIT_OPEN, itemOf } from './data/shop'
 import { reviewReasons } from './aiReview'
 
 const KEY = 'floco-mvp-v1'
@@ -85,7 +85,7 @@ function migrate(raw: Partial<GameState>): GameState {
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
-      cat: { ...g.cat, clean: g.cat.clean ?? 80 },
+      cat: { ...g.cat, clean: g.cat.clean ?? 80, equipped: OUTFIT_OPEN ? g.cat.equipped : g.cat.equipped.filter((id) => itemOf(id)?.slot !== 'outfit') },
     }
   }
   return s
@@ -551,6 +551,10 @@ export const actions = {
     })
   },
 
+  setDecor(shop: string, value: { style: string; slots: Record<string, number> }) {
+    set((s) => ({ ...s, decor: { ...s.decor, [shop]: value } }))
+  },
+
   toggleWatch(code: string) {
     set((s) => ({ ...s, watch: s.watch.includes(code) ? s.watch.filter((c) => c !== code) : [...s.watch, code] }))
   },
@@ -644,6 +648,7 @@ export const actions = {
   buyItem(itemId: string): string | null {
     const g = state.guild!
     const item = itemOf(itemId)!
+    if (item.slot === 'outfit' && !OUTFIT_OPEN) return '고양이 옷은 준비 중이에요.'
     if (g.gold < item.price) return '코인이 부족해요.'
     if (item.kind !== 'food' && g.ownedItems.includes(itemId)) return '이미 가지고 있어요.'
     updateGuild((gg) => {
@@ -745,6 +750,7 @@ export const actions = {
   toggleEquip(itemId: string) {
     updateGuild((g) => {
       const item = itemOf(itemId)!
+      if (item.slot === 'outfit' && !OUTFIT_OPEN) return g
       const on = g.cat.equipped.includes(itemId)
       const others = g.cat.equipped.filter((id) => id !== itemId && (item.slot === 'room' || itemOf(id)?.slot !== item.slot))
       return { ...g, cat: { ...g.cat, equipped: on ? others : [...others, itemId] } }

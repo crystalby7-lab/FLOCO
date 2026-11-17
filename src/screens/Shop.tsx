@@ -1,7 +1,7 @@
 // 상점 (F9): 가상 골드로만 구매, 투자에 유리한 아이템·확률형 뽑기 없음
 import { useState } from 'react'
 import { actions, useGame } from '../store'
-import { SHOP } from '../data/shop'
+import { SHOP, OUTFIT_OPEN } from '../data/shop'
 import { Gold } from '../components/ui'
 import { Backdrop, timeOfDay } from '../components/Playground'
 import { Coin, ItemIcon } from '../components/Icons'
@@ -38,7 +38,7 @@ export function Shop() {
         {note && <small>{note}</small>}
       </div>
       <div className="shop-grid">
-        {SHOP.filter((i) => i.kind === kind).map((item) => {
+        {SHOP.filter((i) => i.kind === kind).sort((a, b) => Number(a.slot === 'outfit' && !OUTFIT_OPEN) - Number(b.slot === 'outfit' && !OUTFIT_OPEN)).map((item) => {
           const owned = g.ownedItems.includes(item.id)
           const on = g.cat.equipped.includes(item.id)
           return (
@@ -59,7 +59,9 @@ export function Shop() {
                   {item.effect.mood ? `기분 +${item.effect.mood}` : ''}
                 </small>
               )}
-              {owned && kind === 'place' ? (
+              {item.slot === 'outfit' && !OUTFIT_OPEN ? (
+                <span className="owned-tag soon">준비 중</span>
+              ) : owned && kind === 'place' ? (
                 <span className="owned-tag">열림 · 홈에서 옆으로 넘겨요</span>
               ) : owned ? (
                 <span className="owned-tag">옷장에 있어요</span>
@@ -109,7 +111,7 @@ export function Shop() {
       {msg && <p className="toast-inline">{msg}</p>}
       <div className="sf-shelf">
         {shelf === 'food' && section('food', '먹이·장난감', '사면 보관함에 쌓여요. 홈에서 주기')}
-        {shelf === 'deco' && section('deco', '옷·가구', '홈 옷장에서 입히고 둬요')}
+        {shelf === 'deco' && section('deco', '옷·가구', '가구는 홈 옷장에서 둬요 · 옷은 준비 중')}
         {shelf === 'place' && section('place', '장소 테마', '홈에서 화살표로 넘겨 가요')}
       </div>
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>

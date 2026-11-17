@@ -11300,3 +11300,15 @@ label.set2-row:active {
 .si-opts .si-clear { font-size: 12.5px; font-weight: 800; color: var(--muted); }
 .si-opts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .si-opts button { min-width: 0; overflow: hidden; }
+
+/* v8.1 — 거실 그림 배경 · 종목 묶음 넘기기 · 꾸미기 저장 · 옷 준비 중 */
+.scene-photo.home-room { object-fit: cover; object-position: center 60%; }
+.place-room .room-wall, .place-room .room-floor { }
+.mk-chipbar { display: flex; align-items: center; gap: 4px; }
+.mk-chipbar .mk-chips { flex: 1; min-width: 0; cursor: grab; user-select: none; }
+.mk-arrow { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0; background: #fff; color: var(--blue); font-size: 20px; font-weight: 800; line-height: 1; box-shadow: var(--card-shadow); display: grid; place-items: center; padding: 0 0 2px; }
+.mk-arrow:disabled { color: #c5cfdd; box-shadow: none; background: rgba(255,255,255,.6); }
+.mk-swipe { touch-action: pan-y; }
+.si-save { position: sticky; bottom: 0; padding: 14px 0 calc(6px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, rgba(207,224,242,0) 0%, var(--bg, #cfe0f2) 40%); margin-top: 6px; }
+.si-room .si-bg { filter: saturate(1.12) contrast(1.04); }
+.owned-tag.soon { color: var(--muted); background: #eef2f7; }

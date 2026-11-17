@@ -61,4 +61,7 @@ export const PLACES = [
 ] as const
 export type PlaceId = (typeof PLACES)[number]['id']
 
+// 고양이 옷: 움직일 때 어색해서 당분간 팔지 않음 (보영 결정 2026-11-17). 다시 열려면 true.
+export const OUTFIT_OPEN = false
+
 export const itemOf = (id: string) => SHOP.find((s) => s.id === id)

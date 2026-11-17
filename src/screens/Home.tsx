@@ -8,7 +8,7 @@ import { ART, CatFace } from '../components/CatView'
 import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
 import { ConfirmDialog } from '../components/Page'
 import { Lock } from '../components/Icons'
-import { itemOf, PLACES } from '../data/shop'
+import { itemOf, PLACES, OUTFIT_OPEN } from '../data/shop'
 import { pickAsk, type Ask } from '../data/catTalk'
 import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
@@ -327,12 +327,12 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         <div className="ask-layer" onClick={() => setCloset(false)}>
           <div className="ask-sheet closet" onClick={(e) => e.stopPropagation()}>
             <h3 className="card-title">옷장</h3>
-            {g.ownedItems.filter((id) => itemOf(id)?.kind === 'deco').length === 0 ? (
-              <p className="sub small">아직 옷이나 가구가 없어요. 상점에서 사면 여기 들어와요.</p>
+            {g.ownedItems.filter((id) => itemOf(id)?.kind === 'deco' && (OUTFIT_OPEN || itemOf(id)?.slot !== 'outfit')).length === 0 ? (
+              <p className="sub small">아직 가구가 없어요. 상점에서 사면 여기 들어와요.</p>
             ) : (
               <div className="closet-grid">
                 {g.ownedItems
-                  .filter((id) => itemOf(id)?.kind === 'deco')
+                  .filter((id) => itemOf(id)?.kind === 'deco' && (OUTFIT_OPEN || itemOf(id)?.slot !== 'outfit'))
                   .map((id) => {
                     const it = itemOf(id)!
                     const on = cat.equipped.includes(id)

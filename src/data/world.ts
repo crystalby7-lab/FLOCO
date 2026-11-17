@@ -46,5 +46,5 @@ export const SHOPS: Shop[] = [
   { id: 'book', name: '서점', room: 'book', building: 't_school', lot: { x: 79, y: 35 }, options: { light: LIGHTS, display: [7, 71, 83], counter: [50, 76, 3], table: [12, 14, 86], deco: [74, 70, 78] } },
   { id: 'clothes', name: '옷가게', room: 'clothes', building: 't_redroof', lot: { x: 20.5, y: 35 }, options: { light: LIGHTS, display: [6, 58, 27], counter: [3, 63, 50], table: [59, 60, 69], deco: [56, 57, 66] } },
   { id: 'salon', name: '미용실', room: 'salon', building: 't_bluehouse', lot: { x: 63.5, y: 21 }, options: { light: LIGHTS, display: [87, 92, 93], counter: [89, 67, 4], table: [94, 101, 65], deco: [102, 84, 97] } },
-  { id: 'cafe', name: '카페', room: 'cafe', building: 't_cafe', lot: { x: 26, y: 19.5 }, options: { light: LIGHTS, display: [28, 45, 53], counter: [43, 1, 2], table: [10, 11, 13], deco: [52, 51, 34] } },
+  { id: 'cafe', name: '카페', room: 'r_living', building: 't_cafe', lot: { x: 26, y: 19.5 }, options: { light: LIGHTS, display: [28, 45, 53], counter: [43, 1, 2], table: [10, 11, 13], deco: [52, 51, 34] } },
 ]

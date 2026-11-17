@@ -6,10 +6,24 @@ import { ROOM, SLOTS, STYLES, fur, type Shop, type SlotId } from '../data/world'
 
 export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void }) {
   const s = useGame()
-  const d = s.decor[shop.id] ?? { style: 'base', slots: {} }
+  const saved = s.decor[shop.id] ?? { style: 'base', slots: {} }
+  const [d, setD] = useState(saved)
   const [slot, setSlot] = useState<SlotId>('counter')
+  const [flash, setFlash] = useState(false)
+  const dirty = JSON.stringify(d) !== JSON.stringify(saved)
+  const put = (sl: string, n: number | null) => {
+    const slots = { ...d.slots }
+    if (n == null) delete slots[sl]
+    else slots[sl] = n
+    setD({ ...d, slots })
+  }
+  const save = () => {
+    actions.setDecor(shop.id, d)
+    setFlash(true)
+    setTimeout(() => setFlash(false), 1400)
+  }
   return (
-    <Page title={shop.name} onExit={onExit}>
+    <Page title={shop.name} onExit={onExit} confirm={dirty}>
       <div className={`si-room st-${d.style}`}>
         <img className="si-bg" src={ROOM[shop.room]} alt="" />
         {SLOTS.map((sl) => {
@@ -31,7 +45,7 @@ export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void 
 
       <div className="si-styles">
         {STYLES.map((st) => (
-          <button key={st.id} className={d.style === st.id ? 'on' : ''} onClick={() => actions.decorate(shop.id, { style: st.id })}>
+          <button key={st.id} className={d.style === st.id ? 'on' : ''} onClick={() => setD({ ...d, style: st.id })}>
             <i style={{ background: st.color }} />
             {st.name}
           </button>
@@ -47,12 +61,18 @@ export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void 
       </div>
       <div className={`si-opts st-${d.style}`}>
         {shop.options[slot].map((n) => (
-          <button key={n} className={d.slots[slot] === n ? 'on' : ''} onClick={() => actions.decorate(shop.id, { slot, num: n })}>
+          <button key={n} className={d.slots[slot] === n ? 'on' : ''} onClick={() => put(slot, n)}>
             <img src={fur(n)} alt="" />
           </button>
         ))}
-        <button className="si-clear" onClick={() => actions.decorate(shop.id, { slot, num: null })}>
+        <button className="si-clear" onClick={() => put(slot, null)}>
           비우기
+        </button>
+      </div>
+
+      <div className="si-save">
+        <button className="btn btn-primary btn-block" disabled={!dirty} onClick={save}>
+          {flash ? '저장했어요' : dirty ? '저장하기' : '저장됨'}
         </button>
       </div>
     </Page>
