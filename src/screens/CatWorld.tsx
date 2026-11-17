@@ -3,14 +3,14 @@
 // 장소를 옮기거나 드레스룸에 들어갈 때마다 GameLoader 전환 화면이 끼어든다.
 import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
-import { actions, catNow, RULES, today, useGame } from '../store'
+import { actions, catNow, RULES, useGame } from '../store'
 import { ART } from '../components/CatView'
 import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
 import { GameLoader, type Hop } from '../components/GameLoader'
 import { Gold } from '../components/ui'
 import { Lock } from '../components/Icons'
 import { itemOf, OUTFIT_OPEN, PLACES, SHOP } from '../data/shop'
-import { pickAsk, type Ask } from '../data/catTalk'
+import { type Ask } from '../data/catTalk'
 import { CARE, CatAsk } from './Home'
 
 export function CatWorld({ start = 0, dress = false, onExit }: { start?: number; dress?: boolean; onExit: () => void }) {
@@ -38,9 +38,6 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
 
   const owns = (id: string) => id === 'room' || g.ownedItems.includes(id)
   const pl = PLACES[place]
-  const d = s.daily.date === today() ? s.daily : { talks: 0 }
-  const talks = d.talks ?? 0
-  const hasAsk = talks < RULES.talksPerDay
 
   const travel = (label: string, sub: string | undefined, then: () => void) => {
     setPending(() => then)
@@ -79,12 +76,6 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
                 height={h}
                 catHeight={Math.round(Math.min(190, h * 0.26))}
                 place={pl.id}
-                ask={hasAsk}
-                onTapCat={() => {
-                  if (!hasAsk) return false
-                  setAsking(pickAsk(s, talks))
-                  return true
-                }}
               />
             ) : (
               <div className={`room tod-${tod} place-${pl.id} locked`} style={{ height: h }}>

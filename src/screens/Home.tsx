@@ -69,8 +69,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const [closet, setCloset] = useState(false)
 
   const d = s.daily.date === today() ? s.daily : { quest: false, vote: false, care: false, claimed: false, talks: 0 }
-  const talks = d.talks ?? 0
-  const hasAsk = talks < RULES.talksPerDay
 
 
   const buyPlace = (id: string) => {
@@ -108,12 +106,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             </span>
           </span>
           <span className="hh-plate">{cat.name}네 집</span>
-          {hasAsk && <span className="hh-bubble">?</span>}
         </button>
         <span className="hh-hint">눌러서 들어가기</span>
-        <button className="hh-dress" onClick={() => setWorld({ dress: true })} aria-label="드레스룸">
-          <Hanger />
-        </button>
       </section>
 
 
@@ -298,11 +292,3 @@ function Tick() {
 }
 
 
-function Hanger() {
-  return (
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M9.5 7.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.4v.8" />
-      <path d="M12 12 3.6 17.4c-.9.6-.5 2 .6 2h15.6c1.1 0 1.5-1.4.6-2L12 12Z" />
-    </svg>
-  )
-}
