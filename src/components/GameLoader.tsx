@@ -1,4 +1,5 @@
-// 게임처럼 화면을 넘길 때 쓰는 전환 화면: 동그랗게 닫힘 → 고양이가 걸어가는 로딩 → 동그랗게 열림.
+// 고양이 집 전환 화면: 나무 문 두 짝이 닫힘 → 따뜻한 방 불빛 + 액자 속 고양이 + 발자국 로딩 → 문이 열림.
+// (플로월드 입장 화면과 일부러 다르게: 하늘·마을 대신 집 안 느낌)
 // 가운데에서 onSwap을 불러 뒤 화면을 바꾼다 (닫혀 있는 동안 바뀌어서 깜빡임이 없다).
 import { useEffect, useState } from 'react'
 import { ART } from './CatView'
@@ -19,21 +20,30 @@ export function GameLoader({ hop, onSwap, onDone }: { hop: Hop; onSwap: () => vo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hop.key])
   return (
-    <div className={`gl gl-${phase}`} aria-live="polite">
-      <div className="gl-sun" />
-      <img className="gl-cloud c1" src={ART.bg_cloud} alt="" />
-      <img className="gl-cloud c2" src={ART.bg_cloud} alt="" />
-      <img className="gl-cloud c3" src={ART.bg_cloud} alt="" />
-      <div className="gl-title">
+    <div className={`gl home-gl gl-${phase}`} aria-live="polite">
+      <div className="hg-wall" />
+      <div className="hg-door l" />
+      <div className="hg-door r" />
+      <div className="hg-light" />
+      <div className="hg-center">
+        <span className="hg-frame">
+          <img src={ART.sit} alt="" />
+        </span>
         <b>{hop.label}</b>
         {hop.sub && <small>{hop.sub}</small>}
-      </div>
-      <div className="gl-hill" />
-      <img className="gl-house" src={ART.t_bluecat} alt="" />
-      <div className="gl-ground" />
-      <img className="gl-cat" src={ART.walk} alt="" />
-      <div className="gl-bar">
-        <i />
+        <div className="hg-paws">
+          {[0, 1, 2, 3, 4].map((k) => (
+            <i key={k} style={{ animationDelay: `${0.15 + k * 0.17}s` }}>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
+                <ellipse cx="12" cy="15.5" rx="5" ry="4.2" fill="currentColor" />
+                <circle cx="6.2" cy="9.6" r="2.2" fill="currentColor" />
+                <circle cx="10" cy="6.4" r="2.2" fill="currentColor" />
+                <circle cx="14" cy="6.4" r="2.2" fill="currentColor" />
+                <circle cx="17.8" cy="9.6" r="2.2" fill="currentColor" />
+              </svg>
+            </i>
+          ))}
+        </div>
       </div>
     </div>
   )

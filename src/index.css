@@ -11656,3 +11656,56 @@ label.set2-row:active {
 .fw-count { font-size: 12px; }
 .fw-side { position: absolute; z-index: 6; top: calc(124px + var(--safe-t, 0px)); right: 10px; }
 .fw-icon { width: 50px; border-radius: 14px; }
+
+/* v10.1 — 홈 집 카드 위쪽도 둥글게 */
+.home-house { border-radius: 30px; margin: 4px 12px 0; box-shadow: 0 10px 24px rgba(60,90,150,.14); }
+
+/* v10.1 — 고양이 집 전환 화면 (플로월드와 다르게: 문이 닫히고 열리는 집 안 느낌) */
+.gl.home-gl { background: transparent !important; clip-path: none !important; animation: none !important; display: block; }
+.home-gl .hg-wall { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 40%, #fff3e2 0%, #f8dcc4 60%, #eec4a8 100%); opacity: 0; transition: opacity .25s; }
+.home-gl.gl-load .hg-wall { opacity: 1; }
+.home-gl .hg-door { position: absolute; top: 0; bottom: 0; width: 50%; background: linear-gradient(90deg, #b7835c, #a8734d); box-shadow: inset 0 0 0 10px #c99467, inset 0 0 0 14px #9a6743; z-index: 3; transition: transform .38s cubic-bezier(.6,0,.4,1); }
+.home-gl .hg-door::after { content: ''; position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 0 3px #c9963a; }
+.home-gl .hg-door.l { left: 0; transform: translateX(-100%); }
+.home-gl .hg-door.r { right: 0; transform: translateX(100%); }
+.home-gl .hg-door.l::after { right: 18px; }
+.home-gl .hg-door.r::after { left: 18px; }
+.home-gl.gl-close .hg-door { transform: translateX(0); }
+.home-gl.gl-load .hg-door.l { transform: translateX(-100%); transition-duration: .3s; }
+.home-gl.gl-load .hg-door.r { transform: translateX(100%); transition-duration: .3s; }
+.home-gl.gl-open .hg-door { transform: translateX(0); transition-duration: .2s; }
+.home-gl.gl-open { animation: hg-fade .4s ease .15s both !important; }
+@keyframes hg-fade { to { opacity: 0 } }
+.home-gl .hg-light { position: absolute; top: -10%; left: 50%; width: 260px; height: 260px; margin-left: -130px; border-radius: 50%; background: radial-gradient(circle, rgba(255,226,150,.65) 0%, rgba(255,226,150,0) 70%); opacity: 0; }
+.home-gl.gl-load .hg-light { opacity: 1; animation: wi-pulse 1.6s ease-in-out infinite; }
+.home-gl .hg-center { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; opacity: 0; }
+.home-gl.gl-load .hg-center { opacity: 1; animation: wi-rise .4s cubic-bezier(.3,1.5,.5,1) both; }
+.hg-frame { width: 150px; height: 150px; border-radius: 50%; background: #fff; border: 8px solid #f2c48f; box-shadow: 0 10px 24px rgba(150,90,40,.22); display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.hg-frame img { width: 112px; margin-bottom: -6px; animation: hh-peek 1.6s ease-in-out infinite; }
+.home-gl .hg-center b { font-size: 20px; font-weight: 900; color: #8a4b2a; }
+.home-gl .hg-center small { font-size: 12.5px; font-weight: 800; color: #b07a52; background: rgba(255,255,255,.7); padding: 4px 12px; border-radius: 999px; }
+.hg-paws { display: flex; gap: 10px; margin-top: 6px; }
+.hg-paws i { color: #e9c3a3; opacity: .35; transform: rotate(-10deg); }
+.hg-paws i:nth-child(even) { transform: rotate(10deg) translateY(6px); }
+.home-gl.gl-load .hg-paws i { animation: hg-paw .3s ease both; }
+@keyframes hg-paw { to { color: #d9895a; opacity: 1 } }
+/* 문이 닫힌 채로 로딩(문에 걸린 액자) → 문이 양쪽으로 열리며 들어감 */
+.home-gl .hg-wall { display: none; }
+.home-gl .hg-door { transition: none !important; }
+.home-gl.gl-close .hg-door.l { animation: hg-shut-l .38s cubic-bezier(.6,0,.4,1) both; }
+.home-gl.gl-close .hg-door.r { animation: hg-shut-r .38s cubic-bezier(.6,0,.4,1) both; }
+.home-gl.gl-load .hg-door.l, .home-gl.gl-load .hg-door.r { transform: translateX(0) !important; }
+.home-gl.gl-open .hg-door.l { animation: hg-open-l .4s cubic-bezier(.6,0,.4,1) both; }
+.home-gl.gl-open .hg-door.r { animation: hg-open-r .4s cubic-bezier(.6,0,.4,1) both; }
+.home-gl.gl-open { animation: none !important; }
+@keyframes hg-shut-l { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+@keyframes hg-shut-r { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes hg-open-l { from { transform: translateX(0) } to { transform: translateX(-100%) } }
+@keyframes hg-open-r { from { transform: translateX(0) } to { transform: translateX(100%) } }
+.home-gl .hg-center { z-index: 4; }
+.home-gl.gl-open .hg-center { opacity: 0; transition: opacity .15s; }
+.home-gl .hg-light { z-index: 4; }
+.home-gl .hg-center b { color: #fff; text-shadow: 0 2px 0 rgba(90,50,20,.45); }
+.home-gl .hg-center small { color: #8a4b2a; background: #ffe9c9; }
+.home-gl .hg-paws i { color: #8a5a3a; opacity: .4; }
+@keyframes hg-paw { to { color: #ffe0a8; opacity: 1 } }
