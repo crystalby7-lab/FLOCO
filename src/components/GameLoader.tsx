@@ -36,10 +36,6 @@ export function GameLoader({ hop, onSwap, onDone }: { hop: Hop; onSwap: () => vo
             </span>
           </span>
         </div>
-        <div className="zg-text">
-          <b>{hop.label}</b>
-          {hop.sub && <small>{hop.sub}</small>}
-        </div>
         <div className="zg-flash" />
       </div>
     )
