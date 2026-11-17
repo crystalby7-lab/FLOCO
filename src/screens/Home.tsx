@@ -14,6 +14,7 @@ import { NewsLinks } from '../components/NewsLinks'
 import type { Cat } from '../types'
 import { Gold } from '../components/ui'
 import type { Tab } from '../App'
+import { CatWorld } from './CatWorld'
 
 function useTick(ms = 30_000) {
   const [, setT] = useState(0)
@@ -23,8 +24,8 @@ function useTick(ms = 30_000) {
   }, [ms])
 }
 
-type Care = 'feed' | 'snack' | 'toy' | 'boba' | 'bath'
-const CARE: { id: Care; label: string; art: string; msg: string }[] = [
+export type Care = 'feed' | 'snack' | 'toy' | 'boba' | 'bath'
+export const CARE: { id: Care; label: string; art: string; msg: string }[] = [
   { id: 'feed', label: '밥', art: 'i_bowl', msg: '밥 그릇을 놓았어요' },
   { id: 'snack', label: '간식', art: 'i_fish', msg: '생선 인형을 줬어요' },
   { id: 'toy', label: '장난감', art: 'i_yarn', msg: '장난감을 흔들었어요' },
@@ -48,6 +49,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   const [buying, setBuying] = useState<string | null>(null)
   const [asking, setAsking] = useState<Ask | null>(null)
   const track = useRef<HTMLDivElement>(null)
+  const [world, setWorld] = useState<{ dress: boolean } | null>(null)
 
   const waiting = g.proposals.filter((p) => p.status === 'voting' && !p.votes.some((x) => x.memberId === myId))
   const retros = g.proposals.filter((p) => mustRetro(g, p, myId))
@@ -172,9 +174,15 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             <Chevron />
           </button>
         )}
+        <button className="enter-world" onClick={() => setWorld({ dress: false })}>
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5" />
+          </svg>
+          들어가기
+        </button>
         <div className="scene-status">
           <div className="status-row">
-            <button className="closet-btn" onClick={() => setCloset(true)} aria-label="옷장">
+            <button className="closet-btn" onClick={() => setWorld({ dress: true })} aria-label="드레스룸">
               <Hanger />
             </button>
           </div>
@@ -313,6 +321,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
       <NewsLinks />
 
+      {world && <CatWorld start={slide} dress={world.dress} onExit={() => setWorld(null)} />}
       {buying && (
         <ConfirmDialog
           title={`${itemOf(buying)!.name} 테마를 열까요?`}
@@ -358,7 +367,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 }
 
 // 고양이가 먼저 묻는 질문 (일방형): 고르면 한마디 하고 끝
-function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () => void }) {
+export function CatAsk({ cat, ask, onClose }: { cat: Cat; ask: Ask; onClose: () => void }) {
   const [pick, setPick] = useState<number | null>(null)
   const c = pick === null ? null : ask.choices[pick]
   useEffect(() => {
