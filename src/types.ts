@@ -13,6 +13,7 @@ export type Post = { id: string; memberId: string; text: string; at: number; hea
 
 export type Cat = {
   name: string
+  breed?: string // 키우는 고양이 종 (data/kitty.ts BREEDS), 없으면 삼색이
   level: number
   exp: number
   hunger: number // 0~100, 높을수록 배부름

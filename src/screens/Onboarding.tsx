@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { actions, isOnline, useGame } from '../store'
 import { Playground } from '../components/Playground'
 import { Wordmark } from '../components/Wordmark'
-import { ART } from '../components/CatView'
+import { ART, setArtBreed } from '../components/CatView'
+import { BREEDS, kit, type BreedId } from '../data/kitty'
 import type { Cat } from '../types'
 import { Survey } from './Survey'
 
@@ -40,6 +41,8 @@ export function Onboarding() {
   const [code, setCode] = useState(inviteFromLink)
   const [joining, setJoining] = useState(false)
   const [joinErr, setJoinErr] = useState('')
+  const [breed, setBreed] = useState<BreedId>('calico')
+  setArtBreed(breed)
 
   // 1) 소개
   if (!s.tutorialDone && !s.user) {
@@ -145,6 +148,16 @@ export function Onboarding() {
               길드 이름
               <input id="guild-name" value={guildName} maxLength={12} onChange={(e) => setGuildName(e.target.value)} placeholder="예: 3반 투자부" />
             </label>
+            <div className="ob-breed-label">함께 키울 고양이</div>
+            <div className="ob-breeds">
+              {BREEDS.map((b) => (
+                <button key={b.id} className={breed === b.id ? 'on' : ''} onClick={() => setBreed(b.id)} aria-label={b.name}>
+                  <img src={kit(b.id, breed === b.id ? 'e1' : 'e0')} alt="" />
+                  <small>{b.name}</small>
+                </button>
+              ))}
+            </div>
+            <p className="fineprint">한 마리를 골라 키워요. 키우는 고양이가 자라면 다른 고양이도 하나씩 열려 프로필에 쓸 수 있어요.</p>
             <label>
               함께 키울 고양이 이름
               <input id="cat-name" value={catName} maxLength={8} onChange={(e) => setCatName(e.target.value)} placeholder="예: 주니" />
@@ -156,7 +169,7 @@ export function Onboarding() {
                 </button>
               ))}
             </div>
-            <button className="btn btn-primary btn-block" disabled={!guildName.trim() || !catName.trim()} onClick={() => actions.createGuild(guildName.trim(), catName.trim())}>
+            <button className="btn btn-primary btn-block" disabled={!guildName.trim() || !catName.trim()} onClick={() => actions.createGuild(guildName.trim(), catName.trim(), breed)}>
               고양이 데려오기
             </button>
             <p className="fineprint">친구가 들어오기 전까지 테스트용 친구 하늘·도윤이 같이 있어요.</p>

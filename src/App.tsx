@@ -1,3 +1,5 @@
+import { setArtBreed } from './components/CatView'
+import { breedOfCat } from './data/kitty'
 import { useState } from 'react'
 import { me, mustRetro, needReview, streakNow, useGame } from './store'
 import { Onboarding } from './screens/Onboarding'
@@ -25,6 +27,8 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function App() {
   const s = useGame()
+  // 그림 속 고양이를 길드가 키우는 종으로 (ART가 이 값을 보고 그림을 고른다)
+  setArtBreed(breedOfCat(s.guild?.cat))
   const [tab, setTab] = useState<Tab>('home')
   const [settings, setSettings] = useState(false)
 

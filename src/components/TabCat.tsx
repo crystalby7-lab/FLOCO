@@ -1,7 +1,7 @@
 // 탭바 위에 사는 고양이: 탭을 바꾸면 그 탭까지 걸어가서 앉고, 한참 있으면 눕거나 잔다.
 // 누르면 깡총 뛰고, 가끔 혼자 기지개를 켠다.
 import { useEffect, useRef, useState } from 'react'
-import { ART } from './CatView'
+import { ART_OLD as ART } from './CatView'
 
 type P = 'walk' | 'sit' | 'lielook' | 'sleep' | 'stretch'
 const H: Record<P, number> = { walk: 34, sit: 40, lielook: 30, sleep: 26, stretch: 32 }

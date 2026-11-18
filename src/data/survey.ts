@@ -124,7 +124,7 @@ export function typeOf(s: Survey): StartType {
     return {
       id: 'checker',
       name: '실전 점검러',
-      art: 'stretch',
+      art: 't_wave',
       desc: '이미 투자를 해봤군요. 남의 말 대신 내 이유로 고르는 연습을 해봐요.',
       start: '기초 마을 3번 "투자일까, 도박일까"가 특히 도움이 될 거예요',
     }
@@ -132,14 +132,14 @@ export function typeOf(s: Survey): StartType {
     return {
       id: 'trainee',
       name: '근거 연습생',
-      art: 'walk',
+      art: 't_jump',
       desc: '기초는 알고 있어요. 이제 이유를 쓰고 친구들과 같이 따져볼 차례예요.',
       start: '기초 마을을 빠르게 지나 ETF 숲까지 가봐요',
     }
   return {
     id: 'explorer',
     name: '첫걸음 탐험가',
-    art: 'side',
+    art: 't_think',
     desc: '처음이어도 괜찮아요. 고양이랑 같이 하나씩 알아가요.',
     start: '기초 마을 1번 "돈을 불리는 세 가지 방법"부터 시작해요',
   }

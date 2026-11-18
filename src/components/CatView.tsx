@@ -1,12 +1,41 @@
 // 플로코 고양이 — 보영이 그린 캐릭터 시트에서 자른 그림
 import type { Cat } from '../types'
 import { SHOP } from '../data/shop'
+import { DEFAULT_BREED, KIT, type BreedId } from '../data/kitty'
 
 // src/assets/cat/*.png·*.jpg 를 이름으로 불러온다 (장소 배경 sc_h_*는 jpg)
 const files = import.meta.glob('../assets/cat/*.{png,jpg}', { eager: true, import: 'default' }) as Record<string, string>
-export const ART: Record<string, string> = Object.fromEntries(
+const RAW: Record<string, string> = Object.fromEntries(
   Object.entries(files).map(([path, url]) => [path.split('/').pop()!.replace(/\.(png|jpg)$/, ''), url]),
 )
+
+// 2026-11-18: 고양이 그림은 전부 새 캐릭터(src/data/kitty.ts)로 바뀐다.
+// 예전 이름(sit, face_happy, t_wave…)을 쓰는 곳은 그대로 두고, 여기서 '지금 키우는 종'의 표정 그림으로 바꿔 준다.
+// 걷는 고양이(walk)는 보영 요청으로 예전 그림 그대로.
+let curBreed: BreedId = DEFAULT_BREED
+export const setArtBreed = (b: BreedId) => {
+  curBreed = b
+}
+const POSE_TO_EMO: Record<string, string> = {
+  sit: 'e0', side: 'e0', back: 'e0', back2: 'e0', box: 'e0', reach: 'e3', hug: 'e2', stretch: 'e1', lie: 'e2', lielook: 'e3', sleep: 'e6', blanket: 'e6', bed: 'e6',
+  roll: 'e1', crown: 'e1', toy: 'e1', boba: 'e2', bath: 'e3', chef: 'e2',
+  face_calm: 'e0', face_happy: 'e1', face_wow: 'e3', face_sad: 'e4', face_mad: 'e5', face_sleepy: 'e6',
+  t_wave: 'e1', t_jump: 'e1', t_happy: 'e2', t_rain: 'e4', t_think: 'e3', t_sprout: 'e2',
+}
+// 친구·뉴스 고양이처럼 종이 정해진 그림
+const FIXED: Record<string, string> = {
+  b_orange: 'orange_e0', b_black: 'black_e0', b_grey: 'grey_e0', b_calico: 'calico_e0', b_tuxedo: 'cream_e0', b_siamese: 'grey_e2', b_ragdoll: 'cream_e2', b_snow: 'cream_e0',
+  friend_orange: 'orange_e0', friend_black: 'black_e0', friend_grey: 'grey_e0', friend_fluffy: 'cream_e0',
+}
+// 탭바 위를 걸어 다니는 고양이는 예전 그림 그대로 (보영: 귀여우니까 냅둬)
+export const ART_OLD = RAW
+export const ART: Record<string, string> = new Proxy(RAW, {
+  get(t, k: string) {
+    if (POSE_TO_EMO[k]) return KIT[`${curBreed}_${POSE_TO_EMO[k]}`]
+    if (FIXED[k]) return KIT[FIXED[k]]
+    return t[k] ?? KIT[k]
+  },
+})
 
 // 원본 크기(시트 그대로라 모든 그림 비율이 같다)와 그림이 바라보는 방향
 export const POSES = {
@@ -40,8 +69,10 @@ export type Face = 'calm' | 'happy' | 'wow' | 'sad' | 'mad' | 'sleepy'
 // 한 포즈의 그림. 앉아 있을 때 옷을 입고 있으면 옷 입은 그림으로 바꾼다.
 export function CatSprite({ cat, pose, unit }: { cat: Cat; pose: Pose; unit: number }) {
   const outfit = pose === 'sit' ? outfitOf(cat) : undefined
-  const src = ART[outfit ?? pose]
-  const h = (outfit ? 180 : POSES[pose].h) * unit
+  // 걷기 그림은 예전 고양이라, 움직일 때도 지금 키우는 종의 앉은 그림으로
+  const src = ART[outfit ?? (pose === 'walk' ? 'sit' : pose)]
+  // 새 캐릭터 그림은 포즈마다 크기가 같아서 걷기만 예전 비율
+  const h = (outfit ? 180 : 177) * unit
   return (
     <div className={`cat-sprite ${pose}`} style={{ height: h }}>
       <img src={src} alt={cat.name || '고양이'} draggable={false} />

@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
 import { actions, catNow, RULES, useGame } from '../store'
 import { ART } from '../components/CatView'
+import { OUTFIT_NAMES, breedOfCat, kit } from '../data/kitty'
 import { Backdrop, Playground, timeOfDay, type PlayEvent } from '../components/Playground'
 import { GameLoader, type Hop } from '../components/GameLoader'
 import { Gold } from '../components/ui'
 import { Lock } from '../components/Icons'
-import { itemOf, OUTFIT_OPEN, PLACES, SHOP } from '../data/shop'
+import { itemOf, PLACES } from '../data/shop'
 import { type Ask } from '../data/catTalk'
 import { CARE, CatAsk } from './Home'
 
@@ -196,11 +197,9 @@ export function CatWorld({ start = 0, dress = false, onExit }: { start?: number;
 function DressRoom({ onBack }: { onBack: () => void }) {
   const s = useGame()
   const g = s.guild!
-  const outfits = SHOP.filter((i) => i.slot === 'outfit')
-  const worn = g.cat.equipped.find((id) => itemOf(id)?.slot === 'outfit') ?? null
-  const [tryOn, setTryOn] = useState<string | null>(worn)
-  const it = tryOn ? itemOf(tryOn) : null
-  const owned = tryOn ? g.ownedItems.includes(tryOn) : true
+  const breed = breedOfCat(g.cat)
+  const names = OUTFIT_NAMES[breed]
+  const [tryOn, setTryOn] = useState<number | null>(null)
   return (
     <div className="dr" style={{ backgroundImage: `url(${ART.sc_h_attic})` }}>
       <header className="cw-hud">
@@ -217,34 +216,27 @@ function DressRoom({ onBack }: { onBack: () => void }) {
       <div className="dr-stage">
         <div className="dr-mirror">
           <div className="dr-glass">
-            <img key={tryOn ?? 'base'} className="dr-cat" src={ART[tryOn ?? 'sit']} alt="" />
+            <img key={tryOn ?? 'base'} className="dr-cat" src={tryOn == null ? ART.sit : kit(breed, `o${tryOn}`)} alt="" />
           </div>
         </div>
         <div className="dr-tag">
-          <b>{it ? it.name : '기본 모습'}</b>
-          <small>
-            {!it ? '아무것도 안 입었어요' : !OUTFIT_OPEN ? '입어 보기만 할 수 있어요 · 옷 판매 준비 중' : owned ? '내 옷이에요' : `${it.price.toLocaleString()}G`}
-          </small>
+          <b>{tryOn == null ? '기본 모습' : names[tryOn]}</b>
+          <small>{tryOn == null ? '아무것도 안 입었어요' : '입어 보기만 할 수 있어요 · 옷 판매 준비 중'}</small>
         </div>
       </div>
       <div className="dr-sheet">
         <div className="dr-grid">
-          <button className={!tryOn ? 'on' : ''} onClick={() => setTryOn(null)}>
+          <button className={tryOn == null ? 'on' : ''} onClick={() => setTryOn(null)}>
             <img src={ART.sit} alt="" />
             <small>기본</small>
           </button>
-          {outfits.map((o) => (
-            <button key={o.id} className={tryOn === o.id ? 'on' : ''} onClick={() => setTryOn(o.id)}>
-              <img src={ART[o.id]} alt="" />
-              <small>{o.name}</small>
+          {names.map((n, i) => (
+            <button key={n + i} className={tryOn === i ? 'on' : ''} onClick={() => setTryOn(i)}>
+              <img src={kit(breed, `o${i}`)} alt="" />
+              <small>{n}</small>
             </button>
           ))}
         </div>
-        {OUTFIT_OPEN && tryOn && owned && tryOn !== worn && (
-          <button className="btn btn-primary btn-block" onClick={() => actions.toggleEquip(tryOn)}>
-            이 옷 입기
-          </button>
-        )}
       </div>
     </div>
   )

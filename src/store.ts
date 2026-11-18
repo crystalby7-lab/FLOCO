@@ -102,7 +102,7 @@ function migrate(raw: Partial<GameState>): GameState {
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
-      cat: { ...g.cat, clean: g.cat.clean ?? 80, equipped: OUTFIT_OPEN ? g.cat.equipped : g.cat.equipped.filter((id) => itemOf(id)?.slot !== 'outfit') },
+      cat: { ...g.cat, breed: g.cat.breed ?? 'calico', clean: g.cat.clean ?? 80, equipped: OUTFIT_OPEN ? g.cat.equipped : g.cat.equipped.filter((id) => itemOf(id)?.slot !== 'outfit') },
     }
   }
   return s
@@ -286,9 +286,9 @@ function addExp(g: Guild, amount: number, why: string): Guild {
   return ng
 }
 
-function newCat(name: string): Cat {
+function newCat(name: string, breed = 'calico'): Cat {
   const t = now()
-  return { name, level: 1, exp: 0, hunger: 70, mood: 70, clean: 80, updatedAt: t, lastClaimAt: t - 2 * 3_600_000, equipped: [] }
+  return { name, breed, level: 1, exp: 0, hunger: 70, mood: 70, clean: 80, updatedAt: t, lastClaimAt: t - 2 * 3_600_000, equipped: [] }
 }
 
 // ───────── 데모 친구 (Firebase 연결 전까지 친구 역할) ─────────
@@ -390,7 +390,7 @@ export const actions = {
     set((s) => ({ ...s, user: { id: authUid ?? 'me', nickname, grade, joinedAt: now() } }))
   },
 
-  createGuild(guildName: string, catName: string) {
+  createGuild(guildName: string, catName: string, breed = 'calico') {
     set((s) => {
       if (!s.user) return s
       const members: Member[] = [{ id: s.user.id, nickname: s.user.nickname, isMe: true }, ...botMembers()]
@@ -400,7 +400,7 @@ export const actions = {
         members,
         gold: RULES.startGold,
         cash: RULES.startCash,
-        cat: newCat(catName),
+        cat: newCat(catName, breed),
         proposals: [seedProposal()],
         retros: [],
         feed: [],
@@ -412,7 +412,7 @@ export const actions = {
         createdAt: now(),
       }
       guild = addFeed(guild, '🐣', `${guildName} 길드가 만들어지고 ${catName}가 태어났어요!`)
-      guild = addFeed(guild, '💡', '하늘님이 미국 S&P500 ETF 매수를 제안했어요. 투표해 주세요!')
+      guild = addFeed(guild, '💡', '하늘님이 미국 S&P500 ETF를 샀어요. 근거에 피드백을 남겨 주세요!')
       return { ...s, guild }
     })
   },

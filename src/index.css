@@ -11910,3 +11910,25 @@ label.set2-row:active {
 .si-presets button.on { box-shadow: 0 0 0 2.5px var(--blue); color: var(--ink); background: #f3f7ff; }
 .si-tabs { overflow-x: auto; }
 .si-tabs button { min-width: 0; white-space: nowrap; }
+
+/* ───── v13 새 고양이 캐릭터: 고르기 · 프로필 잠금 ───── */
+.ob-breed-label { font-size: 13px; font-weight: 800; color: var(--sub); }
+.ob-breeds { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.ob-breeds button { border: 2px solid transparent; background: #f4f7fc; border-radius: 16px; padding: 6px 2px 5px; display: flex; flex-direction: column; align-items: center; gap: 2px; font: inherit; min-width: 0; }
+.ob-breeds img { width: 100%; max-width: 64px; aspect-ratio: 1; object-fit: contain; }
+.ob-breeds small { font-size: 11px; font-weight: 800; color: var(--sub); white-space: nowrap; }
+.ob-breeds button.on { border-color: var(--blue); background: #eaf2ff; }
+.ob-breeds button.on small { color: var(--blue); }
+.pe-breed .pe-title { display: flex; align-items: center; gap: 8px; }
+.pe-breed .pe-title em { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--blue); background: #eaf2ff; padding: 2px 8px; border-radius: 999px; }
+.pe-breed .pe-title em.lock { color: #8a97ab; background: #eef1f5; }
+.pe-breed.locked .pe-cell img { filter: grayscale(1) brightness(1.15); opacity: .45; }
+.pe-breed.locked .pe-cell { cursor: not-allowed; }
+
+/* v13.1 고양이 뒤 흰 동그라미·빛 번짐 없애기 (보영 요청) */
+.intro-arts { background: none; }
+.intro-arts.n3 img { border-radius: 0; }
+.cg-cat { background: none; border: 0; box-shadow: none; width: auto; height: auto; }
+.cg-cat img { width: 130px; filter: drop-shadow(0 8px 0 rgba(120,150,190,.25)); }
+.hg-frame { background: none; border: 0; box-shadow: none; overflow: visible; }
+.hg-frame img { width: 130px; margin-bottom: 0; }
