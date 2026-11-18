@@ -11865,3 +11865,24 @@ label.set2-row:active {
 
 /* v12.1 지도·로딩 고양이: 그림이 왼쪽을 보고 있어서 오른쪽으로 갈 땐 뒤집는다 */
 .wi-cat, .gl-cat { transform: scaleX(-1); }
+
+/* ───── v12.2 집 들어가기 로딩: 하늘색 체크 무늬 + 고양이 + 차오르는 바 ───── */
+.gl.check-gl { clip-path: none !important; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px;
+  background-color: #dcebfa !important;
+  background-image: conic-gradient(#c6ddf6 25%, #e0eefb 0 50%, #c6ddf6 0 75%, #e0eefb 0) !important;
+  background-size: 64px 64px !important; background-position: 0 0; animation: cg-slide 3s linear infinite !important; }
+.check-gl.gl-close { opacity: 0; animation: cg-fade-in .3s ease forwards, cg-slide 3s linear infinite !important; }
+.check-gl.gl-open { animation: cg-fade-out .4s ease forwards, cg-slide 3s linear infinite !important; }
+@keyframes cg-fade-in { to { opacity: 1 } }
+@keyframes cg-fade-out { from { opacity: 1 } to { opacity: 0 } }
+@keyframes cg-slide { to { background-position: 64px 64px } }
+.cg-cat { position: relative; width: 150px; height: 150px; border-radius: 50%; background: #fff; border: 3px solid #b88d70; display: grid; place-items: center; box-shadow: 0 8px 0 rgba(120,150,190,.25); }
+.cg-cat img { width: 100px; animation: cg-bounce .6s ease-in-out infinite alternate; }
+.cg-shadow { display: none; }
+@keyframes cg-bounce { from { transform: translateY(4px) } to { transform: translateY(-8px) } }
+.cg-bar { width: min(64%, 260px); height: 18px; border-radius: 999px; background: #fff; border: 3px solid #b88d70; padding: 2px; box-sizing: content-box; }
+.cg-bar i { position: relative; display: block; height: 100%; width: 0; border-radius: 999px; background: repeating-linear-gradient(-45deg, #8fb8ef 0 8px, #7aa6e6 8px 16px); }
+.check-gl.gl-load .cg-bar i, .check-gl.gl-open .cg-bar i { animation: cg-fill 1.1s ease-in-out forwards; }
+@keyframes cg-fill { from { width: 0 } to { width: 100% } }
+.cg-bar i img { position: absolute; right: -18px; bottom: 10px; width: 40px; transform: scaleX(-1); }
+@media (prefers-reduced-motion: reduce) { .gl.check-gl, .cg-cat img { animation: none !important; } }
