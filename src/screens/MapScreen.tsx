@@ -66,7 +66,6 @@ export function MapScreen(_: { go: (t: Tab) => void }) {
                 aria-label={shop.name}
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (st === 'now') return setUnit(i)
                   setPopup(open ? null : shop.id)
                 }}
               >
@@ -102,16 +101,24 @@ export function MapScreen(_: { go: (t: Tab) => void }) {
                   <br />앞 건물을 먼저 열어야 해요
                 </div>
               )}
-              {open && st === 'done' && (
-                <div className="vl-pop" onClick={(e) => e.stopPropagation()}>
-                  <small>{shop.name} · 열림</small>
-                  <b>{TRACKS[track].name} {ch.no}장 · {ch.title}</b>
-                  <button className="btn btn-primary btn-block" onClick={() => (setPopup(null), setShopOpen(shop.id))}>
-                    가게 들어가서 꾸미기
-                  </button>
-                  <button className="btn btn-ghost btn-block" onClick={() => (setPopup(null), setUnit(i))}>
-                    다시 배우기
-                  </button>
+              {open && st !== 'locked' && (
+                <div className="vl-pop choose" onClick={(e) => e.stopPropagation()}>
+                  <small>
+                    {TRACKS[track].name} {ch.no}장 · {ch.title}
+                  </small>
+                  <b>{shop.name}</b>
+                  <div className="vl-choose">
+                    <button className="vl-go vg-study" onClick={() => (setPopup(null), setUnit(i))}>
+                      <img src={ART.t_think} alt="" />
+                      <span>공부하기</span>
+                      <em>{n}/5</em>
+                    </button>
+                    <button className="vl-go vg-deco" disabled={st !== 'done'} onClick={() => (setPopup(null), setShopOpen(shop.id))}>
+                      <img src={ART[shop.building]} alt="" />
+                      <span>꾸미기</span>
+                      <em>{st === 'done' ? '가게 안으로' : '🔒 챕터 끝내면'}</em>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

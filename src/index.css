@@ -11966,3 +11966,18 @@ label.set2-row:active {
 .home-house.pic.tod-night .hh-photo { filter: brightness(.62) saturate(.85) hue-rotate(10deg); }
 .home-house.pic .hh-pic-cat { position: absolute; left: 63%; bottom: 13%; width: 19%; filter: drop-shadow(0 4px 4px rgba(80,60,40,.2)); animation: hh-pop 3s ease-in-out infinite; }
 .home-house.pic .hh-plate { position: absolute; left: 50%; top: auto; bottom: 4%; transform: translateX(-50%); white-space: nowrap; }
+
+/* v13.5 지도 건물: 누르면 공부하기 · 꾸미기 고르기 */
+.vl-pop.choose { width: 236px; display: grid; gap: 6px; text-align: center; }
+.vl-pop.choose > small { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.vl-pop.choose > b { font-size: 16px; }
+.vl-choose { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+.vl-go { border: 0; border-radius: 16px; padding: 10px 6px 9px; display: flex; flex-direction: column; align-items: center; gap: 3px; font: inherit; cursor: pointer; transition: transform .12s; }
+.vl-go:active:not(:disabled) { transform: scale(.96); }
+.vl-go img { height: 44px; width: auto; max-width: 100%; object-fit: contain; }
+.vl-go span { font-size: 14px; font-weight: 900; }
+.vl-go em { font-style: normal; font-size: 11px; font-weight: 800; opacity: .8; }
+.vl-go.vg-study { background: #e6f0ff; color: var(--blue); box-shadow: 0 3px 0 #c6d9f7; }
+.vl-go.vg-deco { background: #fdebf0; color: #d0587a; box-shadow: 0 3px 0 #f4cbd7; }
+.vl-go:disabled { background: #f0f2f6; color: #9aa4b4; box-shadow: none; cursor: not-allowed; }
+.vl-go:disabled img { filter: grayscale(1); opacity: .5; }

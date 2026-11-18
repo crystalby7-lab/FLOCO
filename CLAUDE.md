@@ -164,3 +164,4 @@
 - 프로필 사진: 고양이 전체가 보이게 기본으로 작게(`LOOK_DEFAULT` zoom 0.58). 프로필 꾸미기에서 사진을 끌거나 크기·좌우·위아래 슬라이더로 조정, '처음 위치로'. 값은 `AvatarLook.zoom/x/y`.
 - 상점 '가구' 탭(2026-11-18): 옷은 상점에서 뺌. 가구 13개(`SHOP`의 `h_*`, 그림은 world/furn 가구 시트 `art`)를 사면 고양이 집 **거실**에 바로 놓임(`HomeFurniture`, Playground). 거실 자리 6곳(`HOME_SPOTS`: 러그·뒤 왼쪽·뒤 오른쪽·작은 자리·앞 왼쪽·앞 오른쪽), 같은 자리엔 하나만(`toggleEquip`). 상점에서 '거실에 두기/치우기'. 예전 상자·방석·침대는 없앰.
 - 포즈 그림(2026-11-18): `kitty/{종}_p_{walk|stretch|sleep|groom|play}.webp` (삼색이·회색·까망이·치즈, 솜뭉치는 아직 없음 → 표정 그림으로 대신). 예전 포즈 이름을 `MOTION`(CatView)으로 연결: walk→걷기, stretch→기지개, lie·sleep·bed·blanket→잠, lielook·hug·bath→그루밍, roll·toy·reach→놀기. 고양이 월드·로딩 화면·오늘 할 일 바의 걷는 고양이도 이제 키우는 종(탭바 고양이만 예전 그림). 보영이 준 시트 중 진짜 삼색(주황+회색 무늬) 포즈 시트 1장은 맞는 종이 없어 아직 안 씀.
+- 지도 건물(열린 곳·지금 열 곳)을 누르면 고르기 팝업: **공부하기**(BuildingPage, n/5) · **꾸미기**(ShopInterior, 챕터를 끝내 건물이 열려야 누를 수 있음). 클래스 `.vl-go.vg-study/.vg-deco` (`.deco`는 다른 곳에서 absolute로 쓰여서 이름 피함).
