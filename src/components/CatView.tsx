@@ -22,6 +22,14 @@ const POSE_TO_EMO: Record<string, string> = {
   face_calm: 'e0', face_happy: 'e1', face_wow: 'e3', face_sad: 'e4', face_mad: 'e5', face_sleepy: 'e6',
   t_wave: 'e1', t_jump: 'e1', t_happy: 'e2', t_rain: 'e4', t_think: 'e3', t_sprout: 'e2',
 }
+// 포즈 그림 (2026-11-18 보영 포즈 시트: walk·stretch·sleep·groom·play, 솜뭉치는 아직 없음)
+const MOTION: Record<string, string> = {
+  walk: 'walk', stretch: 'stretch', lie: 'sleep', sleep: 'sleep', bed: 'sleep', blanket: 'sleep',
+  lielook: 'groom', hug: 'groom', bath: 'groom', roll: 'play', toy: 'play', reach: 'play',
+}
+// 포즈 그림 높이 (앉은 그림 177 기준)
+const MOTION_H: Record<string, number> = { walk: 150, stretch: 132, sleep: 112, groom: 172, play: 128 }
+export const hasMotion = (pose: string) => !!MOTION[pose] && !!KIT[`${curBreed}_p_${MOTION[pose]}`]
 // 친구·뉴스 고양이처럼 종이 정해진 그림
 const FIXED: Record<string, string> = {
   b_orange: 'orange_e0', b_black: 'black_e0', b_grey: 'grey_e0', b_calico: 'calico_e0', b_tuxedo: 'cream_e0', b_siamese: 'grey_e2', b_ragdoll: 'cream_e2', b_snow: 'cream_e0',
@@ -31,6 +39,9 @@ const FIXED: Record<string, string> = {
 export const ART_OLD = RAW
 export const ART: Record<string, string> = new Proxy(RAW, {
   get(t, k: string) {
+    // 움직이는 포즈(걷기·기지개·잠·그루밍·놀기)는 종별 포즈 그림이 있으면 그걸, 없으면(솜뭉치) 표정 그림
+    if (MOTION[k] && KIT[`${curBreed}_p_${MOTION[k]}`]) return KIT[`${curBreed}_p_${MOTION[k]}`]
+    if (k === 'walk') return KIT[`${curBreed}_e0`]
     if (POSE_TO_EMO[k]) return KIT[`${curBreed}_${POSE_TO_EMO[k]}`]
     if (FIXED[k]) return KIT[FIXED[k]]
     return t[k] ?? KIT[k]
@@ -45,17 +56,17 @@ export const POSES = {
   back2: { w: 114, h: 175, dir: 'front' },
   walk: { w: 201, h: 153, dir: 'left' },
   stretch: { w: 211, h: 207, dir: 'left' },
-  reach: { w: 124, h: 221, dir: 'front' },
-  hug: { w: 159, h: 184, dir: 'left' },
+  reach: { w: 124, h: 221, dir: 'right' },
+  hug: { w: 159, h: 184, dir: 'front' },
   box: { w: 192, h: 162, dir: 'front' },
-  blanket: { w: 187, h: 169, dir: 'front' },
+  blanket: { w: 187, h: 169, dir: 'left' },
   lie: { w: 258, h: 126, dir: 'left' },
-  lielook: { w: 198, h: 136, dir: 'right' },
-  sleep: { w: 244, h: 160, dir: 'front' },
-  roll: { w: 177, h: 165, dir: 'front' },
+  lielook: { w: 198, h: 136, dir: 'front' },
+  sleep: { w: 244, h: 160, dir: 'left' },
+  roll: { w: 177, h: 165, dir: 'right' },
   crown: { w: 180, h: 178, dir: 'front' },
-  toy: { w: 175, h: 187, dir: 'left' },
-  bed: { w: 162, h: 166, dir: 'front' },
+  toy: { w: 175, h: 187, dir: 'right' },
+  bed: { w: 162, h: 166, dir: 'left' },
   boba: { w: 150, h: 177, dir: 'front' },
   bath: { w: 170, h: 157, dir: 'front' },
 } as const
@@ -69,10 +80,9 @@ export type Face = 'calm' | 'happy' | 'wow' | 'sad' | 'mad' | 'sleepy'
 // 한 포즈의 그림. 앉아 있을 때 옷을 입고 있으면 옷 입은 그림으로 바꾼다.
 export function CatSprite({ cat, pose, unit }: { cat: Cat; pose: Pose; unit: number }) {
   const outfit = pose === 'sit' ? outfitOf(cat) : undefined
-  // 걷기 그림은 예전 고양이라, 움직일 때도 지금 키우는 종의 앉은 그림으로
-  const src = ART[outfit ?? (pose === 'walk' ? 'sit' : pose)]
+  const src = ART[outfit ?? pose]
   // 새 캐릭터 그림은 포즈마다 크기가 같아서 걷기만 예전 비율
-  const h = (outfit ? 180 : 177) * unit
+  const h = (outfit ? 180 : hasMotion(pose) ? MOTION_H[MOTION[pose]] : 177) * unit
   return (
     <div className={`cat-sprite ${pose}`} style={{ height: h }}>
       <img src={src} alt={cat.name || '고양이'} draggable={false} />
