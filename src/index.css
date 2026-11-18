@@ -11932,3 +11932,19 @@ label.set2-row:active {
 .cg-cat img { width: 130px; filter: drop-shadow(0 8px 0 rgba(120,150,190,.25)); }
 .hg-frame { background: none; border: 0; box-shadow: none; overflow: visible; }
 .hg-frame img { width: 130px; margin-bottom: 0; }
+
+/* v13.2 프로필 사진: 고양이가 잘리지 않게 작게 + 크기·위치 조정 */
+.pe-drag { touch-action: none; cursor: grab; border-radius: 50%; }
+.pe-drag:active { cursor: grabbing; }
+.pe-hint { font-size: 11.5px; color: var(--muted); font-weight: 700; }
+.pe-adjust { display: grid; gap: 8px; background: #fff; border-radius: 18px; padding: 12px 14px; box-shadow: var(--card-shadow); margin: 4px 0 8px; }
+.pe-adjust label { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--sub); }
+.pe-adjust input[type=range] { width: 100%; accent-color: var(--blue); }
+.pe-adjust .text-btn { justify-self: end; font-size: 12.5px; }
+.pe-cell img { object-fit: contain; }
+.pe-adjust input[type=range] { -webkit-appearance: auto; appearance: auto; border: 0; padding: 0; height: 24px; min-height: 0; background: transparent; box-shadow: none; border-radius: 0; }
+.pe-cell img { width: 100%; height: 100%; max-height: none; }
+.breed-av img:not(.av-sticker) { transform: translateX(-50%); }
+.pe-cell { position: relative; }
+.pe-cell img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; }
+.pe-drag { display: inline-block; line-height: 0; }

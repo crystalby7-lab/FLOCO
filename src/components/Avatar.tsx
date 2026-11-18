@@ -13,11 +13,15 @@ export function breedOf(g: Guild, memberId: string) {
   return BREEDS[Math.max(0, others.indexOf(m)) % BREEDS.length]
 }
 
-// 동그란 프로필: 배경색 + 전신 그림의 머리 부분 + 작은 스티커
+// 동그란 프로필: 배경색 + 고양이 그림(크기·위치는 프로필 꾸미기에서 조정) + 작은 스티커
+export const LOOK_DEFAULT = { zoom: 0.58, x: -2, y: 9 }
 export function AvatarView({ look, size = 28 }: { look: AvatarLook; size?: number }) {
+  const zoom = look.zoom ?? LOOK_DEFAULT.zoom
+  const x = look.x ?? LOOK_DEFAULT.x
+  const y = look.y ?? LOOK_DEFAULT.y
   return (
     <span className="av breed-av" style={{ width: size, height: size, background: look.bg }}>
-      <img src={ART[look.art]} alt="" />
+      <img src={ART[look.art]} alt="" style={{ width: `${zoom * 100}%`, left: `${50 + x}%`, top: `${y}%` }} />
       {look.sticker && <img className="av-sticker" src={ART[look.sticker]} alt="" style={{ width: Math.max(12, size * 0.36) }} />}
     </span>
   )
