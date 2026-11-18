@@ -89,46 +89,12 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel home live">
-      <section className={`home-house tod-${tod}`}>
-        <img className="hh-cloud c1" src={ART.bg_cloud} alt="" aria-hidden />
-        <img className="hh-cloud c2" src={ART.bg_cloud} alt="" aria-hidden />
-        <div className="hh-ground" aria-hidden />
-        <img className="hh-sun" src={ART[tod === 'night' ? 'bg_moon' : 'bg_sun']} alt="" aria-hidden />
-        <img className="hh-fence l" src={ART.bg_fence} alt="" aria-hidden />
-        <img className="hh-fence r" src={ART.bg_fence} alt="" aria-hidden />
-        <img className="hh-bush l" src={ART.bg_bush} alt="" aria-hidden />
-        <img className="hh-bush r" src={ART.bg_bush2} alt="" aria-hidden />
-        <button className="hh-house" onClick={() => setWorld({ dress: false })} aria-label={`${cat.name}네 집 들어가기`}>
-          <svg className="hh-svg" viewBox="0 0 220 200" aria-hidden>
-            <rect className="hh-chim" x="148" y="26" width="22" height="40" rx="5" />
-            <rect className="hh-wall" x="24" y="88" width="172" height="110" rx="16" />
-            <path className="hh-roofp" d="M12 100 Q4 94 11 86 L100 16 Q110 8 120 16 L209 86 Q216 94 208 100 Z" />
-            <g className="hh-scallop">
-              {[22, 42, 62, 82, 102, 122, 142, 162, 182, 198].map((x) => (
-                <circle key={x} cx={x} cy={100} r={10} />
-              ))}
-            </g>
-            <circle className="hh-attic" cx="110" cy="62" r="14" />
-            <path className="hh-heart" d="M110 70 C100 62 102 54 107 54 C109 54 110 56 110 57 C110 56 111 54 113 54 C118 54 120 62 110 70 Z" />
-            {[38, 146].map((x) => (
-              <g key={x}>
-                <rect className="hh-win" x={x} y="118" width="36" height="32" rx="9" />
-                <path className="hh-pane" d={`M${x + 18} 120 V148 M${x + 2} 134 H${x + 34}`} />
-                <rect className="hh-box" x={x - 3} y="150" width="42" height="9" rx="4" />
-                <circle className="hh-f1" cx={x + 6} cy="148" r="4" />
-                <circle className="hh-f2" cx={x + 18} cy="147" r="4" />
-                <circle className="hh-f1" cx={x + 30} cy="148" r="4" />
-              </g>
-            ))}
-          </svg>
-          <span className="hh-door">
-            <img src={ART.sit} alt="" />
-          </span>
+      <section className={`home-house pic tod-${tod}`}>
+        <button className="hh-pic" onClick={() => setWorld({ dress: false })} aria-label={`${cat.name}네 집 들어가기`}>
+          <img className="hh-photo" src={ART.sc_home_house} alt="" />
+          <img className="hh-pic-cat" src={ART.sit} alt="" />
           <span className="hh-plate">눌러서 들어가기</span>
         </button>
-        <img className="hh-flowers l" src={ART.bg_flowers} alt="" aria-hidden />
-        <img className="hh-flowers r" src={ART.bg_flower} alt="" aria-hidden />
-        <img className="hh-flowers r2" src={ART.bg_flowers} alt="" aria-hidden />
       </section>
 
 
