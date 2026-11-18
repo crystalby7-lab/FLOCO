@@ -102,7 +102,7 @@ function migrate(raw: Partial<GameState>): GameState {
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
-      cat: { ...g.cat, breed: g.cat.breed ?? 'calico', clean: g.cat.clean ?? 80, equipped: OUTFIT_OPEN ? g.cat.equipped : g.cat.equipped.filter((id) => itemOf(id)?.slot !== 'outfit') },
+      cat: { ...g.cat, breed: g.cat.breed ?? 'calico', clean: g.cat.clean ?? 80, equipped: g.cat.equipped.filter((id) => itemOf(id) && (OUTFIT_OPEN || itemOf(id)?.slot !== 'outfit')) },
     }
   }
   return s
@@ -692,8 +692,10 @@ export const actions = {
     updateGuild((gg) => {
       const ng: Guild = { ...gg, gold: gg.gold - item.price }
       if (item.kind === 'food') return { ...ng, inventory: { ...ng.inventory, [itemId]: (ng.inventory[itemId] ?? 0) + 1 } }
+      // 가구는 사면 바로 거실에 놓는다 (같은 자리 가구는 치움)
+      const placed = item.slot === 'room' ? { ...ng.cat, equipped: [...ng.cat.equipped.filter((id) => !item.spot || itemOf(id)?.spot !== item.spot), itemId] } : ng.cat
       return addFeed(
-        { ...ng, ownedItems: [...ng.ownedItems, itemId] },
+        { ...ng, cat: placed, ownedItems: [...ng.ownedItems, itemId] },
         item.kind === 'place' ? '🔓' : '🛍',
         item.kind === 'place' ? `${me(gg).nickname}님이 ${item.name} 테마를 열었어요.` : `${me(gg).nickname}님이 ${item.name}을(를) 샀어요.`,
       )
@@ -790,7 +792,8 @@ export const actions = {
       const item = itemOf(itemId)!
       if (item.slot === 'outfit' && !OUTFIT_OPEN) return g
       const on = g.cat.equipped.includes(itemId)
-      const others = g.cat.equipped.filter((id) => id !== itemId && (item.slot === 'room' || itemOf(id)?.slot !== item.slot))
+      // 옷은 하나만, 가구는 같은 자리(spot)에 하나만
+      const others = g.cat.equipped.filter((id) => id !== itemId && (item.slot === 'room' ? !item.spot || itemOf(id)?.spot !== item.spot : itemOf(id)?.slot !== item.slot))
       return { ...g, cat: { ...g.cat, equipped: on ? others : [...others, itemId] } }
     })
   },

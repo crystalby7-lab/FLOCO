@@ -1,7 +1,8 @@
 // 상점 (F9): 가상 골드로만 구매, 투자에 유리한 아이템·확률형 뽑기 없음
 import { useState } from 'react'
 import { actions, useGame } from '../store'
-import { SHOP, OUTFIT_OPEN } from '../data/shop'
+import { SHOP } from '../data/shop'
+import { furSrc } from '../data/world'
 import { Gold } from '../components/ui'
 import { Backdrop, timeOfDay } from '../components/Playground'
 import { Coin, ItemIcon } from '../components/Icons'
@@ -27,7 +28,7 @@ export function Shop() {
   const buy = (id: string) => {
     const err = actions.buyItem(id)
     const it = SHOP.find((i) => i.id === id)!
-    setMsg(err ?? (it.kind === 'food' ? `${it.name} 보관함에 넣었어요 · 홈에서 줘요` : it.kind === 'place' ? '테마가 열렸어요 · 홈에서 옆으로 넘겨요' : '옷장에 넣었어요 · 홈에서 입혀요'))
+    setMsg(err ?? (it.kind === 'food' ? `${it.name} 보관함에 넣었어요 · 홈에서 줘요` : it.kind === 'place' ? '테마가 열렸어요 · 홈에서 옆으로 넘겨요' : '거실에 놓았어요 · 집에 들어가 봐요'))
     setTimeout(() => setMsg(''), 1500)
   }
 
@@ -38,7 +39,7 @@ export function Shop() {
         {note && <small>{note}</small>}
       </div>
       <div className="shop-grid">
-        {SHOP.filter((i) => i.kind === kind).sort((a, b) => Number(a.slot === 'outfit' && !OUTFIT_OPEN) - Number(b.slot === 'outfit' && !OUTFIT_OPEN)).map((item) => {
+        {SHOP.filter((i) => i.kind === kind && i.slot !== 'outfit').map((item) => {
           const owned = g.ownedItems.includes(item.id)
           const on = g.cat.equipped.includes(item.id)
           return (
@@ -49,7 +50,7 @@ export function Shop() {
                   <Backdrop place={item.id} tod={timeOfDay()} />
                 </div>
               ) : (
-                <div className="shop-ico">{ICON[item.id] ?? ART[item.id] ? <img src={ICON[item.id] ?? ART[item.id]} alt="" /> : ItemIcon[item.id]}</div>
+                <div className={`shop-ico ${item.art ? 'furn' : ''}`}>{item.art ? <img src={furSrc(item.art)} alt="" /> : ICON[item.id] ?? ART[item.id] ? <img src={ICON[item.id] ?? ART[item.id]} alt="" /> : ItemIcon[item.id]}</div>
               )}
               <b>{item.name}</b>
               {item.desc && <small className="muted">{item.desc}</small>}
@@ -59,12 +60,13 @@ export function Shop() {
                   {item.effect.mood ? `기분 +${item.effect.mood}` : ''}
                 </small>
               )}
-              {item.slot === 'outfit' && !OUTFIT_OPEN ? (
-                <span className="owned-tag soon">준비 중</span>
-              ) : owned && kind === 'place' ? (
+              {on && item.slot === 'room' && <span className="owned-tag">거실에 있어요</span>}
+              {owned && kind === 'place' ? (
                 <span className="owned-tag">열림 · 홈에서 옆으로 넘겨요</span>
               ) : owned ? (
-                <span className="owned-tag">옷장에 있어요</span>
+                <button className={`btn small ${on ? '' : 'ghost'}`} onClick={() => actions.toggleEquip(item.id)}>
+                  {on ? '치우기' : '거실에 두기'}
+                </button>
               ) : (
                 <button className="btn small" onClick={() => buy(item.id)}>
                   <Gold value={item.price} />
@@ -98,7 +100,7 @@ export function Shop() {
         {(
           [
             ['food', '먹이·장난감', ART.i_fish],
-            ['deco', '옷·가구', ART.bow],
+            ['deco', '가구', furSrc('cafe_cute1')],
             ['place', '장소 테마', ART.bg_house],
           ] as const
         ).map(([k, l, img]) => (
@@ -111,7 +113,7 @@ export function Shop() {
       {msg && <p className="toast-inline">{msg}</p>}
       <div className="sf-shelf">
         {shelf === 'food' && section('food', '먹이·장난감', '사면 보관함에 쌓여요. 홈에서 주기')}
-        {shelf === 'deco' && section('deco', '옷·가구', '가구는 홈 옷장에서 둬요 · 옷은 준비 중')}
+        {shelf === 'deco' && section('deco', '가구', '사면 고양이 집 거실에 놓여요 · 같은 자리엔 하나만')}
         {shelf === 'place' && section('place', '장소 테마', '홈에서 화살표로 넘겨 가요')}
       </div>
       <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>

@@ -9,8 +9,22 @@ export type ShopItem = {
   price: number
   effect?: { hunger?: number; mood?: number; clean?: number }
   slot?: 'outfit' | 'room' // 옷은 한 번에 하나, 가구는 여러 개
+  art?: string // 가구 그림 (world/furn 이름)
+  spot?: HomeSpot // 거실에서 놓이는 자리 (같은 자리엔 하나만)
   desc?: string
 }
+
+export type HomeSpot = 'rug' | 'backL' | 'backR' | 'frontL' | 'frontR' | 'small'
+// 거실(세로 그림) 위 자리: 왼쪽·바닥에서 %, 폭 %. 배열 순서 = 그리는 순서(뒤 → 앞)
+export const HOME_SPOTS: Record<HomeSpot, { left: number; bottom: number; w: number }> = {
+  rug: { left: 22, bottom: 16, w: 56 },
+  backL: { left: 2, bottom: 30, w: 34 },
+  backR: { left: 66, bottom: 30, w: 32 },
+  small: { left: 42, bottom: 36, w: 14 },
+  frontL: { left: 1, bottom: 4, w: 24 },
+  frontR: { left: 72, bottom: 4, w: 26 },
+}
+export const HOME_SPOT_ORDER: HomeSpot[] = ['rug', 'backL', 'backR', 'small', 'frontL', 'frontR']
 
 export const SHOP: ShopItem[] = [
   { id: 'feed', name: '기본 사료', kind: 'food', price: 100, effect: { hunger: 30 } },
@@ -39,9 +53,20 @@ export const SHOP: ShopItem[] = [
   { id: 'bow', name: '검정 리본', kind: 'deco', price: 800, slot: 'outfit' },
   { id: 'shades', name: '선글라스', kind: 'deco', price: 1000, slot: 'outfit' },
   { id: 'star_shades', name: '별 안경', kind: 'deco', price: 1100, slot: 'outfit' },
-  { id: 'box', name: '종이 상자', kind: 'deco', price: 600, slot: 'room', desc: '가끔 들어가서 놀아요' },
-  { id: 'cushion', name: '체크 방석', kind: 'deco', price: 1000, slot: 'room', desc: '방석에서 낮잠 자요' },
-  { id: 'bed', name: '동굴 침대', kind: 'deco', price: 2200, slot: 'room', desc: '졸리면 들어가요' },
+  // 가구: 사면 고양이 집 거실에 놓인다 (보영 가구 시트 그림, 2026-11-18). 같은 자리엔 하나만.
+  { id: 'h_tower', name: '캣타워', kind: 'deco', price: 2500, slot: 'room', art: 'cafe_cute4', spot: 'backR' },
+  { id: 'h_pawsofa', name: '발바닥 소파', kind: 'deco', price: 2000, slot: 'room', art: 'cafe_cute1', spot: 'backL' },
+  { id: 'h_catsofa', name: '고양이 소파', kind: 'deco', price: 1800, slot: 'room', art: 'bakery_09', spot: 'backL' },
+  { id: 'h_armchair', name: '체크 안락의자', kind: 'deco', price: 1600, slot: 'room', art: 'book_02', spot: 'backL' },
+  { id: 'h_pawrug', name: '발바닥 러그', kind: 'deco', price: 1200, slot: 'room', art: 'flower_cute3', spot: 'rug' },
+  { id: 'h_cloudrug', name: '구름 러그', kind: 'deco', price: 1000, slot: 'room', art: 'clothes_12', spot: 'rug' },
+  { id: 'h_catchair', name: '고양이 의자', kind: 'deco', price: 1800, slot: 'room', art: 'clothes_13', spot: 'frontR' },
+  { id: 'h_stools', name: '고양이 스툴', kind: 'deco', price: 1000, slot: 'room', art: 'clothes_07', spot: 'frontR' },
+  { id: 'h_orange', name: '귤나무 화분', kind: 'deco', price: 1000, slot: 'room', art: 'bakery_11', spot: 'frontR' },
+  { id: 'h_catpot', name: '고양이 화분', kind: 'deco', price: 900, slot: 'room', art: 'flower_cute4', spot: 'frontL' },
+  { id: 'h_balloon', name: '풍선 바구니', kind: 'deco', price: 700, slot: 'room', art: 'gift_08', spot: 'frontL' },
+  { id: 'h_globe', name: '지구본', kind: 'deco', price: 800, slot: 'room', art: 'book_14', spot: 'small' },
+  { id: 'h_desk', name: '책상 세트', kind: 'deco', price: 1500, slot: 'room', art: 'book_09', spot: 'backR' },
   // 테마(장소): 홈에서 옆으로 넘기면 나오는 곳. 사면 고양이가 거기서도 놀아요.
   { id: 'yard', name: '마당', kind: 'place', price: 3000, desc: '언덕 아래 잔디밭에서 나비를 쫓아요' },
   { id: 'rooftop', name: '옥상', kind: 'place', price: 5000, desc: '노을과 야경을 보며 바람 쐬요' },

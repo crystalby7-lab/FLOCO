@@ -11948,3 +11948,12 @@ label.set2-row:active {
 .pe-cell { position: relative; }
 .pe-cell img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; }
 .pe-drag { display: inline-block; line-height: 0; }
+
+/* v13.3 상점 가구 · 거실에 놓인 가구 */
+.shop-ico.furn img { width: 100%; height: 100%; object-fit: contain; }
+.home-furn { position: absolute; z-index: 1; pointer-events: none; filter: drop-shadow(0 5px 5px rgba(90,60,40,.18)); }
+.home-furn.spot-rug { z-index: 0; filter: none; }
+.btn.small.ghost { background: #eef3fa; color: var(--blue); }
+.shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.shop-item { min-width: 0; }
+.shop-item .btn.small { white-space: nowrap; max-width: 100%; }

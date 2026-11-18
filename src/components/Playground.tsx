@@ -3,7 +3,8 @@
 // 밥·간식·장난감을 주면 반응하고, 누르면 배를 보이며 뒹군다. 레벨이 오르면 왕관.
 import { useEffect, useRef, useState } from 'react'
 import type { Cat } from '../types'
-import { ROOM } from '../data/world'
+import { ROOM, furSrc } from '../data/world'
+import { HOME_SPOTS, HOME_SPOT_ORDER, itemOf } from '../data/shop'
 import { ART, CatSprite, POSES, type Face, type Pose } from './CatView'
 
 export type PlayEvent = { type: 'feed' | 'snack' | 'boba' | 'toy' | 'bath'; key: number } | null
@@ -211,6 +212,7 @@ export function Playground({
   return (
     <div className={`room tod-${tod} place-${place}`} ref={room} style={{ height }}>
       <Backdrop place={place} tod={tod} />
+      {place === 'room' && <HomeFurniture ids={cat.equipped} />}
       {bowl && (
         <svg className="room-bowl" style={{ left: '74%' }} viewBox="0 0 60 30" aria-hidden>
           <path d="M4 10 h52 a26 18 0 0 1 -52 0 Z" fill="#C9DCEF" stroke="#8a7b74" strokeWidth="2.5" />
@@ -289,6 +291,19 @@ const PHOTO: Record<string, (night: boolean) => string> = {
   beach: () => 'sc_h_harbor',
   cherry: () => 'sc_h_park',
   snow: () => 'sc_snow',
+}
+
+// 거실에 놓은 가구 (상점에서 산 것). 자리마다 하나, 뒤에서 앞 순서로 그린다.
+function HomeFurniture({ ids }: { ids: string[] }) {
+  const items = HOME_SPOT_ORDER.map((sp) => ids.map(itemOf).find((it) => it?.slot === 'room' && it.spot === sp)).filter(Boolean)
+  return (
+    <>
+      {items.map((it) => {
+        const p = HOME_SPOTS[it!.spot!]
+        return <img key={it!.id} className={`home-furn spot-${it!.spot}`} src={furSrc(it!.art!)} alt="" aria-hidden style={{ left: `${p.left}%`, bottom: `${p.bottom}%`, width: `${p.w}%` }} />
+      })}
+    </>
+  )
 }
 
 export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
