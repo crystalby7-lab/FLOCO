@@ -4,7 +4,7 @@ import { actions, useGame } from '../store'
 import { ART } from '../components/CatView'
 import { AvatarView, DEFAULT_LOOK, LOOK_DEFAULT } from '../components/Avatar'
 import { Page } from '../components/Page'
-import { BREEDS, EMOTES, OUTFIT_NAMES, breedLocks } from '../data/kitty'
+import { EMOTES, OUTFIT_NAMES, breedLocks } from '../data/kitty'
 import type { AvatarLook } from '../types'
 
 const BGS = ['#eef4fb', '#dbe8fb', '#fde8ee', '#fff1c9', '#e3f4ea', '#ece6fb', '#ffe3d3', '#2f3a5a']
@@ -64,12 +64,10 @@ export function ProfileEditor({ onClose }: { onClose: () => void }) {
       </div>
 
       {locks.map(({ id, open, level }) => {
-        const b = BREEDS.find((x) => x.id === id)!
         return (
           <section key={id} className={`pe-breed ${open ? '' : 'locked'}`}>
             <h3 className="pe-title">
-              {b.name}
-              {open ? (level === 0 ? <em>키우는 고양이</em> : null) : <em className="lock">🔒 {g.cat.name} Lv.{level}에 열려요</em>}
+              {open ? <em>{level === 0 ? '키우는 고양이' : '열림'}</em> : <em className="lock">🔒 {g.cat.name} Lv.{level}에 열려요</em>}
             </h3>
             <div className="pe-grid">
               {[...EMOTES.map((_, i) => `${id}_e${i}`), ...OUTFIT_NAMES[id].map((_, i) => `${id}_o${i}`)].map((a) => (

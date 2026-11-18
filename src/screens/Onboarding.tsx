@@ -153,7 +153,6 @@ export function Onboarding() {
               {BREEDS.map((b) => (
                 <button key={b.id} className={breed === b.id ? 'on' : ''} onClick={() => setBreed(b.id)} aria-label={b.name}>
                   <img src={kit(b.id, breed === b.id ? 'e1' : 'e0')} alt="" />
-                  <small>{b.name}</small>
                 </button>
               ))}
             </div>
