@@ -1,20 +1,30 @@
-// 마을 상점 안: 정해진 자리 5칸에 가구를 골라 넣고, 가게 전체 스타일(기본·민트·핑크·블랙)을 바꾼다.
+// 마을 상점 안: 정해진 자리 6칸에 가구를 골라 넣는다. 스타일 시트가 있는 가게(꽃집·은행·미용실·카페)는
+// 귀여운·예쁜·멋진 스타일을 한 번에 깔 수도 있다. 저장하기를 눌러야 저장된다.
 import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { Page } from '../components/Page'
-import { ROOM, SLOTS, STYLES, fur, type Shop, type SlotId } from '../data/world'
+import { ROOM, SLOTS, STYLE_NAMES, furSrc, type Shop, type SlotId, type StyleId } from '../data/world'
+
+type Decor = { style: string; slots: Record<string, number | string> }
+
+// 처음 들어오면 빈 방 대신 기본 배치 (스타일 시트가 있으면 귀여운 스타일, 없으면 자리마다 첫 가구)
+const starter = (shop: Shop): Decor =>
+  shop.presets?.cute
+    ? { style: 'cute', slots: { ...shop.presets.cute } as Record<string, string> }
+    : { style: 'base', slots: Object.fromEntries(SLOTS.map((sl) => [sl.id, shop.options[sl.id][0]]).filter(([, v]) => v)) }
 
 export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void }) {
   const s = useGame()
-  const saved = s.decor[shop.id] ?? { style: 'base', slots: {} }
-  const [d, setD] = useState(saved)
+  const stored = s.decor[shop.id]
+  const saved: Decor = stored && Object.keys(stored.slots).length ? stored : starter(shop)
+  const [d, setD] = useState<Decor>(saved)
   const [slot, setSlot] = useState<SlotId>('counter')
   const [flash, setFlash] = useState(false)
-  const dirty = JSON.stringify(d) !== JSON.stringify(saved)
-  const put = (sl: string, n: number | null) => {
+  const dirty = !stored || JSON.stringify(d) !== JSON.stringify(stored)
+  const put = (sl: string, v: string | null) => {
     const slots = { ...d.slots }
-    if (n == null) delete slots[sl]
-    else slots[sl] = n
+    if (v == null) delete slots[sl]
+    else slots[sl] = v
     setD({ ...d, slots })
   }
   const save = () => {
@@ -22,35 +32,38 @@ export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void 
     setFlash(true)
     setTimeout(() => setFlash(false), 1400)
   }
+  const presets = shop.presets ? (Object.keys(shop.presets) as StyleId[]) : []
   return (
-    <Page title={shop.name} onExit={onExit} confirm={dirty}>
-      <div className={`si-room st-${d.style}`}>
+    <Page title={shop.name} onExit={onExit} confirm={dirty && !!stored}>
+      <div className="si-room tall">
         <img className="si-bg" src={ROOM[shop.room]} alt="" />
         {SLOTS.map((sl) => {
-          const n = d.slots[sl.id]
+          const v = d.slots[sl.id]
           const on = slot === sl.id
           return (
             <button
               key={sl.id}
-              className={`si-slot ${n == null ? 'empty' : ''} ${on ? 'on' : ''} at-${sl.id}`}
+              className={`si-slot ${v == null ? 'empty' : ''} ${on ? 'on' : ''} at-${sl.id}`}
               style={{ left: `${sl.x}%`, bottom: `${sl.bottom}%`, width: `${sl.w}%` }}
               onClick={() => setSlot(sl.id)}
               aria-label={sl.name}
             >
-              {n != null ? <img src={fur(n)} alt="" /> : <span>+</span>}
+              {v != null ? <img src={furSrc(v)} alt="" /> : <span>+</span>}
             </button>
           )
         })}
       </div>
 
-      <div className="si-styles">
-        {STYLES.map((st) => (
-          <button key={st.id} className={d.style === st.id ? 'on' : ''} onClick={() => setD({ ...d, style: st.id })}>
-            <i style={{ background: st.color }} />
-            {st.name}
-          </button>
-        ))}
-      </div>
+      {presets.length > 0 && (
+        <div className="si-presets">
+          {presets.map((p) => (
+            <button key={p} className={d.style === p ? 'on' : ''} onClick={() => setD({ style: p, slots: { ...shop.presets![p] } as Record<string, string> })}>
+              <img src={furSrc(shop.presets![p]!.counter ?? shop.presets![p]!.display!)} alt="" />
+              {STYLE_NAMES[p]} 스타일
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="si-tabs">
         {SLOTS.map((sl) => (
@@ -59,10 +72,10 @@ export function ShopInterior({ shop, onExit }: { shop: Shop; onExit: () => void 
           </button>
         ))}
       </div>
-      <div className={`si-opts st-${d.style}`}>
-        {shop.options[slot].map((n) => (
-          <button key={n} className={d.slots[slot] === n ? 'on' : ''} onClick={() => put(slot, n)}>
-            <img src={fur(n)} alt="" />
+      <div className="si-opts">
+        {shop.options[slot].map((v) => (
+          <button key={v} className={d.slots[slot] === v ? 'on' : ''} onClick={() => put(slot, v)}>
+            <img src={furSrc(v)} alt="" />
           </button>
         ))}
         <button className="si-clear" onClick={() => put(slot, null)}>

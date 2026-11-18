@@ -76,6 +76,11 @@ function migrate(raw: Partial<GameState>): GameState {
   s.watch = s.watch ?? []
   s.guides = s.guides ?? []
   s.decor = s.decor ?? {}
+  // 예전 가구 번호(f000~)는 새 가게 그림과 안 맞아서 비운다 (2026-11-18 가구 교체)
+  for (const k of Object.keys(s.decor)) {
+    const d = s.decor[k]
+    s.decor[k] = { style: d.style, slots: Object.fromEntries(Object.entries(d.slots ?? {}).filter(([, v]) => typeof v === 'string')) }
+  }
   s.learn = Object.assign({ track: 'basic', done: {}, built: {} }, s.learn)
   if (s.guild) {
     const g = s.guild as Partial<Guild> & Guild
@@ -536,7 +541,7 @@ export const actions = {
 
   // 관심 종목 별 켜고 끄기
   // 마을 상점 꾸미기: 스타일이나 자리 하나를 바꾼다 (num이 null이면 그 자리를 비움)
-  decorate(shop: string, patch: { style?: string; slot?: string; num?: number | null }) {
+  decorate(shop: string, patch: { style?: string; slot?: string; num?: number | string | null }) {
     set((s) => {
       const cur = s.decor[shop] ?? { style: 'base', slots: {} }
       const slots = { ...cur.slots }
@@ -584,7 +589,7 @@ export const actions = {
     return out
   },
 
-  setDecor(shop: string, value: { style: string; slots: Record<string, number> }) {
+  setDecor(shop: string, value: { style: string; slots: Record<string, number | string> }) {
     set((s) => ({ ...s, decor: { ...s.decor, [shop]: value } }))
   },
 

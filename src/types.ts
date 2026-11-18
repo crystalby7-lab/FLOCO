@@ -149,5 +149,5 @@ export type GameState = {
   watch: string[] // 관심 종목 (별 표시한 것만)
   guides: string[] // 본 초보 가이드 id
   learn: { track: 'basic' | 'adv'; done: Record<string, { score: number; total: number; at: number }>; built: Record<string, number> } // 커리큘럼 진도 (레슨 id별 점수, 건물 id별 지은 시각)
-  decor: Record<string, { style: string; slots: Record<string, number> }> // 마을 상점 꾸미기 (상점 id별 스타일·자리마다 고른 가구 번호)
+  decor: Record<string, { style: string; slots: Record<string, number | string> }> // 마을 상점 꾸미기 (상점 id별 스타일·자리마다 고른 가구: 새 가구는 이름, 예전 저장본은 번호)
 }

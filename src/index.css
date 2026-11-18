@@ -11898,3 +11898,15 @@ label.set2-row:active {
 .scene-photo.tall { object-fit: cover; object-position: center 72%; filter: none; }
 .cw-stage .scene-photo.tall ~ .photo-ground { background: none; }
 .dr { background-size: cover !important; background-position: center 40% !important; }
+
+/* ───── v12.5 가게 안: 세로 방 그림 + 가구 6칸 + 스타일 한 번에 ───── */
+.si-room.tall { aspect-ratio: 3 / 4; background: #f6ece2; }
+.si-room.tall .si-bg { object-position: center 30%; filter: none; }
+.si-room.tall .si-slot img { filter: drop-shadow(0 5px 5px rgba(90,60,40,.18)); }
+.si-room.tall .si-slot.at-light { aspect-ratio: .9; }
+.si-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.si-presets button { border: 0; background: #fff; border-radius: 16px; padding: 8px 4px; font: inherit; font-size: 12.5px; font-weight: 800; color: var(--sub); display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: var(--card-shadow); min-width: 0; }
+.si-presets img { height: 44px; max-width: 100%; object-fit: contain; }
+.si-presets button.on { box-shadow: 0 0 0 2.5px var(--blue); color: var(--ink); background: #f3f7ff; }
+.si-tabs { overflow-x: auto; }
+.si-tabs button { min-width: 0; white-space: nowrap; }
