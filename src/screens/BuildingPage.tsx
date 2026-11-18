@@ -1,5 +1,5 @@
 // 건물 화면 = 챕터 화면. 건물 N은 내 과정(Basic/Advanced)의 챕터 N과 짝.
-// 레슨 5개(1~4 개념 · 5 적용)를 순서대로 끝내면 이 건물이 열린다.
+// 레슨 5개(1~4 개념 · 5 적용)를 순서대로 끝내면 이 건물이 열린다. 목록엔 제목만, 학습 목표는 레슨 첫 카드에서.
 import { useState } from 'react'
 import { actions, useGame } from '../store'
 import { Page } from '../components/Page'
@@ -37,15 +37,6 @@ export function BuildingPage({ index, onExit }: { index: number; onExit: () => v
         </div>
       </section>
 
-      <div className="bp-track">
-        {(['basic', 'adv'] as Track[]).map((t) => (
-          <button key={t} className={track === t ? 'on' : ''} onClick={() => actions.setTrack(t)}>
-            <b>{TRACKS[t].name}</b>
-            <small>{TRACKS[t].who}</small>
-          </button>
-        ))}
-      </div>
-
       <section className="bp-ch">
         <div className="bp-ch-head">
           <span className="bp-ch-no">{ch.no}</span>
@@ -53,6 +44,13 @@ export function BuildingPage({ index, onExit }: { index: number; onExit: () => v
           <small>
             {n}/{ch.lessons.length}
           </small>
+        </div>
+        <div className="bp-tabs" role="tablist">
+          {(['basic', 'adv'] as Track[]).map((t) => (
+            <button key={t} role="tab" aria-selected={track === t} className={track === t ? 'on' : ''} onClick={() => actions.setTrack(t)}>
+              {TRACKS[t].name}
+            </button>
+          ))}
         </div>
         <ol className="bp-path">
           {ch.lessons.map((l, li) => {
@@ -64,10 +62,7 @@ export function BuildingPage({ index, onExit }: { index: number; onExit: () => v
               <li key={l.id} className={`${isDone ? 'done' : ''} ${now ? 'now' : ''} ${open ? '' : 'locked'}`}>
                 <button disabled={!open} onClick={() => setPlay(l)}>
                   <span className="dot">{isDone ? '★' : open ? li + 1 : '🔒'}</span>
-                  <span className="t">
-                    {l.title}
-                    <small>{l.goal}</small>
-                  </span>
+                  <span className="t">{l.title}</span>
                   {apply && <em className="apply">적용</em>}
                   {now && <em className="go">지금</em>}
                 </button>
