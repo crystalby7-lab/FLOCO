@@ -11893,3 +11893,8 @@ label.set2-row:active {
 .bp-tabs button.on { background: #fff; color: var(--blue); box-shadow: 0 1px 3px rgba(40,70,140,.12); }
 .bp-path .t { align-self: center; }
 .bp-path li button { align-items: center; } .bp-path li button em { align-self: center; margin-top: 0; }
+
+/* v12.4 보영이 준 세로 장소 그림: 화면을 꽉 채우고 바닥 쪽을 보여 줌. 드레스룸은 다락방 그림 */
+.scene-photo.tall { object-fit: cover; object-position: center 72%; filter: none; }
+.cw-stage .scene-photo.tall ~ .photo-ground { background: none; }
+.dr { background-size: cover !important; background-position: center 40% !important; }

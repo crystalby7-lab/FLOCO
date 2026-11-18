@@ -202,7 +202,7 @@ function DressRoom({ onBack }: { onBack: () => void }) {
   const it = tryOn ? itemOf(tryOn) : null
   const owned = tryOn ? g.ownedItems.includes(tryOn) : true
   return (
-    <div className="dr">
+    <div className="dr" style={{ backgroundImage: `url(${ART.sc_h_attic})` }}>
       <header className="cw-hud">
         <button className="cw-round" onClick={onBack} aria-label="나가기">
           <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

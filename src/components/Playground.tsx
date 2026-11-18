@@ -282,11 +282,12 @@ function Light({ tod, lamp }: { tod: TimeOfDay; lamp?: boolean }) {
 }
 
 const PHOTO: Record<string, (night: boolean) => string> = {
-  room: () => 'home_room',
-  yard: () => 'sc_country',
-  rooftop: (n) => (n ? 'sc_night' : 'sc_sunset'),
-  beach: () => 'sc_beach',
-  cherry: () => 'sc_cherry',
+  // 보영이 준 세로 장소 그림 (2026-11-18)
+  room: () => 'sc_h_living',
+  yard: () => 'sc_h_yard',
+  rooftop: () => 'sc_h_roof',
+  beach: () => 'sc_h_harbor',
+  cherry: () => 'sc_h_park',
   snow: () => 'sc_snow',
 }
 
@@ -296,27 +297,8 @@ export function Backdrop({ place, tod }: { place: string; tod: TimeOfDay }) {
     const photo = PHOTO[place](night)
     return (
       <>
-        <img className={`scene-photo ${photo === 'home_room' ? 'home-room' : ''}`} src={ART[photo] ?? ROOM[photo]} alt="" aria-hidden />
+        <img className={`scene-photo ${photo.startsWith('sc_h_') ? 'tall' : ''}`} src={ART[photo] ?? ROOM[photo]} alt="" aria-hidden />
         <div className="photo-ground" aria-hidden />
-        {place === 'yard' && (
-          <>
-            <div className="spr-fence" aria-hidden>
-              <img src={ART.bg_fence} alt="" />
-              <img src={ART.bg_fence} alt="" />
-              <img src={ART.bg_fence} alt="" />
-            </div>
-            <Spr n="bg_flowers" c="yard-flowers" />
-            <Spr n="bg_flower" c="yard-flower" />
-            {!night && <span className="butterfly" aria-hidden />}
-          </>
-        )}
-        {place === 'rooftop' && (
-          <>
-            <div className="rail" aria-hidden />
-            <Spr n="bg_plant1" c="roof-plant l" />
-            <Spr n="bg_plant2" c="roof-plant r" />
-          </>
-        )}
         {place === 'cherry' && (
           <div className="petals" aria-hidden>
             {Array.from({ length: 8 }, (_, i) => (

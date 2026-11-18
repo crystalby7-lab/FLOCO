@@ -2,10 +2,10 @@
 import type { Cat } from '../types'
 import { SHOP } from '../data/shop'
 
-// src/assets/cat/*.png 를 이름으로 불러온다
-const files = import.meta.glob('../assets/cat/*.png', { eager: true, import: 'default' }) as Record<string, string>
+// src/assets/cat/*.png·*.jpg 를 이름으로 불러온다 (장소 배경 sc_h_*는 jpg)
+const files = import.meta.glob('../assets/cat/*.{png,jpg}', { eager: true, import: 'default' }) as Record<string, string>
 export const ART: Record<string, string> = Object.fromEntries(
-  Object.entries(files).map(([path, url]) => [path.split('/').pop()!.replace('.png', ''), url]),
+  Object.entries(files).map(([path, url]) => [path.split('/').pop()!.replace(/\.(png|jpg)$/, ''), url]),
 )
 
 // 원본 크기(시트 그대로라 모든 그림 비율이 같다)와 그림이 바라보는 방향
