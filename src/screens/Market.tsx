@@ -1,13 +1,16 @@
 // 투자하러 가기: 학습용 종목 전체를 묶음별로 보고, 별로 관심 등록하고, 눌러서 자세히 → 매수
 import { useRef, useState } from 'react'
 import { actions, useGame } from '../store'
-import { asOfLabel, changePct, history, priceOf, swingOf, TICKERS } from '../data/market'
+import { asOfLabel, changePct, history, priceOf, swingOf, TICKERS, usdOf } from '../data/market'
+import { StockLogo } from '../components/StockLogo'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
 
 export const GROUPS: { id: string; label: string; codes: string[] }[] = [
   { id: 'kr', label: '국내 지수', codes: ['069500', '102110', '278530', '229200'] },
-  { id: 'us', label: '미국', codes: ['360750', '379800', '133690', '381170'] },
+  { id: 'us', label: '미국 따라가는 국내 ETF', codes: ['360750', '379800', '133690', '381170'] },
+  { id: 'usetf', label: '미국 ETF', codes: ['SPY', 'VOO', 'QQQ', 'SCHD', 'DIA'] },
+  { id: 'usstock', label: '미국 주식', codes: ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NFLX', 'DIS', 'KO', 'MCD', 'NKE', 'COST', 'AMD', 'SBUX'] },
   { id: 'theme', label: '섹터·테마', codes: ['091160', '139260', '305720', '305540'] },
   { id: 'world', label: '해외', codes: ['192090', '371460', '241180'] },
   { id: 'div', label: '배당·리츠', codes: ['161510', '329200'] },
@@ -51,7 +54,10 @@ export function TickerRow({ code, day, onOpen }: { code: string; day: number; on
   return (
     <li className="mk-row">
       <button onClick={() => onOpen(code)}>
-        <span className="hold-ico">{flag(t.market)}</span>
+        <span className="mk-logo">
+          <StockLogo code={code} size={36} />
+          <i>{flag(t.market)}</i>
+        </span>
         <span className="mk-name">
           <b>{t.name}</b>
           <small>
@@ -64,6 +70,7 @@ export function TickerRow({ code, day, onOpen }: { code: string; day: number; on
         </span>
         <span className="hold-num">
           <b>{priceOf(code, day).toLocaleString()}원</b>
+          {usdOf(code, day) != null && <small className="usd">${usdOf(code, day)!.toLocaleString()}</small>}
           <small className={ch > 0 ? 'up' : ch < 0 ? 'down' : ''}>{pct(ch)}</small>
         </span>
       </button>

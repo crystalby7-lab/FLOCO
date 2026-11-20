@@ -1,7 +1,8 @@
 // 투자: 계좌는 각자 따로. 종목 살펴보기 → 이유 3칸·AI 확인 → 바로 체결 → 친구들이 근거에 피어 피드백 → 팔고 돌아보기
 import { useState } from 'react'
 import { actions, cashOf, me, memberName, mustRetro, needReview, RULES, unlocked, useGame, vault } from '../store'
-import { asOfDate, asOfLabel, changePct, comparePair, feeAsOf, history, priceOf, swingOf, tickerOf, TICKERS } from '../data/market'
+import { asOfDate, asOfLabel, changePct, comparePair, feeAsOf, fxNow, history, priceOf, swingOf, tickerOf, TICKERS, usdOf } from '../data/market'
+import { StockLogo } from '../components/StockLogo'
 import { companyOf, moneyLabel } from '../data/companies'
 import { Empty } from '../components/ui'
 import { Page } from '../components/Page'
@@ -202,7 +203,15 @@ function TickerSheet({
         <div className="tk-star">
           <Star code={t.code} size={26} />
         </div>
+        <div className="tk-logo">
+          <StockLogo code={t.code} size={48} />
+        </div>
         <div className="tk-price num">{priceOf(code, day).toLocaleString()}원</div>
+        {usdOf(code, day) != null && (
+          <div className="tk-usd">
+            ${usdOf(code, day)!.toLocaleString()} · 환율 {fxNow()?.toLocaleString()}원으로 바꾼 값
+          </div>
+        )}
         <div className="tk-changes">
           {[1, 5, 20].map((d) => {
             const c = changePct(code, day, d)

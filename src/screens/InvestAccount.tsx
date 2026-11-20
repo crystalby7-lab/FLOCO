@@ -1,5 +1,6 @@
 // 투자 탭 윗부분: 실제 증권 앱처럼 생긴 '플로코 모의투자 계좌'.
 // 숫자마다 ⓘ를 누르면 고양이가 그 말이 무슨 뜻인지 설명해줘서, 화면을 보면서 용어를 배운다.
+import { StockLogo } from '../components/StockLogo'
 import { useState, type ReactNode } from 'react'
 import { actions, RULES, useGame, vault } from '../store'
 import { TickerRow } from './Market'
@@ -13,7 +14,6 @@ import type { Tab } from '../App'
 // 무엇을 따라가는 종목인지 (국내 / 미국 / 그 외)
 const marketOf = (code: string) => tickerOf(code).market
 const isUS = (code: string) => marketOf(code) === 'us'
-const flagOf = (code: string) => (marketOf(code) === 'us' ? '🇺🇸' : marketOf(code) === 'kr' ? '🇰🇷' : '🌏')
 const won = (n: number) => `${Math.round(n).toLocaleString()}원`
 // 2026-11-06 → 11월 6일
 const dayLabel = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`
@@ -253,7 +253,7 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
                 return (
                   <li key={h.p.id}>
                     <button onClick={() => onOpen(h.p.ticker)}>
-                      <span className="hold-ico">{flagOf(t.code)}</span>
+                      <StockLogo code={t.code} size={36} />
                       <span className="hold-name">
                         <b>{t.name}</b>
                         <small>

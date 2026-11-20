@@ -1,0 +1,38 @@
+name: 미국 종가·환율 받기
+
+# 매일 아침 7시 30분(KST, 미국 장 마감 뒤)에 미국 종목 종가와 원/달러 환율을 받아 public/prices_us.json을 새로 쓴다.
+# 키가 필요 없다(야후 비공식). 받아오지 못하면 파일을 건드리지 않는다.
+on:
+  schedule:
+    - cron: '30 22 * * 1-5' # 22:30 UTC = 다음 날 07:30 KST, 화~토 아침
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prices
+  cancel-in-progress: false
+
+jobs:
+  us:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 미국 종가 받기
+        run: node scripts/fetch-us-prices.mjs
+      - name: 바뀌었으면 커밋
+        run: |
+          if [ -z "$(git status --porcelain public/prices_us.json)" ]; then
+            echo "바뀐 값 없음"
+            exit 0
+          fi
+          git config user.name "floco-price-bot"
+          git config user.email "actions@github.com"
+          git add public/prices_us.json
+          git commit -m "미국 종가 갱신 ($(TZ=Asia/Seoul date '+%m-%d'))"
+          git pull --rebase
+          git push

@@ -1,0 +1,40 @@
+name: 경제 뉴스 받기
+
+# 3시간마다 GNews에서 한국어 경제 뉴스 헤드라인을 받아 public/gnews.json을 새로 쓴다.
+# 저장소 Secret GNEWS_API_KEY가 필요하다. 없거나 실패하면 파일을 건드리지 않는다.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gnews
+  cancel-in-progress: false
+
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 뉴스 받기
+        env:
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+        run: node scripts/fetch-gnews.mjs
+      - name: 바뀌었으면 커밋
+        run: |
+          if [ -z "$(git status --porcelain public/gnews.json)" ]; then
+            echo "바뀐 뉴스 없음"
+            exit 0
+          fi
+          git config user.name "floco-news-bot"
+          git config user.email "actions@github.com"
+          git add public/gnews.json
+          git commit -m "뉴스 갱신 ($(TZ=Asia/Seoul date '+%m-%d %H시'))"
+          git pull --rebase
+          git push

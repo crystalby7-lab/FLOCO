@@ -56,6 +56,7 @@ export type Proposal = {
   boughtAt?: number // 체결 시각 (피드 정렬용)
   soldAt?: number
   likes?: string[] // 피드 거래 카드 좋아요
+  sellFee?: number // 매도 수수료 (원, 판 금액의 0.1%)
   reviews?: Review[] // 친구들이 남긴 피어 피드백
 }
 

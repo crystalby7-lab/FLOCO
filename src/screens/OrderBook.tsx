@@ -10,6 +10,8 @@ import type { Guild, Proposal } from '../types'
 
 // 호가 한 칸의 크기 (ETF는 5원, 주식은 가격대별 한국거래소 기준)
 export function tickOf(code: string, price: number) {
+  // 미국 종목은 원화로 바꾼 값이라 가격대에 맞춰 10원·100원
+  if (tickerOf(code).exchange === 'US') return price < 100000 ? 10 : 100
   if (tickerOf(code).kind === 'etf') return 5
   if (price < 2000) return 1
   if (price < 5000) return 5
@@ -179,6 +181,12 @@ export function OrderBook({
             <small>주문금액</small>
             <b>{won(total)}원</b>
           </div>
+          {side === 'sell' && (
+            <div>
+              <small>수수료 0.1%</small>
+              <span>−{won(Math.round(total * 0.001))}원</span>
+            </div>
+          )}
         </div>
 
         {fill === null ? (

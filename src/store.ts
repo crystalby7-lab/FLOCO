@@ -14,6 +14,7 @@ import { reviewReasons } from './aiReview'
 const KEY = 'floco-mvp-v1'
 
 export const RULES = {
+  sellFee: 0.001, // 매도 수수료 0.1%
   startGold: 3_000, // 게임 코인 (상점·돌보기). 처음부터 테마를 바로 사지 않게 적게
   startCash: 10_000_000, // 모의투자 시작 자산 (원)
   goldPerHour: 30, // F8 자동 훈련 (하루 최대 240)
@@ -210,7 +211,7 @@ export const me = (g: Guild) => g.members.find((m) => m.isMe)!
 export function cashOf(g: Guild, memberId = me(g).id) {
   return g.proposals
     .filter((p) => p.proposerId === memberId && p.qty && p.buyPrice && (p.status === 'holding' || p.status === 'sold'))
-    .reduce((a, p) => a - p.qty! * p.buyPrice! + (p.status === 'sold' ? p.qty! * (p.sellPrice ?? p.buyPrice!) : 0), RULES.startCash)
+    .reduce((a, p) => a - p.qty! * p.buyPrice! + (p.status === 'sold' ? p.qty! * (p.sellPrice ?? p.buyPrice!) - (p.sellFee ?? 0) : 0), RULES.startCash)
 }
 
 // 계좌 평가: 내 현금 + 내가 가진 종목 지금 가격
@@ -226,7 +227,7 @@ export function vault(g: Guild, day: number, memberId = me(g).id) {
   const pnl = holdings.reduce((a, h) => a + h.pnl, 0)
   const realized = mine
     .filter((p) => p.status === 'sold' && p.qty && p.buyPrice && p.sellPrice)
-    .reduce((a, p) => a + p.qty! * (p.sellPrice! - p.buyPrice!), 0)
+    .reduce((a, p) => a + p.qty! * (p.sellPrice! - p.buyPrice!) - (p.sellFee ?? 0), 0)
   const cash = cashOf(g, memberId)
   return { cash, invested, total: cash + invested, pnl, realized, holdings }
 }
@@ -603,8 +604,9 @@ export const actions = {
       if (!p || p.status !== 'holding' || !p.qty || !p.buyPrice) return g
       const price = atPrice ?? priceOf(p.ticker, s.day)
       const income = p.qty * price
-      const profit = income - p.qty * p.buyPrice
-      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, soldDay: s.day, soldAt: now(), ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
+      const fee = Math.round(income * RULES.sellFee) // 매도 수수료 0.1% (서영 언니 앱과 같은 규칙)
+      const profit = income - fee - p.qty * p.buyPrice
+      const sold: Proposal = { ...p, status: 'sold', sellPrice: price, sellFee: fee, soldDay: s.day, soldAt: now(), ...(asOfDate() ? { soldDate: asOfDate()! } : {}), ...(reason ? { sellReason: reason } : {}) }
       const ng = { ...g, proposals: g.proposals.map((x) => (x.id === p.id ? sold : x)) }
       return addFeed(
         ng,

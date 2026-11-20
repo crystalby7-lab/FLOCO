@@ -172,3 +172,13 @@
 - `sync.ts signInGoogle()`: 처음엔 익명으로 붙어 있다가 구글을 같은 계정에 이어 붙임(linkWithPopup, 기록 유지). 그 구글 계정이 이미 다른 데서 쓰이면 그 계정으로 들어가고 이 기기 기록을 비운 뒤 새로고침해서 서버 기록을 받음. 다음부터는 `authStateReady`로 구글 계정 그대로 시작.
 - 설정 → 로그아웃 = `signOutAll()`(구글 로그아웃 + 이 기기 기록 비우기, 서버 기록은 남음).
 - Firebase 콘솔에서 필요: Authentication → 로그인 방법 **Google 사용**, 승인된 도메인에 `crystalby7-lab.github.io`.
+
+## 서영 언니 주식 데이터 인수인계 적용 (2026-11-20)
+- 가격 방식은 **1번(공식 종가 유지)**: 국내는 그대로 공공데이터포털 종가(prices.json). 앱(웹)에서 야후를 직접 부르면 막혀서(CORS) 실시간은 안 씀.
+- **미국 종목 20개** 추가(tickers.json `exchange: 'US'`, 코드 = 영문 티커): ETF SPY·VOO·QQQ·SCHD·DIA, 주식 AAPL·MSFT·NVDA·GOOGL·AMZN·META·TSLA·NFLX·DIS·KO·MCD·NKE·COST·AMD·SBUX. 투자하러 가기 묶음 '미국 ETF'·'미국 주식'.
+  - `scripts/fetch-us-prices.mjs` + `.github/workflows/prices-us.yml`(화~토 07:30 KST): 야후 v8 chart(키 없음, query1→query2, User-Agent) 종가 + KRW=X 환율 → 그날 환율로 **원화로 바꿔** `public/prices_us.json`(c=원, u=달러). 앱은 `loadPrices`에서 국내 시세에 합쳐 씀. 계좌 계산은 전부 원화, 달러는 `usdOf()`로 보여주기만.
+  - 미국 종목 호가 틱: 10만원 미만 10원, 이상 100원(원화 기준). fetch-prices.mjs는 미국 종목을 빼고 국내만 받음.
+- 종목 로고 `StockLogo`: 한국 6자리 토스 CDN, 미국 davidepalazzo/ticker-logos. 못 불러오면 이름 첫 글자 색 배지. (비공식 소스, 상용화 전 교체)
+- 매도 수수료 0.1%(`RULES.sellFee`, `Proposal.sellFee`): 판 돈에서 빼고 실현손익·계좌에 반영, 주문창 매도에 표시. 매도는 거래 단위라 보유보다 많이 팔 수 없음.
+- **뉴스(GNews)**: `scripts/fetch-gnews.mjs` + `.github/workflows/gnews.yml`(3시간마다) → `public/gnews.json`(제목·한 줄·출처·링크, 코인·단타·추천성 거름). Secret **`GNEWS_API_KEY`** 필요. 홈 `NewsFeed`가 4개 + 더보기, 파일이 없으면 예전 카테고리 링크(NewsLinks).
+- 학습 로드맵(BuildingPage)은 지그재그 길(`.rm-path`): 위 한 줄 카드 + Basic/Advanced 탭 + 큰 동그라미 5개가 좌우로 엇갈리고 점선으로 이어짐, 지금 레슨 옆에 고양이.

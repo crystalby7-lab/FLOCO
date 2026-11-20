@@ -9,7 +9,7 @@ import { timeOfDay } from '../components/Playground'
 import { ConfirmDialog } from '../components/Page'
 import { itemOf, OUTFIT_OPEN } from '../data/shop'
 import { type Ask } from '../data/catTalk'
-import { NewsLinks } from '../components/NewsLinks'
+import { NewsFeed } from '../components/NewsFeed'
 import type { Cat } from '../types'
 import type { Tab } from '../App'
 import { CatWorld } from './CatWorld'
@@ -180,7 +180,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      <NewsLinks />
+      <NewsFeed />
 
       {world && <CatWorld start={slide} dress={world.dress} onExit={() => setWorld(null)} />}
       {buying && (

@@ -457,6 +457,348 @@
         "뉴스에 따라 얼마나 크게 움직이는지"
       ],
       "dart": "00258801"
+    },
+    {
+      "code": "SPY",
+      "name": "SPDR S&P 500 ETF",
+      "kind": "etf",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 상장 ETF",
+      "holds": "미국 대표 회사 500곳을 담은 가장 오래된 ETF예요.",
+      "index": "S&P 500",
+      "fee": "0.0945%",
+      "base": 820000,
+      "vol": 0.01,
+      "checks": [
+        "총보수가 비슷한 다른 S&P500 ETF와 얼마나 다른지",
+        "달러로 사서 환율이 수익에 어떻게 섞이는지",
+        "한국 시간으로 언제 거래되는지"
+      ],
+      "compare": [
+        "VOO"
+      ]
+    },
+    {
+      "code": "VOO",
+      "name": "Vanguard S&P 500 ETF",
+      "kind": "etf",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 상장 ETF",
+      "holds": "SPY와 같은 500곳을 더 낮은 보수로 담아요.",
+      "index": "S&P 500",
+      "fee": "0.03%",
+      "base": 760000,
+      "vol": 0.01,
+      "checks": [
+        "SPY와 무엇이 같고 무엇이 다른지",
+        "보수 차이가 10년이면 얼마나 될지",
+        "환율이 오르내리면 원화 수익이 어떻게 되는지"
+      ],
+      "compare": [
+        "SPY"
+      ]
+    },
+    {
+      "code": "QQQ",
+      "name": "Invesco QQQ Trust",
+      "kind": "etf",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 상장 ETF",
+      "holds": "미국 나스닥 큰 회사 100곳, 기술 회사가 많아요.",
+      "index": "나스닥 100",
+      "fee": "0.20%",
+      "base": 720000,
+      "vol": 0.013,
+      "checks": [
+        "기술 회사 비중이 얼마나 큰지",
+        "S&P500보다 얼마나 더 흔들리는지",
+        "상위 몇 회사가 얼마나 차지하는지"
+      ]
+    },
+    {
+      "code": "SCHD",
+      "name": "Schwab US Dividend Equity ETF",
+      "kind": "etf",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 상장 ETF",
+      "holds": "배당을 꾸준히 늘려 온 미국 회사들을 담아요.",
+      "index": "다우존스 미국 배당 100",
+      "fee": "0.06%",
+      "base": 38000,
+      "vol": 0.008,
+      "checks": [
+        "배당이 몇 번, 얼마나 나오는지",
+        "배당에 붙는 세금",
+        "성장주 ETF와 수익이 어떻게 다른지"
+      ]
+    },
+    {
+      "code": "DIA",
+      "name": "SPDR Dow Jones Industrial Average ETF",
+      "kind": "etf",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 상장 ETF",
+      "holds": "미국 다우존스 30개 회사를 담아요.",
+      "index": "다우존스 산업평균",
+      "fee": "0.16%",
+      "base": 600000,
+      "vol": 0.009,
+      "checks": [
+        "30곳뿐이라 얼마나 몰려 있는지",
+        "가격이 높은 회사가 더 크게 반영되는 방식",
+        "S&P500과 어떻게 다른지"
+      ]
+    },
+    {
+      "code": "AAPL",
+      "name": "애플",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "아이폰·맥을 만드는 회사예요.",
+      "base": 330000,
+      "vol": 0.016,
+      "checks": [
+        "아이폰 말고 어떤 매출이 있는지",
+        "최근 실적이 늘었는지",
+        "달러 가격과 원화 가격이 왜 다르게 움직이는지"
+      ]
+    },
+    {
+      "code": "MSFT",
+      "name": "마이크로소프트",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "윈도우·오피스·클라우드를 하는 회사예요.",
+      "base": 640000,
+      "vol": 0.015,
+      "checks": [
+        "클라우드 매출 비중",
+        "실적 발표 날짜",
+        "AI 투자 소식에 얼마나 움직이는지"
+      ]
+    },
+    {
+      "code": "NVDA",
+      "name": "엔비디아",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "AI에 쓰이는 반도체(GPU)를 만드는 회사예요.",
+      "base": 250000,
+      "vol": 0.03,
+      "checks": [
+        "매출이 어디에 몰려 있는지",
+        "기대가 이미 가격에 얼마나 들어 있는지",
+        "하루에 얼마나 크게 움직이는지"
+      ],
+      "swing": "높음",
+      "risk": "한 회사라 하루에도 크게 오르내려요."
+    },
+    {
+      "code": "GOOGL",
+      "name": "알파벳(구글)",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "구글 검색·유튜브를 하는 회사예요.",
+      "base": 330000,
+      "vol": 0.018,
+      "checks": [
+        "광고 매출이 얼마나 큰지",
+        "유튜브·클라우드 성장",
+        "규제 뉴스"
+      ]
+    },
+    {
+      "code": "AMZN",
+      "name": "아마존",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "온라인 쇼핑과 클라우드(AWS)를 하는 회사예요.",
+      "base": 320000,
+      "vol": 0.018,
+      "checks": [
+        "쇼핑과 클라우드 중 어디서 이익이 나는지",
+        "실적이 꾸준한지",
+        "경기에 얼마나 민감한지"
+      ]
+    },
+    {
+      "code": "META",
+      "name": "메타",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "인스타그램·페이스북을 하는 회사예요.",
+      "base": 950000,
+      "vol": 0.022,
+      "checks": [
+        "광고 매출",
+        "새 사업에 쓰는 돈",
+        "개인정보 규제 뉴스"
+      ]
+    },
+    {
+      "code": "TSLA",
+      "name": "테슬라",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "전기차를 만드는 회사예요.",
+      "base": 450000,
+      "vol": 0.035,
+      "checks": [
+        "판매 대수가 늘고 있는지",
+        "하루에 얼마나 크게 움직이는지",
+        "대표 발언 뉴스에 얼마나 흔들리는지"
+      ],
+      "swing": "높음",
+      "risk": "한 회사라 하루에도 크게 오르내려요."
+    },
+    {
+      "code": "NFLX",
+      "name": "넷플릭스",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "영상 스트리밍 회사예요.",
+      "base": 170000,
+      "vol": 0.022,
+      "checks": [
+        "구독자 수 변화",
+        "요금 인상 소식",
+        "콘텐츠에 쓰는 돈"
+      ]
+    },
+    {
+      "code": "DIS",
+      "name": "디즈니",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "디즈니 영화·테마파크·디즈니+를 하는 회사예요.",
+      "base": 160000,
+      "vol": 0.016,
+      "checks": [
+        "테마파크와 스트리밍 중 어디서 버는지",
+        "실적 흐름",
+        "배당 여부"
+      ]
+    },
+    {
+      "code": "KO",
+      "name": "코카콜라",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "음료를 파는 오래된 회사, 배당이 꾸준해요.",
+      "base": 100000,
+      "vol": 0.009,
+      "checks": [
+        "배당을 몇 년째 늘렸는지",
+        "설탕 규제 같은 위험",
+        "다른 음료 회사와 비교"
+      ]
+    },
+    {
+      "code": "MCD",
+      "name": "맥도날드",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "햄버거 가게를 전 세계에 둔 회사예요.",
+      "base": 420000,
+      "vol": 0.01,
+      "checks": [
+        "가맹점 구조로 어떻게 돈을 버는지",
+        "물가가 오를 때 어떤지",
+        "배당"
+      ]
+    },
+    {
+      "code": "NKE",
+      "name": "나이키",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "운동화·운동복 회사예요.",
+      "base": 100000,
+      "vol": 0.02,
+      "checks": [
+        "재고가 쌓였는지",
+        "중국 매출",
+        "경쟁 브랜드"
+      ]
+    },
+    {
+      "code": "COST",
+      "name": "코스트코",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "회원제 창고형 마트예요.",
+      "base": 1300000,
+      "vol": 0.012,
+      "checks": [
+        "회원 갱신율",
+        "가격이 비싼 이유(기대치)",
+        "경기와 상관"
+      ]
+    },
+    {
+      "code": "AMD",
+      "name": "AMD",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "컴퓨터·서버용 반도체를 만드는 회사예요.",
+      "base": 220000,
+      "vol": 0.03,
+      "checks": [
+        "엔비디아와 무엇이 다른지",
+        "흔들림 크기",
+        "실적 발표 반응"
+      ],
+      "swing": "높음",
+      "risk": "한 회사라 하루에도 크게 오르내려요."
+    },
+    {
+      "code": "SBUX",
+      "name": "스타벅스",
+      "kind": "stock",
+      "market": "us",
+      "exchange": "US",
+      "track": "미국 개별주",
+      "holds": "커피 전문점 회사예요.",
+      "base": 130000,
+      "vol": 0.017,
+      "checks": [
+        "매장 수와 손님 수",
+        "중국 매출",
+        "배당"
+      ]
     }
   ]
 }

@@ -18,8 +18,9 @@ const LOOKBACK = 120 // 휴일을 감안해 넉넉히 조회할 달력 일수
 
 // 종목 목록은 앱과 같은 파일에서 읽는다 (src/data/tickers.json)
 const TABLE = JSON.parse(await readFile(resolve('src/data/tickers.json'), 'utf8'))
-const ETFS = TABLE.items.filter((t) => t.kind === 'etf')
-const STOCKS = TABLE.items.filter((t) => t.kind === 'stock')
+const KR = TABLE.items.filter((t) => t.exchange !== 'US') // 미국 종목은 fetch-us-prices.mjs가 따로
+const ETFS = KR.filter((t) => t.kind === 'etf')
+const STOCKS = KR.filter((t) => t.kind === 'stock')
 
 const ETF_URL = 'https://apis.data.go.kr/1160100/GetSecuritiesProductInfoService_V2/getETFPriceInfo_V2'
 const STOCK_URL = 'https://apis.data.go.kr/1160100/GetStockSecuritiesInfoService_V2/getStockPriceInfo_V2'
@@ -92,7 +93,7 @@ async function main() {
 
   if (missing.length) console.warn(`· 못 받은 종목 ${missing.length}개\n  - ${missing.join('\n  - ')}`)
   // 절반도 못 받으면 뭔가 잘못된 것 — 파일을 건드리지 않는다
-  if (Object.keys(series).length < Math.ceil(TABLE.items.length / 2)) throw new Error(`받은 종목이 너무 적어요 (${Object.keys(series).length}/${TABLE.items.length})`)
+  if (Object.keys(series).length < Math.ceil(KR.length / 2)) throw new Error(`받은 종목이 너무 적어요 (${Object.keys(series).length}/${KR.length})`)
 
   // 코스피 지수 (없어도 신문·화면은 돌아간다)
   let kospi = []

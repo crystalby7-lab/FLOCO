@@ -21,7 +21,8 @@ export type Ticker = {
   risk?: string // 왜 위험한지 한 줄
   compare?: string[] // 같은 지수를 따르는 짝 (상세에서 나란히)
   checks: string[] // 사기 전에 확인할 점 3가지
-  base: number // ↓ 종가를 못 받았을 때 쓰는 연습용 값
+  exchange?: 'US' // 미국 상장 (가격은 원화로 바꿔서 씀, 달러 값은 usdOf)
+  base: number // ↓ 종가를 못 받았을 때 쓰는 연습용 값 (미국 종목도 원화)
   vol: number
 }
 
@@ -42,7 +43,7 @@ export const comparePair = (code: string) => (tickerOf(code).compare ?? []).map(
 
 // ───────── 실제 종가 ─────────
 
-export type Close = { d: string; c: number } // 날짜(YYYY-MM-DD), 종가
+export type Close = { d: string; c: number; u?: number } // 날짜(YYYY-MM-DD), 종가(원), 미국 종목은 달러 종가 u
 export type Prices = {
   updatedAt: string
   asOf: string // 가장 최근 거래일
@@ -65,15 +66,44 @@ export function asOfLabel(): string | null {
 
 const REMOTE = 'https://raw.githubusercontent.com/crystalby7-lab/FLOCO/main/public/prices.json'
 const LOCAL = `${import.meta.env.BASE_URL}prices.json`
+// 미국 종목·환율 (scripts/fetch-us-prices.mjs가 GitHub에서 야후 종가를 받아 원화로 바꿔 둔 것)
+const US_REMOTE = 'https://raw.githubusercontent.com/crystalby7-lab/FLOCO/main/public/prices_us.json'
+const US_LOCAL = `${import.meta.env.BASE_URL}prices_us.json`
+type UsPrices = { updatedAt: string; asOf: string; fx: Close[]; series: Record<string, Close[]> }
+let us: UsPrices | null = null
+export const isUS = (code: string) => tickerOf(code).exchange === 'US'
+// 미국 종목 달러 가격 (없으면 null)
+export function usdOf(code: string, day: number): number | null {
+  const s = us?.series[tickerOf(code).code]
+  if (!s?.length) return null
+  return s[Math.min(s.length - 1, Math.max(0, s.length - 1 + day))].u ?? null
+}
+export const fxNow = () => us?.fx?.at(-1)?.c ?? null
+async function getJson<T>(urls: string[]): Promise<T | null> {
+  for (const url of urls) {
+    try {
+      const ctl = new AbortController()
+      const timer = setTimeout(() => ctl.abort(), 5000)
+      const res = await fetch(url, { signal: ctl.signal, cache: 'no-cache' }).finally(() => clearTimeout(timer))
+      if (res.ok) return (await res.json()) as T
+    } catch {
+      /* 다음 주소로 */
+    }
+  }
+  return null
+}
 
 function usable(p: Prices) {
   // 절반 이상 종목이 이틀치 넘게 있어야 쓸 만한 시세로 본다
   if (!p?.asOf || !p.series) return false
-  const ok = TICKERS.filter((t) => (p.series[t.code]?.length ?? 0) >= 2).length
-  return ok >= Math.ceil(TICKERS.length / 2)
+  const kr = TICKERS.filter((t) => t.exchange !== 'US')
+  const ok = kr.filter((t) => (p.series[t.code]?.length ?? 0) >= 2).length
+  return ok >= Math.ceil(kr.length / 2)
 }
 
 export async function loadPrices(): Promise<boolean> {
+  const u = await getJson<UsPrices>([US_REMOTE, US_LOCAL])
+  if (u?.series && Object.keys(u.series).length) us = u
   for (const url of [REMOTE, LOCAL]) {
     try {
       const ctl = new AbortController()
@@ -82,7 +112,7 @@ export async function loadPrices(): Promise<boolean> {
       if (!res.ok) continue
       const data = (await res.json()) as Prices
       if (usable(data)) {
-        real = data
+        real = us ? { ...data, series: { ...data.series, ...us.series } } : data
         cache = {}
         return true
       }
