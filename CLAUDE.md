@@ -165,3 +165,10 @@
 - 상점 '가구' 탭(2026-11-18): 옷은 상점에서 뺌. 가구 13개(`SHOP`의 `h_*`, 그림은 world/furn 가구 시트 `art`)를 사면 고양이 집 **거실**에 바로 놓임(`HomeFurniture`, Playground). 거실 자리 6곳(`HOME_SPOTS`: 러그·뒤 왼쪽·뒤 오른쪽·작은 자리·앞 왼쪽·앞 오른쪽), 같은 자리엔 하나만(`toggleEquip`). 상점에서 '거실에 두기/치우기'. 예전 상자·방석·침대는 없앰.
 - 포즈 그림(2026-11-18): `kitty/{종}_p_{walk|stretch|sleep|groom|play}.webp` (삼색이·회색·까망이·치즈, 솜뭉치는 아직 없음 → 표정 그림으로 대신). 예전 포즈 이름을 `MOTION`(CatView)으로 연결: walk→걷기, stretch→기지개, lie·sleep·bed·blanket→잠, lielook·hug·bath→그루밍, roll·toy·reach→놀기. 고양이 월드·로딩 화면·오늘 할 일 바의 걷는 고양이도 이제 키우는 종(탭바 고양이만 예전 그림). 보영이 준 시트 중 진짜 삼색(주황+회색 무늬) 포즈 시트 1장은 맞는 종이 없어 아직 안 씀.
 - 지도 건물(열린 곳·지금 열 곳)을 누르면 고르기 팝업: **공부하기**(BuildingPage, n/5) · **꾸미기**(ShopInterior, 챕터를 끝내 건물이 열려야 누를 수 있음). 클래스 `.vl-go.vg-study/.vg-deco` (`.deco`는 다른 곳에서 absolute로 쓰여서 이름 피함).
+
+## 처음 화면: 약관 동의 + 구글 로그인 (2026-11-20)
+- `src/screens/Welcome.tsx`: 앱을 열면 가장 먼저. 전체 동의 / [필수] 만 14세 이상 · 서비스 이용약관 · 개인정보 수집·이용 / [선택] 새 소식 알림. 약관 '보기'는 아직 '본문 준비 중'(보영: 체크 화면만 먼저). 만 14세 미만은 가입 안 받음(보영 결정).
+- 동의 후 **Google로 시작하기**만 있음(로그인 없이 둘러보기 없음). `state.consent`·`state.account`(provider 'google', email), 서버 users 문서에도 저장.
+- `sync.ts signInGoogle()`: 처음엔 익명으로 붙어 있다가 구글을 같은 계정에 이어 붙임(linkWithPopup, 기록 유지). 그 구글 계정이 이미 다른 데서 쓰이면 그 계정으로 들어가고 이 기기 기록을 비운 뒤 새로고침해서 서버 기록을 받음. 다음부터는 `authStateReady`로 구글 계정 그대로 시작.
+- 설정 → 로그아웃 = `signOutAll()`(구글 로그아웃 + 이 기기 기록 비우기, 서버 기록은 남음).
+- Firebase 콘솔에서 필요: Authentication → 로그인 방법 **Google 사용**, 승인된 도메인에 `crystalby7-lab.github.io`.

@@ -806,6 +806,17 @@ export const actions = {
       return ns.guild ? { ...ns, guild: addFeed({ ...ns.guild, day: ns.day }, '📅', `하루가 지났어요 (거래일 ${ns.day}).`) } : ns
     })
   },
+  // 처음 들어올 때 약관 동의
+  agree(news: boolean) {
+    set((s) => ({ ...s, consent: { age14: true, terms: true, privacy: true, news, at: now() } }))
+  },
+  setAccount(account: NonNullable<GameState['account']>) {
+    set((s) => ({ ...s, account }))
+  },
+  // 다른 구글 계정으로 바뀌면 이 기기 기록을 비우고 서버 기록을 받는다 (동의·계정만 남김)
+  resetForAccount() {
+    set((s) => ({ ...initial, consent: s.consent, account: s.account, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }))
+  },
   reset() {
     set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }))
   },

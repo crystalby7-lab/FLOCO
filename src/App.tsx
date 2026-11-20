@@ -3,6 +3,7 @@ import { breedOfCat } from './data/kitty'
 import { useState } from 'react'
 import { me, mustRetro, needReview, streakNow, useGame } from './store'
 import { Onboarding } from './screens/Onboarding'
+import { Welcome } from './screens/Welcome'
 import { Home } from './screens/Home'
 import { MapScreen } from './screens/MapScreen'
 import { Invest } from './screens/Invest'
@@ -31,6 +32,17 @@ export default function App() {
   setArtBreed(breedOfCat(s.guild?.cat))
   const [tab, setTab] = useState<Tab>('home')
   const [settings, setSettings] = useState(false)
+
+  // 처음 들어올 때 약관 동의 + 구글 로그인
+  if (!s.consent || s.account?.provider !== 'google') {
+    return (
+      <div className="app">
+        <main className="app-main">
+          <Welcome />
+        </main>
+      </div>
+    )
+  }
 
   if (!s.user || !s.guild) {
     return (

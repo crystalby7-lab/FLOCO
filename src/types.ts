@@ -146,6 +146,8 @@ export type GameState = {
   day: number // 데모용 거래일 (Firebase 연결 후에는 실제 날짜 시세로 대체)
   daily: Daily // 오늘의 미션 (개인)
   tutorialDone: boolean
+  consent?: { age14: true; terms: true; privacy: true; news: boolean; at: number } // 처음 들어올 때 약관 동의
+  account?: { provider: 'google' | 'guest'; email?: string; name?: string } // 로그인 방식
   prefs: Prefs
   streak: { count: number; last: string } // 연속 출석 (하루에 하나라도 하면 이어짐)
   watch: string[] // 관심 종목 (별 표시한 것만)

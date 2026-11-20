@@ -10,7 +10,7 @@ import { ART } from '../components/CatView'
 import { Avatar } from '../components/Avatar'
 import { Survey } from './Survey'
 import { ProfileEditor } from './ProfileEditor'
-import { useSyncStatus, type SyncStatus } from '../sync'
+import { useSyncStatus, type SyncStatus, signOutAll } from '../sync'
 import { asOfLabel, isRealPrices } from '../data/market'
 import logoFace from '../assets/logo-face.png'
 import type { Prefs } from '../types'
@@ -29,7 +29,7 @@ const hh = (h: number) => `${String(h).padStart(2, '0')}:00`
 // 서버 연결 상태에 따라 계정 그룹 아래 설명이 바뀐다
 const syncNote = (sync: SyncStatus) =>
   sync === 'online'
-    ? '익명으로 로그인해서 길드 친구들과 실시간으로 같이 보고 있어요.'
+    ? '구글 계정으로 로그인해서 길드 친구들과 실시간으로 같이 보고 있어요.'
     : sync === 'connecting'
       ? '서버에 연결하는 중이에요.'
       : '서버에 닿지 못해 혼자 모드예요. 기록은 이 기기에만 저장돼요.'
@@ -170,7 +170,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
         </button>
 
         <Group title="계정" note={syncNote(sync)}>
-          <Row icon="key" tone="sky" label="로그인 방식" value={sync === 'online' ? '익명 (서버 연결됨)' : '익명'} onClick={() => setSheet('login')} />
+          <Row icon="key" tone="sky" label="로그인 방식" value={s.account?.email ?? '구글'} onClick={() => setSheet('login')} />
           <Row
             icon="cloud"
             tone={sync === 'online' ? 'mint' : 'grey'}
@@ -179,7 +179,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
           />
           <Row icon="person" tone="sky" label="닉네임·학년" value={`${u.nickname} · ${u.grade}`} onClick={() => setSheet('profile')} />
           <Row icon="clipboard" tone="lilac" label="처음 설문 답변" value={type?.name ?? '아직 없음'} onClick={() => setSheet('answers')} />
-          <Row icon="logout" tone="grey" label="로그아웃" onClick={soon} />
+          <Row icon="logout" tone="grey" label="로그아웃" onClick={() => signOutAll()} />
           <Row icon="trash" tone="red" label="계정 삭제" danger onClick={() => setDialog('delete1')} />
         </Group>
 
@@ -289,14 +289,8 @@ export function Settings({ onClose }: { onClose: () => void }) {
 
       {sheet === 'login' && (
         <Sheet title="로그인 방식" onClose={() => setSheet(null)}>
-          <OptionRow
-            label="익명으로 쓰기"
-            sub={sync === 'online' ? '로그인 없이 서버와 연결돼 있어요' : '서버에 닿지 못해 이 기기에만 기록이 남아요'}
-            on
-            onClick={() => setSheet(null)}
-          />
-          <OptionRow label="구글 계정 연결" sub="기기를 바꿔도 기록이 따라와요" soon onClick={soon} />
-          <p className="fineprint">지금은 익명 로그인이라 기기를 바꾸면 기록이 이어지지 않아요. 구글 연결이 열리면 따라와요.</p>
+          <OptionRow label="구글 계정" sub={s.account?.email ?? '구글로 로그인했어요'} on onClick={() => setSheet(null)} />
+          <p className="fineprint">구글 계정으로 기록이 저장돼서 기기를 바꿔도 이어서 할 수 있어요.</p>
         </Sheet>
       )}
 

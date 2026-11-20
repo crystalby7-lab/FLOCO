@@ -3,9 +3,9 @@
 // - 서버에 못 닿는 환경(미리보기 링크 등)에서는 조용히 혼자 쓰는 데모로 남는다.
 import { useSyncExternalStore } from 'react'
 import { initializeApp } from 'firebase/app'
-import { getAuth, signInAnonymously } from 'firebase/auth'
+import { GoogleAuthProvider, getAuth, linkWithPopup, signInAnonymously, signInWithPopup, type Auth } from 'firebase/auth'
 import { arrayUnion, doc, getDoc, getFirestore, onSnapshot, setDoc, updateDoc, type Unsubscribe } from 'firebase/firestore'
-import { applyRemote, getState, setRemote, subscribeState } from './store'
+import { actions, applyRemote, getState, setRemote, subscribeState } from './store'
 import type { GameState, Guild } from './types'
 
 const firebaseConfig = {
@@ -50,15 +50,65 @@ function fromRemoteGuild(g: Guild, uid: string): Guild {
   return { ...g, members }
 }
 const personal = (s: GameState) =>
-  clean({ user: s.user, quests: s.quests, daily: s.daily, prefs: s.prefs, streak: s.streak, watch: s.watch, guides: s.guides, decor: s.decor, learn: s.learn, tutorialDone: s.tutorialDone, guildCode: s.guild?.code ?? null })
+  clean({ consent: s.consent, account: s.account, user: s.user, quests: s.quests, daily: s.daily, prefs: s.prefs, streak: s.streak, watch: s.watch, guides: s.guides, decor: s.decor, learn: s.learn, tutorialDone: s.tutorialDone, guildCode: s.guild?.code ?? null })
+
+// ── 구글 로그인 ──
+// 처음엔 익명으로 붙어 있다가, 구글로 로그인하면 같은 계정에 구글을 이어 붙인다(기록 그대로).
+// 그 구글 계정이 이미 다른 기기에서 쓰이던 거면 그 계정으로 바꿔 들어가고, 서버 기록을 다시 불러온다.
+let authRef: Auth | null = null
+export async function signInGoogle(): Promise<string | null> {
+  const auth = authRef ?? getAuth(initializeApp(firebaseConfig, 'login'))
+  const provider = new GoogleAuthProvider()
+  try {
+    let cred
+    if (auth.currentUser?.isAnonymous) {
+      try {
+        cred = await linkWithPopup(auth.currentUser, provider)
+      } catch (e) {
+        const code = (e as { code?: string }).code
+        if (code !== 'auth/credential-already-in-use' && code !== 'auth/email-already-in-use') throw e
+        cred = await signInWithPopup(auth, provider)
+        actions.setAccount({ provider: 'google', email: cred.user.email ?? undefined, name: cred.user.displayName ?? undefined })
+        // 다른 계정으로 바뀌었으니 이 기기 기록 대신 서버 기록으로 다시 시작
+        actions.resetForAccount()
+        window.location.reload()
+        return null
+      }
+    } else {
+      cred = await signInWithPopup(auth, provider)
+    }
+    actions.setAccount({ provider: 'google', email: cred.user.email ?? undefined, name: cred.user.displayName ?? undefined })
+    return null
+  } catch (e) {
+    const code = (e as { code?: string }).code ?? ''
+    if (code.includes('popup-closed') || code.includes('cancelled-popup')) return '로그인 창이 닫혔어요. 다시 눌러 주세요.'
+    if (code.includes('unauthorized-domain')) return '이 주소에서는 아직 구글 로그인을 쓸 수 없어요. (Firebase 승인된 도메인 확인)'
+    if (code.includes('operation-not-allowed')) return '구글 로그인이 아직 켜져 있지 않아요. (Firebase에서 Google 사용 설정)'
+    if (code.includes('popup-blocked')) return '팝업이 막혔어요. 브라우저에서 팝업을 허용해 주세요.'
+    return '로그인하지 못했어요. 인터넷 연결을 확인해 주세요.'
+  }
+}
+
+// 로그아웃: 이 기기 기록을 비우고 처음 화면으로 (서버 기록은 그대로라 다시 로그인하면 이어짐)
+export async function signOutAll() {
+  try {
+    await authRef?.signOut()
+  } catch {
+    /* 서버에 못 닿아도 이 기기에서는 나간다 */
+  }
+  actions.reset()
+  window.location.reload()
+}
 
 export async function startSync() {
   try {
     const app = initializeApp(firebaseConfig)
     const auth = getAuth(app)
+    authRef = auth
+    await auth.authStateReady()
     const db = getFirestore(app)
-    const cred = await withTimeout(signInAnonymously(auth), 8000)
-    const uid = cred.user.uid
+    // 구글로 로그인해 둔 적이 있으면 그 계정 그대로, 아니면 익명으로
+    const uid = auth.currentUser?.uid ?? (await withTimeout(signInAnonymously(auth), 8000)).user.uid
 
     let lastUser = ''
     let lastGuild = ''
@@ -117,8 +167,11 @@ export async function startSync() {
     )
     if (meSnap.exists() && !getState().user) {
       const d = meSnap.data() as ReturnType<typeof personal>
-      applyRemote({ user: d.user, quests: d.quests, daily: d.daily, prefs: d.prefs, streak: d.streak, tutorialDone: d.tutorialDone })
+      applyRemote({ consent: d.consent, account: d.account, user: d.user, guides: d.guides, decor: d.decor, learn: d.learn, quests: d.quests, daily: d.daily, prefs: d.prefs, streak: d.streak, tutorialDone: d.tutorialDone })
       if (d.guildCode) watchGuild(d.guildCode)
+    } else if (meSnap.exists() && !getState().consent) {
+      const d = meSnap.data() as ReturnType<typeof personal>
+      if (d.consent) applyRemote({ consent: d.consent, account: d.account })
     }
 
     // 2) 이미 길드가 있으면: 서버에 없을 땐 올리고, 있으면 구독

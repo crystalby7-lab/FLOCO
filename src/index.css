@@ -11981,3 +11981,26 @@ label.set2-row:active {
 .vl-go.vg-deco { background: #fdebf0; color: #d0587a; box-shadow: 0 3px 0 #f4cbd7; }
 .vl-go:disabled { background: #f0f2f6; color: #9aa4b4; box-shadow: none; cursor: not-allowed; }
 .vl-go:disabled img { filter: grayscale(1); opacity: .5; }
+
+/* ───── v14 처음 화면: 약관 동의 + 구글로 시작하기 ───── */
+.welcome { min-height: 100dvh; display: flex; flex-direction: column; gap: 18px; padding: 40px max(20px, env(safe-area-inset-left, 0px)) 32px; }
+.wc-top { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin-top: 12px; }
+.wc-cat { width: 132px; animation: hh-pop 3s ease-in-out infinite; }
+.wc-top p { font-size: 15px; font-weight: 800; color: var(--sub); margin: 0; }
+.wc-terms { background: #fff; border-radius: 22px; padding: 14px; box-shadow: var(--card-shadow); display: grid; gap: 6px; }
+.wc-terms ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.wc-terms li { display: flex; align-items: center; gap: 6px; }
+.wc-all, .wc-check { display: flex; align-items: center; gap: 10px; border: 0; background: none; font: inherit; text-align: left; padding: 8px 4px; flex: 1; min-width: 0; cursor: pointer; }
+.wc-all { background: #f3f7fd; border-radius: 14px; padding: 12px; }
+.wc-all b { font-size: 16px; }
+.wc-all i, .wc-check i { width: 24px; height: 24px; flex: none; border-radius: 50%; border: 2px solid #c9d4e4; display: grid; place-items: center; font-style: normal; font-size: 13px; font-weight: 900; color: #fff; }
+.wc-all.on i, .wc-check.on i { background: var(--blue); border-color: var(--blue); }
+.wc-check span { font-size: 14px; font-weight: 700; color: var(--ink, #23324d); }
+.wc-check em { font-style: normal; font-size: 11px; font-weight: 900; color: #8a97ab; margin-right: 6px; }
+.wc-check em.need { color: var(--blue); }
+.wc-view { border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 700; color: #8a97ab; text-decoration: underline; padding: 6px; cursor: pointer; }
+.wc-note { margin: 2px 4px 0; font-size: 12px; color: #8a97ab; font-weight: 700; }
+.wc-actions { display: grid; gap: 8px; margin-top: auto; }
+.wc-google { display: flex; align-items: center; justify-content: center; gap: 10px; height: 54px; border-radius: 16px; border: 1.5px solid #dfe5ee; background: #fff; font: inherit; font-size: 16px; font-weight: 800; color: #1f2937; box-shadow: 0 3px 0 #dfe5ee; cursor: pointer; }
+.wc-google:disabled { opacity: .5; cursor: not-allowed; }
+.wc-err { margin: 0; text-align: center; font-size: 12.5px; font-weight: 700; color: #d14d5d; }
