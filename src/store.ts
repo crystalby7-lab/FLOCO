@@ -82,7 +82,9 @@ function migrate(raw: Partial<GameState>): GameState {
   // 예전 가구 번호(f000~)는 새 가게 그림과 안 맞아서 비운다 (2026-11-18 가구 교체)
   for (const k of Object.keys(s.decor)) {
     const d = s.decor[k]
-    s.decor[k] = { style: d.style, slots: Object.fromEntries(Object.entries(d.slots ?? {}).filter(([, v]) => typeof v === 'string')) }
+    const shop = SHOPS.find((x) => x.id === k)
+    // 가구 시트가 바뀌면(2026-11-21) 지금 후보에 없는 가구는 비운다
+    s.decor[k] = { style: d.style, slots: Object.fromEntries(Object.entries(d.slots ?? {}).filter(([sl, v]) => typeof v === 'string' && (!shop || (shop.options as Record<string, string[]>)[sl]?.includes(v)))) }
   }
   s.learn = Object.assign({ track: 'basic', done: {}, built: {} }, s.learn)
   if (s.guild) {

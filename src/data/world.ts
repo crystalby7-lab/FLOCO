@@ -41,51 +41,31 @@ export type Shop = {
   presets?: Partial<Record<StyleId, Partial<Record<SlotId, string>>>> // 스타일 한 번에 깔기 (스타일 시트가 있는 가게만)
 }
 
-const n = (shop: string, ...k: number[]) => k.map((i) => `${shop}_${String(i).padStart(2, '0')}`)
+// 새 가구 시트(2026-11-21): {가게}_n0~n8 (시트 3×3, 왼쪽 위부터)
+const nn = (shop: string, ...k: number[]) => k.map((i) => `${shop}_n${i}`)
 const st = (shop: string, ...k: string[]) => k.map((x) => `${shop}_${x}`)
-const P = (shop: string, m: Partial<Record<SlotId, string>>) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, `${shop}_${v}`])) as Partial<Record<SlotId, string>>
 const LIGHTS5 = ['light0', 'light1', 'light2', 'light3', 'light4']
 
 // 순서 = 챕터 순서
 export const SHOPS: Shop[] = [
   { id: 'conv', name: '편의점', room: 'conv', building: 'bld_conv', lot: { x: 75, y: 90 },
-    options: { light: LAMPS, display: n('conv', 1, 2, 5, 7), counter: n('conv', 0, 4, 9), table: n('conv', 6, 3), deco: n('conv', 11, 13, 14), side: n('conv', 8, 10, 12) } },
+    options: { light: LAMPS, display: nn('conv', 6, 7, 8), counter: nn('conv', 0, 1, 2), table: nn('conv', 4), deco: nn('conv', 5), side: nn('conv', 3) } },
   { id: 'flower', name: '꽃집', room: 'flower', building: 'bld_flower', lot: { x: 22.5, y: 78 },
-    options: { light: st('flower', ...LIGHTS5), display: st('flower', 'cute0', 'pretty1', 'cool0', 'cool2'), counter: st('flower', 'cute1', 'pretty2', 'cool1'), table: st('flower', 'cute2', 'cute3', 'cool3'), deco: st('flower', 'cute4', 'pretty4', 'cool4'), side: st('flower', 'pretty0', 'pretty3', 'cool2') },
-    presets: {
-      cute: P('flower', { light: 'light0', display: 'cute0', counter: 'cute1', table: 'cute2', deco: 'cute4', side: 'cute3' }),
-      pretty: P('flower', { light: 'light1', display: 'pretty1', counter: 'pretty2', deco: 'pretty4', side: 'pretty0' }),
-      cool: P('flower', { light: 'light4', display: 'cool0', counter: 'cool1', table: 'cool3', deco: 'cool4', side: 'cool2' }),
-    } },
+    options: { light: st('flower', ...LIGHTS5), display: nn('flower', 0, 1, 4), counter: nn('flower', 2), table: nn('flower', 3, 6), deco: nn('flower', 7, 8), side: nn('flower', 5) } },
   { id: 'bank', name: '은행', room: 'bank', building: 'bld_bank', lot: { x: 77, y: 73.5 },
-    options: { light: st('bank', ...LIGHTS5), display: st('bank', 'cute4', 'pretty3', 'cool3', 'cool4'), counter: st('bank', 'cute0', 'pretty0', 'cool0'), table: st('bank', 'cute2', 'pretty2', 'cool2'), deco: st('bank', 'cute1', 'pretty4', 'cool1'), side: st('bank', 'cute3', 'pretty1', 'cool3') },
-    presets: {
-      cute: P('bank', { light: 'light0', display: 'cute4', counter: 'cute0', table: 'cute2', deco: 'cute1', side: 'cute3' }),
-      pretty: P('bank', { light: 'light3', display: 'pretty3', counter: 'pretty0', table: 'pretty2', deco: 'pretty4', side: 'pretty1' }),
-      cool: P('bank', { light: 'light2', display: 'cool4', counter: 'cool0', table: 'cool2', deco: 'cool1', side: 'cool3' }),
-    } },
+    options: { light: st('bank', ...LIGHTS5), display: nn('bank', 4, 5), counter: nn('bank', 0, 6), table: nn('bank', 2), deco: nn('bank', 7, 8), side: nn('bank', 1, 3) } },
   { id: 'bakery', name: '빵집', room: 'bakery', building: 'bld_bakery', lot: { x: 33, y: 63.5 },
-    options: { light: LAMPS, display: n('bakery', 0, 7, 6, 12, 14), counter: n('bakery', 1, 4), table: n('bakery', 3, 10), deco: n('bakery', 2, 5, 8, 13), side: n('bakery', 9, 11) } },
+    options: { light: LAMPS, display: nn('bakery', 0, 8), counter: nn('bakery', 3), table: nn('bakery', 4, 2), deco: nn('bakery', 6, 7, 5), side: nn('bakery', 1) } },
   { id: 'gift', name: '선물가게', room: 'gift', building: 'bld_gift', lot: { x: 80, y: 55 },
-    options: { light: LAMPS, display: n('gift', 2, 10, 6, 11), counter: n('gift', 1, 5, 9), table: n('gift', 0, 7, 4), deco: n('gift', 8, 13), side: n('gift', 12, 14, 3) } },
+    options: { light: LAMPS, display: nn('gift', 0, 5, 4), counter: nn('gift', 2), table: nn('gift', 1), deco: nn('gift', 7, 8, 6), side: nn('gift', 3) } },
   { id: 'market', name: '시장', room: 'market', building: 'bld_market', lot: { x: 16.5, y: 51.5 },
-    options: { light: LAMPS, display: n('market', 0, 1, 3, 8, 6), counter: n('market', 9, 2, 4), table: n('market', 13, 7), deco: n('market', 10, 11, 14), side: n('market', 12, 5) } },
+    options: { light: LAMPS, display: nn('market', 0, 1, 2), counter: nn('market', 3), table: nn('market', 5), deco: nn('market', 6, 7), side: nn('market', 4, 8) } },
   { id: 'book', name: '서점', room: 'book', building: 'bld_book', lot: { x: 79, y: 35 },
-    options: { light: LAMPS, display: n('book', 0, 12, 10, 1, 13), counter: n('book', 4, 7, 6), table: n('book', 9, 3), deco: n('book', 14, 5), side: n('book', 2, 11, 8) } },
+    options: { light: LAMPS, display: nn('book', 0, 3, 7), counter: nn('book', 1, 6), table: nn('book', 4), deco: nn('book', 8), side: nn('book', 2, 5) } },
   { id: 'clothes', name: '옷가게', room: 'clothes', building: 'bld_clothes', lot: { x: 20.5, y: 35 },
-    options: { light: LAMPS, display: n('clothes', 1, 2, 8, 3), counter: n('clothes', 0, 10, 6), table: n('clothes', 7, 12), deco: n('clothes', 9, 11, 14), side: n('clothes', 13, 5, 4) } },
+    options: { light: LAMPS, display: nn('clothes', 0, 2), counter: nn('clothes', 5), table: nn('clothes', 6, 7), deco: nn('clothes', 1, 3, 8), side: nn('clothes', 4) } },
   { id: 'salon', name: '미용실', room: 'salon', building: 'bld_salon', lot: { x: 63.5, y: 21 },
-    options: { light: st('salon', ...LIGHTS5), display: st('salon', 'cute2', 'pretty2', 'cool2'), counter: st('salon', 'cute3', 'pretty3', 'cool3'), table: st('salon', 'cute0', 'pretty0', 'cool0'), deco: st('salon', 'cute4', 'pretty4', 'cool4'), side: st('salon', 'cute1', 'pretty1', 'cool1') },
-    presets: {
-      cute: P('salon', { light: 'light0', display: 'cute2', counter: 'cute3', table: 'cute0', deco: 'cute4', side: 'cute1' }),
-      pretty: P('salon', { light: 'light3', display: 'pretty2', counter: 'pretty3', table: 'pretty0', deco: 'pretty4', side: 'pretty1' }),
-      cool: P('salon', { light: 'light4', display: 'cool2', counter: 'cool3', table: 'cool0', deco: 'cool4', side: 'cool1' }),
-    } },
+    options: { light: st('salon', ...LIGHTS5), display: nn('salon', 4), counter: nn('salon', 1, 7), table: nn('salon', 0, 6, 3), deco: nn('salon', 5), side: nn('salon', 2, 8) } },
   { id: 'cafe', name: '카페', room: 'cafe', building: 'bld_cafe', lot: { x: 26, y: 19.5 },
-    options: { light: st('cafe', ...LIGHTS5), display: st('cafe', 'cute4', 'pretty3', 'pretty4', 'cool2', 'cool3'), counter: st('cafe', 'cute2', 'pretty2', 'cool1'), table: st('cafe', 'cute0', 'pretty0', 'cool0'), deco: st('cafe', 'cute3', 'cool4'), side: st('cafe', 'cute1', 'pretty1', 'cool3') },
-    presets: {
-      cute: P('cafe', { light: 'light0', display: 'cute4', counter: 'cute2', table: 'cute0', deco: 'cute3', side: 'cute1' }),
-      pretty: P('cafe', { light: 'light1', display: 'pretty3', counter: 'pretty2', table: 'pretty0', side: 'pretty1' }),
-      cool: P('cafe', { light: 'light4', display: 'cool2', counter: 'cool1', table: 'cool0', deco: 'cool4', side: 'cool3' }),
-    } },
+    options: { light: st('cafe', ...LIGHTS5), display: nn('cafe', 3, 4), counter: nn('cafe', 2), table: nn('cafe', 0), deco: nn('cafe', 7, 5), side: nn('cafe', 1, 6, 8) } },
 ]
