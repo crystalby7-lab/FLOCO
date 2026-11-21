@@ -85,7 +85,6 @@ export function Invest({ go }: { go: (t: Tab) => void }) {
 
       <div className="section-head invest-guild-head">
         <h2>거래 노트</h2>
-        <span className="muted">계좌는 각자, 피드백은 같이 · {asOfLabel() ?? `거래일 ${s.day}`}</span>
       </div>
 
       <div className="seg filter">
@@ -481,15 +480,8 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
                   </button>
                 ))}
               </div>
-              <input value={line} onChange={(e) => setLine(e.target.value)} maxLength={80} placeholder="좋았던 점이나 같이 찾아볼 것 한 줄" />
-              <div className="chips">
-                {['환율 영향도 같이 보자', '총보수 비교해 보면 좋겠어', '한 회사 비중이 궁금해', '근거가 숫자라 믿음이 가'].map((c) => (
-                  <button key={c} className="chip" onClick={() => setLine(c)}>
-                    {c}
-                  </button>
-                ))}
-              </div>
-              <button className="btn btn-primary btn-block" disabled={line.trim().length < 6} onClick={() => actions.review(p.id, checks, line.trim())}>
+              <textarea rows={2} value={line} onChange={(e) => setLine(e.target.value)} maxLength={120} placeholder="근거를 읽고 내 말로 써요. 어느 부분이 좋았는지, 무엇을 더 찾아보면 좋을지" />
+              <button className="btn btn-primary btn-block" disabled={line.trim().length < 15} onClick={() => actions.review(p.id, checks, line.trim())}>
                 피드백 보내기
               </button>
             </div>

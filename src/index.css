@@ -12122,3 +12122,4 @@ label.set2-row:active {
 .nb-lines li.locked button { cursor: not-allowed; }
 .nb-cat { width: 46px; flex: none; margin: -10px 0; }
 .nb-foot { margin: 10px 0 0; font-size: 12px; font-weight: 800; color: #a3aec0; text-align: right; }
+.review-form textarea { width: 100%; border: 1.5px solid #e5d5dc; border-radius: 12px; padding: 10px 12px; font: inherit; background: #fff; resize: none; line-height: 1.45; }

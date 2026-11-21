@@ -1,21 +1,22 @@
 // 투자하러 가기: 학습용 종목 전체를 묶음별로 보고, 별로 관심 등록하고, 눌러서 자세히 → 매수
 import { useRef, useState } from 'react'
 import { actions, useGame } from '../store'
-import { asOfLabel, changePct, history, priceOf, swingOf, TICKERS, usdOf } from '../data/market'
+import { changePct, history, priceOf, swingOf, TICKERS, usdOf } from '../data/market'
 import { StockLogo } from '../components/StockLogo'
 import { Page } from '../components/Page'
 import { PriceChart } from '../components/Chart'
 
+// 주제별 묶음 (2026-11-21 보영: 국내·미국 대신 주제로)
 export const GROUPS: { id: string; label: string; codes: string[] }[] = [
-  { id: 'kr', label: '국내 지수', codes: ['069500', '102110', '278530', '229200'] },
-  { id: 'us', label: '미국 따라가는 국내 ETF', codes: ['360750', '379800', '133690', '381170'] },
-  { id: 'usetf', label: '미국 ETF', codes: ['SPY', 'VOO', 'QQQ', 'SCHD', 'DIA'] },
-  { id: 'usstock', label: '미국 주식', codes: ['AAPL', 'MSFT', 'NVDA', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NFLX', 'DIS', 'KO', 'MCD', 'NKE', 'COST', 'AMD', 'SBUX'] },
-  { id: 'theme', label: '섹터·테마', codes: ['091160', '139260', '305720', '305540'] },
-  { id: 'world', label: '해외', codes: ['192090', '371460', '241180'] },
-  { id: 'div', label: '배당·리츠', codes: ['161510', '329200'] },
+  { id: 'kr', label: '한국 대표', codes: ['069500', '102110', '278530', '229200'] },
+  { id: 'us', label: '미국 대표', codes: ['SPY', 'VOO', '360750', '379800', 'DIA'] },
+  { id: 'tech', label: '반도체·기술', codes: ['005930', '000660', '091160', '139260', 'NVDA', 'AMD', 'AAPL', 'MSFT', 'QQQ', '133690', '381170'] },
+  { id: 'net', label: '인터넷·플랫폼', codes: ['035420', '035720', 'GOOGL', 'META', 'AMZN', 'NFLX'] },
+  { id: 'car', label: '자동차·배터리', codes: ['005380', 'TSLA', '305720', '305540', '371460'] },
+  { id: 'life', label: '생활 브랜드', codes: ['KO', 'MCD', 'NKE', 'SBUX', 'COST', 'DIS'] },
+  { id: 'div', label: '배당·리츠', codes: ['161510', '329200', 'SCHD'] },
+  { id: 'world', label: '중국·일본', codes: ['192090', '241180'] },
   { id: 'safe', label: '채권·금', codes: ['114260', '153130', '132030'] },
-  { id: 'stock', label: '대형주', codes: ['005930', '000660', '005380', '035420', '035720'] },
 ]
 
 const flag = (m: string) => (m === 'us' ? '🇺🇸' : m === 'other' ? '🌏' : '🇰🇷')
@@ -98,7 +99,7 @@ export function MarketPage({ day, onOpen, onClose }: { day: number; onOpen: (c: 
     return !q.trim() || (t && (t.name.includes(q.trim()) || t.code.includes(q.trim()) || t.holds.includes(q.trim())))
   }
   return (
-    <Page title="투자하러 가기" sub={asOfLabel() ?? '연습용 시세'} onExit={onClose}>
+    <Page title="투자하러 가기" onExit={onClose}>
       <input className="mk-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="종목 이름이나 코드로 찾기" />
       <div className="mk-chipbar">
         <button className="mk-arrow" disabled={group === ORDER[0]} onClick={() => move(-1)} aria-label="이전 묶음">

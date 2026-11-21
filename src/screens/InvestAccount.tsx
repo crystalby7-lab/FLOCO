@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react'
 import { actions, RULES, useGame, vault } from '../store'
 import { TickerRow } from './Market'
 import { ACCOUNT_GUIDE, Coach } from '../components/Coach'
-import { asOfLabel, changePct, kospiChange, tickerOf } from '../data/market'
+import { changePct, kospiChange, tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Page } from '../components/Page'
 import type { Guild } from '../types'
@@ -85,7 +85,7 @@ function sessionOf(kind: 'kr' | 'us') {
   return open
 }
 
-export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day: number; go: (t: Tab) => void; onOpen: (code: string) => void; onMarket: () => void }) {
+export function InvestAccount({ g, day, onOpen, onMarket }: { g: Guild; day: number; go: (t: Tab) => void; onOpen: (code: string) => void; onMarket: () => void }) {
   const gs = useGame()
   const watch = gs.watch
   const [coach, setCoach] = useState(!gs.guides.includes('account'))
@@ -129,7 +129,6 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
         <img src={ART.t_happy} alt="" />
         <span>
           <b>투자하러 가기</b>
-          <small>종목 25개 둘러보고 근거 써서 사기</small>
         </span>
         <i>›</i>
       </button>
@@ -141,7 +140,6 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
               <span>{g.name}의 모의투자 계좌</span>
               <img src={ART.sit} alt="" />
             </div>
-            <span className="acct-asof">{asOfLabel() ?? '연습용 시세'}</span>
             <Term id="total">
               <small className="acct-label">총 자산</small>
             </Term>
@@ -151,7 +149,6 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
               <em>
                 {totalPnl >= 0 ? '▲' : '▼'} {Math.abs(totalRate).toFixed(2)}%
               </em>
-              <small>시작 자산 {won(RULES.startCash)} 대비</small>
             </span>
             <div className="acct-btns">
               <button onClick={() => setPage('assets')}>
@@ -180,11 +177,6 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
               <b>{won(v.invested)}</b>
             </div>
           </section>
-
-          <button className="acct-learn" onClick={() => go('map')}>
-            <img src={ART.t_sprout} alt="" />
-            퀘스트로 투자 공부하고 코인 받기 ›
-          </button>
 
           <div className="acct-region">
             {(
@@ -238,8 +230,6 @@ export function InvestAccount({ g, day, go, onOpen, onMarket }: { g: Guild; day:
               <img src={ART.t_think} alt="" />
               <p>
                 아직 산 종목이 없어요.
-                <br />
-                '투자하러 가기'에서 종목을 고르고 근거를 써서 사봐요.
               </p>
               <button className="btn btn-sm" onClick={onMarket}>
                 투자하러 가기
