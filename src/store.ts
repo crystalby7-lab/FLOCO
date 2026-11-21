@@ -14,6 +14,7 @@ import { reviewReasons } from './aiReview'
 const KEY = 'floco-mvp-v1'
 
 export const RULES = {
+  weekReward: 500, // 이번 주 같이 하기를 채우면 길드 코인
   quizReward: 20, // 오늘의 질문 맞히면
   sellFee: 0.001, // 매도 수수료 0.1%
   startGold: 3_000, // 게임 코인 (상점·돌보기). 처음부터 테마를 바로 사지 않게 적게
@@ -779,6 +780,11 @@ export const actions = {
     })
   },
   // 친구 응원 (하루 한 번)
+  // 이번 주 같이 하기 보상 (길드가 같이 받음, 주에 한 번)
+  claimWeek(week: string) {
+    updateGuild((g) => (g.weekClaimed === week ? g : addFeed({ ...g, weekClaimed: week, gold: g.gold + RULES.weekReward }, '🎉', `이번 주 같이 하기 완료! 길드 코인 +${RULES.weekReward}`)))
+  },
+
   cheer(memberId: string): string | null {
     const g = state.guild!
     const key = `${me(g).id}>${memberId}`

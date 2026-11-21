@@ -1,10 +1,11 @@
-// 길드: 커뮤니티처럼. 피드(글·댓글·좋아요 + 길드에서 일어난 일) / 멤버(응원·초대) / 우리 길드(고양이·기록·이번 주 목표)
+// 길드 (2026-11-21, 서영 의견: 단순하게): 배너 → 이번 주 같이 하기(공동 목표 하나) → 친구들(오늘 한 일 한 줄·응원) → 글쓰기 → 소식
 import { useState } from 'react'
 import { actions, memberName, needReview, today, useGame } from '../store'
-import { priceOf, tickerOf } from '../data/market'
+import { tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
 import { Avatar, breedOf } from '../components/Avatar'
 import { GuildBanner } from '../components/GuildBanner'
+import { WeekQuest } from '../components/WeekQuest'
 import type { Tab } from '../App'
 import type { FeedItem, Post, Proposal, Retro } from '../types'
 
@@ -24,8 +25,8 @@ const ago = (at: number) => {
 export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
   const s = useGame()
   const g = s.guild!
-  const [tab, setTab] = useState<'feed' | 'members' | 'guild'>('feed')
-  const [filter, setFilter] = useState<'all' | Topic>('all')
+  const [invite, setInvite] = useState(false)
+  const filter = 'all' as 'all' | Topic
   const [draft, setDraft] = useState('')
   const [topic, setTopic] = useState<Topic>('chat')
   const [writing, setWriting] = useState(false)
@@ -60,6 +61,17 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
     ...trades,
   ].sort((a, b) => b.at - a.at)
   const voting = needReview(g, myId)
+  // 친구가 오늘 한 일 한 줄
+  const dayStart = new Date().setHours(0, 0, 0, 0)
+  const todayOf = (id: string) => {
+    const bought = g.proposals.find((p) => p.proposerId === id && (p.boughtAt ?? 0) >= dayStart)
+    if (bought) return `${tickerOf(bought.ticker).name} 샀어요`
+    const reviewed = g.proposals.some((p) => (p.reviews ?? []).some((r) => r.memberId === id && r.at >= dayStart))
+    if (reviewed) return '피드백 남겼어요'
+    const wrote = g.board.some((p) => p.memberId === id && p.at >= dayStart)
+    if (wrote) return '글 남겼어요'
+    return '오늘은 조용해요'
+  }
 
   const post = () => {
     if (!draft.trim()) return
@@ -72,153 +84,125 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
     <div className="tab-panel">
       <GuildBanner g={g} days={days} />
 
-      <div className="cm-tabs">
-        {(
-          [
-            ['feed', '피드'],
-            ['members', '멤버'],
-            ['guild', '우리 길드'],
-          ] as const
-        ).map(([k, l]) => (
-          <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
-            {l}
+      <WeekQuest />
+
+      {/* 친구들: 오늘 무엇을 했는지 한 줄 + 응원 */}
+      <section className="squad">
+        {g.members.map((m) => {
+          const cheered = g.cheers[`${myId}>${m.id}`] === today()
+          return (
+            <div key={m.id} className={`squad-card ${m.isMe ? 'me' : ''}`}>
+              <img src={ART[m.isMe ? (s.user?.avatar?.art ?? 'sit') : breedOf(g, m.id)]} alt="" />
+              <b>{m.isMe ? '나' : m.nickname}</b>
+              <small>{todayOf(m.id)}</small>
+              {!m.isMe && (
+                <button
+                  className={`squad-cheer ${cheered ? 'done' : ''}`}
+                  aria-label={`${m.nickname} 응원하기`}
+                  onClick={() => {
+                    const err = actions.cheer(m.id)
+                    flash(err ?? `${m.nickname}에게 응원을 보냈어요`)
+                  }}
+                >
+                  <img src={ART.i_heart} alt="" />
+                </button>
+              )}
+            </div>
+          )
+        })}
+        {g.members.length < 5 && (
+          <button className="squad-card add" onClick={() => setInvite(true)}>
+            <span>＋</span>
+            <b>친구 부르기</b>
+            <small>최대 5명</small>
+          </button>
+        )}
+      </section>
+
+      {/* 글쓰기 */}
+  {writing ? (
+    <section className="cm-compose">
+      <div className="cm-compose-row">
+        <Avatar g={g} id={myId} size={38} />
+        <textarea autoFocus value={draft} maxLength={140} rows={3} onChange={(e) => setDraft(e.target.value)} placeholder="길드 친구들에게 이야기해요" />
+      </div>
+      <div className="cm-topics">
+        {TOPICS.map((t) => (
+          <button key={t.id} className={topic === t.id ? 'on' : ''} onClick={() => setTopic(t.id)}>
+        {t.label}
           </button>
         ))}
       </div>
+      <div className="cm-compose-foot">
+        <small>{draft.length}/140</small>
+        <span className="grow" />
+        <button
+          className="cm-cancel"
+          onClick={() => {
+        setWriting(false)
+        setDraft('')
+          }}
+        >
+          취소
+        </button>
+        <button className="cm-post" disabled={!draft.trim()} onClick={post}>
+          올리기
+        </button>
+      </div>
+    </section>
+  ) : (
+    <button className="cm-compose-mini" onClick={() => setWriting(true)}>
+      <Avatar g={g} id={myId} size={32} />
+      <span>길드 친구들에게 이야기해요</span>
+      <i>✏️</i>
+    </button>
+  )}
 
-      {tab === 'feed' && (
-        <>
-          {/* 글쓰기 */}
-          {writing ? (
-            <section className="cm-compose">
-              <div className="cm-compose-row">
-                <Avatar g={g} id={myId} size={38} />
-                <textarea autoFocus value={draft} maxLength={140} rows={3} onChange={(e) => setDraft(e.target.value)} placeholder="길드 친구들에게 이야기해요" />
-              </div>
-              <div className="cm-topics">
-                {TOPICS.map((t) => (
-                  <button key={t.id} className={topic === t.id ? 'on' : ''} onClick={() => setTopic(t.id)}>
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-              <div className="cm-compose-foot">
-                <small>{draft.length}/140</small>
-                <span className="grow" />
-                <button
-                  className="cm-cancel"
-                  onClick={() => {
-                    setWriting(false)
-                    setDraft('')
-                  }}
-                >
-                  취소
-                </button>
-                <button className="cm-post" disabled={!draft.trim()} onClick={post}>
-                  올리기
-                </button>
-              </div>
-            </section>
-          ) : (
-            <button className="cm-compose-mini" onClick={() => setWriting(true)}>
-              <Avatar g={g} id={myId} size={32} />
-              <span>길드 친구들에게 이야기해요</span>
-              <i>✏️</i>
-            </button>
-          )}
+  {/* 피드백 기다리는 친구 거래 (고정) */}
+  {voting.map((p) => (
+    <button key={p.id} className="cm-pin" onClick={() => go?.('invest')}>
+      <Avatar g={g} id={p.proposerId} size={34} />
+      <span>
+        <small>📌 피드백을 기다려요</small>
+        <b>
+          {memberName(g, p.proposerId)}님의 {tickerOf(p.ticker).name} 거래 근거 보기
+        </b>
+      </span>
+      <i>›</i>
+    </button>
+  ))}
 
-          {/* 피드백 기다리는 친구 거래 (고정) */}
-          {voting.map((p) => (
-            <button key={p.id} className="cm-pin" onClick={() => go?.('invest')}>
-              <Avatar g={g} id={p.proposerId} size={34} />
-              <span>
-                <small>📌 피드백을 기다려요</small>
-                <b>
-                  {memberName(g, p.proposerId)}님의 {tickerOf(p.ticker).name} 거래 근거 보기
-                </b>
-              </span>
-              <i>›</i>
-            </button>
-          ))}
+  <ul className="cm-feed">
+    {items.length === 0 && <li className="cm-empty">아직 글이 없어요. 첫 글을 남겨볼까요?</li>}
+    {items.map((it) =>
+      it.kind === 'post' ? (
+        <PostCard key={it.p.id} p={it.p} myId={myId} />
+      ) : it.kind === 'trade' ? (
+        <TradeCard
+          key={it.p.id + it.side}
+          p={it.p}
+          side={it.side}
+          first={it.side === 'buy' && it.p.id === firstBuyId}
+          myId={myId}
+          onTalk={() => {
+        setTopic('invest')
+        setWriting(true)
+        setDraft(`[${tickerOf(it.p.ticker).name}] `)
+        window.scrollTo({ top: 0 })
+        document.querySelector('.app-main')?.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+        />
+      ) : it.kind === 'retro' ? (
+        <RetroCard key={it.r.id} r={it.r} />
+      ) : (
+        <CelebrateCard key={it.f.id} f={it.f} />
+      ),
+    )}
+  </ul>
 
-          <div className="cm-filter">
-            {(['all', 'chat', 'invest', 'ask'] as const).map((k) => (
-              <button key={k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>
-                {k === 'all' ? '전체' : topicLabel(k)}
-              </button>
-            ))}
-          </div>
-
-          <ul className="cm-feed">
-            {items.length === 0 && <li className="cm-empty">아직 글이 없어요. 첫 글을 남겨볼까요?</li>}
-            {items.map((it) =>
-              it.kind === 'post' ? (
-                <PostCard key={it.p.id} p={it.p} myId={myId} />
-              ) : it.kind === 'trade' ? (
-                <TradeCard
-                  key={it.p.id + it.side}
-                  p={it.p}
-                  side={it.side}
-                  first={it.side === 'buy' && it.p.id === firstBuyId}
-                  myId={myId}
-                  onTalk={() => {
-                    setTopic('invest')
-                    setWriting(true)
-                    setDraft(`[${tickerOf(it.p.ticker).name}] `)
-                    window.scrollTo({ top: 0 })
-                    document.querySelector('.app-main')?.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                />
-              ) : it.kind === 'retro' ? (
-                <RetroCard key={it.r.id} r={it.r} />
-              ) : (
-                <CelebrateCard key={it.f.id} f={it.f} />
-              ),
-            )}
-          </ul>
-          {filter === 'all' && <WeeklyReport />}
-        </>
-      )}
-
-      {tab === 'members' && (
-        <>
-          <ul className="cm-members">
-            {g.members.map((m) => {
-              const proposals = g.proposals.filter((p) => p.proposerId === m.id).length
-              const retros = g.retros.filter((r) => r.authorId === m.id).length
-              const postsN = g.board.filter((p) => p.memberId === m.id).length
-              const cheered = g.cheers[`${myId}>${m.id}`] === today()
-              return (
-                <li key={m.id}>
-                  <img className="member-cat" src={ART[m.isMe ? (s.user?.avatar?.art ?? 'sit') : breedOf(g, m.id)]} alt="" />
-                  <div className="grow">
-                    <b>
-                      {m.nickname}
-                      {m.isMe && <span className="me-tag">나</span>}
-                      {m.isBot && <span className="bot-tag">테스트</span>}
-                    </b>
-                    <div className="contrib">
-                      <span>제안 {proposals}</span>
-                      <span>글 {postsN}</span>
-                      <span>돌아보기 {retros}</span>
-                    </div>
-                  </div>
-                  {!m.isMe && (
-                    <button
-                      className={`cheer-btn ${cheered ? 'done' : ''}`}
-                      onClick={() => {
-                        const err = actions.cheer(m.id)
-                        flash(err ?? `${m.nickname}에게 응원을 보냈어요`)
-                      }}
-                    >
-                      <img src={ART.i_heart} alt="" />
-                      응원
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+      {invite && (
+        <div className="ask-layer" onClick={() => setInvite(false)}>
+          <div className="ask-sheet" onClick={(e) => e.stopPropagation()}>
           <section className="card invite">
             <div className="card-title">친구 부르기</div>
             <div className="code">{g.code}</div>
@@ -238,10 +222,9 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
             </button>
             <p className="fineprint">친구가 첫 화면 '길드 참가'에 이 코드를 넣으면 같은 고양이를 같이 키워요. 최대 5명.</p>
           </section>
-        </>
+          </div>
+        </div>
       )}
-
-      {tab === 'guild' && <GuildInfo />}
 
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
@@ -309,74 +292,12 @@ function PostCard({ p, myId }: { p: Post; myId: string }) {
 }
 
 // 우리 길드: 고양이 · 기록 · 이번 주 같이 할 일
-function GuildInfo() {
-  const s = useGame()
-  const g = s.guild!
-  const reviews = g.proposals.reduce((n, p) => n + (p.reviews?.length ?? 0), 0)
-  const days = Math.max(1, Math.floor((Date.now() - g.createdAt) / 86_400_000) + 1)
-  const stats = [
-    { label: '함께한 날', value: `${days}일` },
-    { label: '거래 노트', value: `${g.proposals.length}개` },
-    { label: '주고받은 피드백', value: `${reviews}개` },
-    { label: '같이 돌아보기', value: `${g.retros.length}번` },
-  ]
-  const recent = g.proposals.filter((p) => p.createdDay >= s.day - 4)
-  const recentIds = new Set(recent.map((p) => p.id))
-  const week = Date.now() - 7 * 86_400_000
-  const goals = [
-    { label: '근거 쓰고 사기', now: recent.length, goal: 2 },
-    { label: '피드백 주고받기', now: recent.reduce((n, p) => n + (p.reviews?.length ?? 0), 0), goal: 6 },
-    { label: '같이 돌아보기', now: g.retros.filter((r) => recentIds.has(r.proposalId)).length, goal: 1 },
-    { label: '글·댓글 남기기', now: g.board.filter((p) => p.at >= week).reduce((n, p) => n + 1 + (p.comments?.length ?? 0), 0), goal: 8 },
-  ]
-  return (
-    <>
-      <section className="card guild-hero">
-        <img src={ART.crown} alt="" className="gh-cat" />
-        <div className="grow">
-          <b>
-            {g.cat.name} · Lv.{g.cat.level}
-          </b>
-          <small className="sub">우리가 같이 쓴 이유와 돌아보기로 자랐어요</small>
-        </div>
-      </section>
-      <div className="stat-grid">
-        {stats.map((x) => (
-          <div key={x.label} className="stat">
-            <b className="num">{x.value}</b>
-            <small>{x.label}</small>
-          </div>
-        ))}
-      </div>
-      <section className="card week-card">
-        <div className="card-row">
-          <h3 className="card-title">이번 주 같이 할 일</h3>
-          <span className="small sub">최근 7일</span>
-        </div>
-        {goals.map((x) => (
-          <div key={x.label} className="week-row">
-            <span>{x.label}</span>
-            <div className="bar grow">
-              <div style={{ width: `${Math.min(100, (x.now / x.goal) * 100)}%` }} />
-            </div>
-            <b className={x.now >= x.goal ? 'ok' : ''}>
-              {Math.min(x.now, x.goal)}/{x.goal}
-            </b>
-          </div>
-        ))}
-      </section>
-    </>
-  )
-}
 
 // 체결된 거래: 누가 / 무엇을 / 얼마에 / 왜 / 지금 수익률
 function TradeCard({ p, side, first, myId, onTalk }: { p: Proposal; side: 'buy' | 'sell'; first: boolean; myId: string; onTalk: () => void }) {
   const s = useGame()
   const g = s.guild!
   const t = tickerOf(p.ticker)
-  const price = side === 'buy' ? p.buyPrice! : p.sellPrice!
-  const now = priceOf(p.ticker, s.day)
-  const rate = side === 'buy' ? ((now - p.buyPrice!) / p.buyPrice!) * 100 : ((p.sellPrice! - p.buyPrice!) / p.buyPrice!) * 100
   const liked = (p.likes ?? []).includes(myId)
   const at = side === 'buy' ? p.boughtAt : p.soldAt
   return (
@@ -389,29 +310,14 @@ function TradeCard({ p, side, first, myId, onTalk }: { p: Proposal; side: 'buy' 
             {first && <span className="cm-first">첫 매수!</span>}
           </b>
           <small>
-            {side === 'buy' ? '매수 체결' : '매도 체결'}
+            {t.name} {side === 'buy' ? '샀어요' : '팔았어요'}
             {at ? ` · ${ago(at)}` : ''}
           </small>
         </div>
         <span className={`cm-side ${side}`}>{side === 'buy' ? '매수' : '매도'}</span>
       </div>
-      <div className="cm-trade-box">
-        <div>
-          <b>{t.name}</b>
-          <small>
-            {p.qty}주 × {price.toLocaleString()}원 = {(p.qty! * price).toLocaleString()}원
-          </small>
-        </div>
-        <div className={`cm-rate ${rate > 0 ? 'up' : rate < 0 ? 'down' : ''}`}>
-          <small>{side === 'buy' && p.status === 'holding' ? '지금' : '결과'}</small>
-          <b>
-            {rate >= 0 ? '+' : ''}
-            {rate.toFixed(2)}%
-          </b>
-        </div>
-      </div>
       <p className="cm-trade-why">
-        <span>{side === 'buy' ? '산 이유' : '판 이유'}</span>
+
         {side === 'buy' ? p.reasons[0] : p.sellReason ?? '이유를 남기지 않았어요'}
       </p>
       <div className="cm-post-actions">
@@ -419,7 +325,7 @@ function TradeCard({ p, side, first, myId, onTalk }: { p: Proposal; side: 'buy' 
           <img src={ART.i_heart} alt="" />
           좋아요 {(p.likes ?? []).length || ''}
         </button>
-        <button onClick={onTalk}>💬 이 거래 얘기하기</button>
+        <button onClick={onTalk}>이야기하기</button>
       </div>
     </li>
   )
@@ -479,56 +385,3 @@ function RetroCard({ r }: { r: Retro }) {
   )
 }
 
-// 이번 주 정리 (피드 맨 아래)
-function WeeklyReport() {
-  const s = useGame()
-  const g = s.guild!
-  const week = Date.now() - 7 * 86_400_000
-  const count = (fn: (id: string) => number) => g.members.map((m) => ({ m, n: fn(m.id) })).sort((a, b) => b.n - a.n)[0]
-  const reasonKing = count((id) => g.proposals.filter((p) => p.proposerId === id && (p.boughtAt ?? 0) >= week).length)
-  const talkKing = count((id) => g.board.filter((p) => p.at >= week).reduce((n, p) => n + (p.memberId === id ? 1 : 0) + (p.comments ?? []).filter((c) => c.memberId === id).length, 0))
-  const trades = g.proposals.filter((p) => (p.boughtAt ?? 0) >= week || (p.soldAt ?? 0) >= week).length
-  const retros = g.retros.filter((r) => (r.at ?? 0) >= week).length
-  return (
-    <section className="cm-week">
-      <div className="cm-week-head">
-        <img src={ART.t_sprout} alt="" />
-        <div>
-          <b>이번 주 우리 길드</b>
-          <small>최근 7일 정리</small>
-        </div>
-      </div>
-      <div className="cm-week-stats">
-        <div>
-          <b>{trades}</b>
-          <small>거래</small>
-        </div>
-        <div>
-          <b>{retros}</b>
-          <small>돌아보기</small>
-        </div>
-        <div>
-          <b>{g.board.filter((p) => p.at >= week).length}</b>
-          <small>글</small>
-        </div>
-      </div>
-      <ul className="cm-week-kings">
-        {reasonKing && reasonKing.n > 0 && (
-          <li>
-            <span>📝 근거왕</span>
-            <b>{reasonKing.m.nickname}</b>
-            <small>근거 쓰고 산 거래 {reasonKing.n}번</small>
-          </li>
-        )}
-        {talkKing && talkKing.n > 0 && (
-          <li>
-            <span>💬 수다왕</span>
-            <b>{talkKing.m.nickname}</b>
-            <small>글·댓글 {talkKing.n}개</small>
-          </li>
-        )}
-        {(!reasonKing || reasonKing.n === 0) && (!talkKing || talkKing.n === 0) && <li className="cm-week-empty">이번 주는 아직 조용해요. 첫 거래나 글을 남겨볼까요?</li>}
-      </ul>
-    </section>
-  )
-}

@@ -92,6 +92,7 @@ export type Guild = {
   memberIds?: string[] // 서버 보안 규칙용 멤버 id 목록
   levelSeen: number // 레벨업 축하를 본 마지막 레벨
   look?: GuildLook // 길드 꾸미기 (배경·문장·구호)
+  weekClaimed?: string // 이번 주 같이 하기 보상을 받은 주 (주 시작 날짜)
   createdAt: number
 }
 
