@@ -116,7 +116,6 @@ export function Shop() {
         {shelf === 'deco' && section('deco', '가구', '사면 고양이 집 거실에 놓여요 · 같은 자리엔 하나만')}
         {shelf === 'place' && section('place', '장소 테마', '홈에서 화살표로 넘겨 가요')}
       </div>
-      <p className="fineprint">뽑기는 없어요. 꾸미기는 모습만 바뀌어요.</p>
     </div>
   )
 }
