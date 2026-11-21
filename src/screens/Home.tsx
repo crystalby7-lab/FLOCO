@@ -192,22 +192,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
         </button>
       </section>
 
-      {/* 이어서 하기: 하던 레슨 바로 */}
-      {cont && (
-        <button className="card cont-card" onClick={() => setStudy(cont.index)}>
-          <img src={ART[SHOPS[cont.index].building]} alt="" />
-          <span className="grow">
-            <small>
-              이어서 하기 · {TRACKS[s.learn.track].name} {cont.ch.no}장 {cont.ch.title}
-            </small>
-            <b>
-              레슨 {cont.li + 1}. {cont.lesson.title}
-            </b>
-          </span>
-          <span className="cont-go">▶</span>
-        </button>
-      )}
-
       {/* 오늘의 질문 (OX 하나) */}
       {quiz && (
         <section className="card quiz-card">
@@ -251,6 +235,22 @@ export function Home({ go }: { go: (t: Tab) => void }) {
           <b>{v.holdings.length}개</b>
         </div>
       </button>
+
+      {/* 이어서 하기: 하던 레슨 바로 */}
+      {cont && (
+        <button className="card cont-card" onClick={() => setStudy(cont.index)}>
+          <img src={ART[SHOPS[cont.index].building]} alt="" />
+          <span className="grow">
+            <small>
+              이어서 하기 · {TRACKS[s.learn.track].name} {cont.ch.no}장 {cont.ch.title}
+            </small>
+            <b>
+              레슨 {cont.li + 1}. {cont.lesson.title}
+            </b>
+          </span>
+          <span className="cont-go">▶</span>
+        </button>
+      )}
 
       <NewsFeed />
 
