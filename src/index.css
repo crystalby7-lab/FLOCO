@@ -12052,3 +12052,42 @@ label.set2-row:active {
 .rm-cat { position: absolute; top: 18px; width: 58px; pointer-events: none; }
 .rm-cat.r { left: calc(50% + 50px); }
 .rm-cat.l { right: calc(50% + 50px); transform: scaleX(-1); }
+
+/* ───── v14.4 학습 로드맵: 고양이 발자국 산책길 ───── */
+.walk { position: relative; margin: 14px 0 24px; border-radius: 24px; overflow: hidden; background-size: cover; background-position: center 60%; box-shadow: var(--card-shadow); }
+.walk::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(240,247,255,.72), rgba(240,248,236,.62)); }
+.walk-paw { position: absolute; z-index: 1; line-height: 0; }
+.walk-paw svg { fill: #c7b6a6; opacity: .55; }
+.walk-paw.on svg { fill: #b98a68; opacity: .95; }
+.walk-stop { position: absolute; z-index: 2; width: 48%; display: flex; }
+.walk-stop.l { left: 4%; justify-content: flex-start; }
+.walk-stop.r { right: 4%; justify-content: flex-end; }
+.walk .sign { border: 0; background: none; padding: 0; font: inherit; display: flex; flex-direction: column; align-items: center; cursor: pointer; max-width: 100%; }
+.sign-board { position: relative; display: flex; align-items: center; gap: 8px; padding: 10px 12px; min-width: 132px; max-width: 100%; border-radius: 12px; background: linear-gradient(180deg, #f1d0a8, #e5b98a); border: 2.5px solid #b88d70; box-shadow: 0 4px 0 #a97c5d; color: #5d3f2c; text-align: left; transition: transform .12s; }
+.walk .sign:active:not(:disabled) .sign-board { transform: translateY(3px); box-shadow: 0 1px 0 #a97c5d; }
+.sign-board::before, .sign-board::after { content: ''; position: absolute; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #a97c5d; }
+.sign-board::before { left: 6px; } .sign-board::after { right: 6px; }
+.sign-no { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #fff7ea; border: 2px solid #b88d70; font-size: 14px; font-weight: 900; color: #8a5f43; }
+.sign-text { font-size: 13.5px; font-weight: 800; line-height: 1.3; min-width: 0; }
+.sign-text em { display: block; font-style: normal; font-size: 10.5px; font-weight: 900; color: #8a5bd6; }
+.sign-post { width: 8px; height: 22px; background: #b88d70; border-radius: 0 0 3px 3px; }
+.walk-stop.done .sign-no { background: #f6c344; border-color: #d49b17; }
+.walk-stop.now .sign-board { background: linear-gradient(180deg, #ffe2b8, #f6c98f); box-shadow: 0 4px 0 #a97c5d, 0 0 0 4px rgba(255,255,255,.75); animation: rm-bob 1.6s ease-in-out infinite; }
+.walk-stop.locked .sign-board { background: #e8e2dc; border-color: #c4b8ad; box-shadow: 0 4px 0 #c4b8ad; color: #9c9087; }
+.walk-stop.locked .sign-no { background: #f4f1ee; border-color: #c4b8ad; color: #9c9087; }
+.walk-stop.locked .sign-post { background: #c4b8ad; }
+.walk-cat { position: absolute; top: 42px; width: 64px; pointer-events: none; filter: drop-shadow(0 4px 4px rgba(80,60,40,.2)); }
+.walk-stop.l .walk-cat { left: calc(100% - 8px); }
+.walk-stop.r .walk-cat { right: calc(100% - 8px); transform: scaleX(-1); }
+.walk-goal { position: absolute; z-index: 2; left: 50%; transform: translateX(-50%); }
+.walk-goal img { width: 76px; filter: drop-shadow(0 4px 6px rgba(60,80,120,.2)); }
+.walk-goal img.ghost { filter: grayscale(1); opacity: .5; }
+
+/* v14.5 가구 잠금: 챕터 하나에 가구 하나 */
+.si-opts button.locked { position: relative; cursor: not-allowed; }
+.si-opts button.locked img { filter: grayscale(1) brightness(1.1); opacity: .35; }
+.si-lock { position: absolute; inset: auto 4px 4px auto; display: flex; align-items: center; gap: 2px; padding: 2px 6px; border-radius: 999px; background: rgba(35,50,77,.78); color: #fff; font-size: 11px; font-weight: 900; }
+.si-presets button.locked { opacity: .55; cursor: not-allowed; }
+.si-presets button.locked img { filter: grayscale(1); }
+.si-next { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 8px 12px; background: #fff; border-radius: 14px; font-size: 12.5px; font-weight: 800; color: var(--sub); box-shadow: var(--card-shadow); }
+.si-next img { width: 36px; height: 36px; object-fit: contain; filter: grayscale(1); opacity: .6; }
