@@ -14,6 +14,7 @@ import { reviewReasons } from './aiReview'
 const KEY = 'floco-mvp-v1'
 
 export const RULES = {
+  quizReward: 20, // 오늘의 질문 맞히면
   sellFee: 0.001, // 매도 수수료 0.1%
   startGold: 3_000, // 게임 코인 (상점·돌보기). 처음부터 테마를 바로 사지 않게 적게
   startCash: 10_000_000, // 모의투자 시작 자산 (원)
@@ -620,6 +621,16 @@ export const actions = {
   writeMyRetro(proposalId: string, parts: [string, string, string]) {
     const text = `맞았던 것: ${parts[0]} / 빗나간 것: ${parts[1]} / 다음엔: ${parts[2]}`
     writeRetro(proposalId, me(state.guild!).id, text, parts)
+  },
+
+  // 오늘의 질문(OX 하나): 하루 한 번, 맞히면 코인 조금
+  answerQuiz(right: boolean) {
+    set((s) => {
+      const d = s.daily.date === today() ? s.daily : freshDaily()
+      if (d.quiz || !s.guild) return s
+      const gold = right ? s.guild.gold + RULES.quizReward : s.guild.gold
+      return { ...s, daily: { ...d, quiz: right ? 'right' : 'wrong' }, guild: { ...s.guild, gold } }
+    })
   },
 
   claimDaily() {

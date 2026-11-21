@@ -1332,3 +1332,11 @@ export const lessonById = (id: string) => {
   return null
 }
 export const chapterDone = (c: ChapterDef, done: Record<string, unknown>) => c.lessons.every((l) => done[l.id])
+
+// 홈 '오늘의 질문': 내 과정의 OX 문제 중 날짜로 하나 (하루 동안 같은 문제)
+export function dailyOx(track: Track, date: string): Extract<Q, { k: 'ox' }> | null {
+  const all = COURSE[track].flatMap((c) => c.lessons.flatMap((l) => l.qs)).filter((q): q is Extract<Q, { k: 'ox' }> => q.k === 'ox')
+  if (!all.length) return null
+  const n = date.split('').reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 100003, 7)
+  return all[n % all.length]
+}

@@ -1,8 +1,11 @@
-// 홈: 고양이 집(누르면 풀스크린) · 지금 할 일 · 오늘 할 일 · 오늘의 플로코 신문
+// 홈: 고양이 돌보러 가기 배너 · 연속 출석 · 오늘 할 일 · 이어서 하기 · 오늘의 질문 · 내 계좌 · 뉴스
 // 길드 소식(피드)은 길드 탭으로 옮겼다.
 import { useEffect, useState } from 'react'
-import { actions, catNow, me, memberName, mustRetro, needReview, RULES, today, unlocked, useGame, vault } from '../store'
-import { changePct, tickerOf } from '../data/market'
+import { actions, catNow, me, memberName, mustRetro, needReview, RULES, streakNow, today, unlocked, useGame, vault } from '../store'
+import { changePct, priceOf, tickerOf } from '../data/market'
+import { COURSE, TRACKS, dailyOx } from '../data/curriculum'
+import { SHOPS } from '../data/world'
+import { BuildingPage } from './BuildingPage'
 import { QUESTS } from '../data/quests'
 import { ART, CatFace } from '../components/CatView'
 import { timeOfDay } from '../components/Playground'
@@ -10,7 +13,7 @@ import { ConfirmDialog } from '../components/Page'
 import { itemOf, OUTFIT_OPEN } from '../data/shop'
 import { type Ask } from '../data/catTalk'
 import { NewsFeed } from '../components/NewsFeed'
-import type { Cat } from '../types'
+import type { Cat, Daily } from '../types'
 import type { Tab } from '../App'
 import { CatWorld } from './CatWorld'
 
@@ -66,7 +69,7 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   const [closet, setCloset] = useState(false)
 
-  const d = s.daily.date === today() ? s.daily : { quest: false, vote: false, care: false, claimed: false, talks: 0 }
+  const d: Daily = s.daily.date === today() ? s.daily : { date: today(), quest: false, vote: false, care: false, claimed: false, talks: 0 }
 
 
   const buyPlace = (id: string) => {
@@ -76,73 +79,77 @@ export function Home({ go }: { go: (t: Tab) => void }) {
     setTimeout(() => setToast(''), 1800)
   }
 
+  // 이어서 하기: 내 과정에서 아직 안 끝낸 첫 레슨
+  const cont = (() => {
+    const chs = COURSE[s.learn.track]
+    for (let i = 0; i < chs.length; i++) {
+      const li = chs[i].lessons.findIndex((l) => !s.learn.done[l.id])
+      if (li >= 0) return { index: i, ch: chs[i], li, lesson: chs[i].lessons[li] }
+    }
+    return null
+  })()
   const missions = [
-    { done: d.quest, label: '레슨 하나 배우기', sub: '플로월드 건물에서', art: 'i_star', tone: 'mint', go: () => go('map') },
-    { done: d.vote, label: '친구 거래에 피드백', sub: '근거 읽고 한 줄', art: 'i_heart', tone: 'pink', go: () => go('invest') },
+    { done: d.quest, label: '레슨 하나 배우기', sub: cont ? cont.lesson.title : '플로월드 건물에서', art: 'i_star', tone: 'mint', go: () => (cont ? setStudy(cont.index) : go('map')) },
+    { done: d.vote, label: '친구 거래에 피드백', sub: waiting[0] ? `${memberName(g, waiting[0].proposerId)}가 ${tickerOf(waiting[0].ticker).name}를 샀어요` : '근거 읽고 내 말로', art: 'i_heart', tone: 'pink', go: () => go('invest') },
     { done: d.care, label: `${cat.name} 돌보기`, sub: '집에 들어가서', art: 'i_fish', tone: 'yellow', go: () => setWorld({ dress: false }) },
   ]
   const doneCount = missions.filter((m) => m.done).length
 
-  const p = waiting[0]
   const r = retros[0]
+
+  // 고양이 상태: 40 아래면 배너 위에 아이콘
+  const low = [
+    { id: 'hunger', label: '배고파요', art: 'i_bowl', v: cat.hunger },
+    { id: 'mood', label: '심심해요', art: 'i_yarn', v: cat.mood },
+    { id: 'clean', label: '씻고 싶어요', art: 'i_duck', v: cat.clean ?? 80 },
+  ].filter((n) => n.v < 40)
+  const streak = streakNow(s)
+
+  const [study, setStudy] = useState<number | null>(null)
+  const quiz = dailyOx(s.learn.track, today())
+
+  // 오늘 수익률: 내 종목들의 어제 → 오늘 평가 변화
+  const yVal = v.holdings.reduce((a, h) => a + h.p.qty! * priceOf(h.p.ticker, s.day - 1), 0)
+  const tVal = v.holdings.reduce((a, h) => a + h.value, 0)
+  const todayPct = v.total > 0 ? ((tVal - yVal) / (v.total - (tVal - yVal))) * 100 : 0
 
 
   return (
     <div className="tab-panel home live">
-      <section className={`home-house pic tod-${tod}`}>
-        <button className="hh-pic" onClick={() => setWorld({ dress: false })} aria-label={`${cat.name}네 집 들어가기`}>
-          <img className="hh-photo" src={ART.sc_home_house} alt="" />
-          <img className="hh-pic-cat" src={ART.sit} alt="" />
-          <span className="hh-plate">눌러서 들어가기</span>
-        </button>
+      {/* 고양이 돌보러 가기: 가로로 긴 배너. 배고픔·기분·청결이 낮으면 아이콘이 떠요 */}
+      <button className={`care-banner tod-${tod}`} onClick={() => setWorld({ dress: false })} aria-label={`${cat.name} 돌보러 가기`}>
+        <img className="cb-bg" src={ART.sc_home_house} alt="" />
+        <span className="cb-shade" />
+        <span className="cb-text">
+          <small>{cat.name}네 집</small>
+          <b>고양이 돌보러 가기 ›</b>
+        </span>
+        <span className="cb-cat">
+          <img src={ART[low.length ? 'face_sad' : 'sit']} alt="" />
+          {low.length > 0 && (
+            <span className="cb-needs">
+              {low.map((n) => (
+                <span key={n.id} className="cb-need" title={n.label}>
+                  <img src={ART[n.art]} alt={n.label} />
+                </span>
+              ))}
+            </span>
+          )}
+        </span>
+      </button>
+
+      {/* 연속 출석: 고양이 발자국 7개 */}
+      <section className="streak-row">
+        <b>{streak > 0 ? <>{streak}일째 <span>같이 하는 중</span></> : <span>오늘 할 일로 첫 발자국을 찍어요</span>}</b>
+        <span className="streak-paws">
+          {Array.from({ length: 7 }, (_, i) => (
+            <img key={i} className={i < Math.min(streak, 7) ? 'on' : ''} src={ART.i_paw} alt="" />
+          ))}
+        </span>
       </section>
 
-
-      <section className="card next-card">
-        <img className="perch" src={ART.lielook} alt="" aria-hidden />
-        {p ? (
-          <>
-            <span className="next-label">친구가 피드백을 기다려요</span>
-            <h2>
-              {memberName(g, p.proposerId)}가 {tickerOf(p.ticker).name}를 샀어요
-            </h2>
-            <p className="next-quote">"{p.reasons[0]}"</p>
-            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
-              근거 읽고 피드백 남기기
-            </button>
-          </>
-        ) : r ? (
-          <>
-            <span className="next-label">돌아볼 차례예요</span>
-            <h2>{tickerOf(r.ticker).name}, 내 판단은 어땠을까?</h2>
-            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
-              같이 돌아보기 · +{RULES.exp.retro}
-            </button>
-          </>
-        ) : nextQuest ? (
-          <>
-            <span className="next-label">오늘 배울 것</span>
-            <h2>{nextQuest.title}</h2>
-            <p className="next-quote">
-              {nextQuest.summary} · 끝내면 코인 +{RULES.questReward}
-            </p>
-            <button className="btn btn-primary btn-block" onClick={() => go('map')}>
-              지도로 가기
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="next-label">오늘은 여유로워요</span>
-            <h2>근거 세 줄 쓰고 하나 사 볼까요?</h2>
-            <button className="btn btn-primary btn-block" onClick={() => go('invest')}>
-              종목 보러 가기
-            </button>
-          </>
-        )}
-      </section>
-
+      {/* 오늘 할 일 (예전 '지금 할 일' 카드와 합침) */}
       <section className="card checklist cute">
-        <span className="cl-tape" aria-hidden />
         <div className="card-row cl-head">
           <div>
             <small className="cl-date">
@@ -174,14 +181,80 @@ export function Home({ go }: { go: (t: Tab) => void }) {
             </li>
           ))}
         </ul>
+        {r && (
+          <button className="cl-extra" onClick={() => go('invest')}>
+            {tickerOf(r.ticker).name} 팔았어요 · 같이 돌아보기 +{RULES.exp.retro} ›
+          </button>
+        )}
         <button className={`btn btn-primary btn-block cl-reward ${doneCount === 3 && !d.claimed ? 'ready' : ''}`} disabled={doneCount < 3 || d.claimed} onClick={actions.claimDaily}>
           <img src={ART.i_cake} alt="" aria-hidden />
           {d.claimed ? '오늘 출석 보상 받았어요' : `다 하면 출석 보상 · 코인 +${RULES.dailyReward}`}
         </button>
       </section>
 
+      {/* 이어서 하기: 하던 레슨 바로 */}
+      {cont && (
+        <button className="card cont-card" onClick={() => setStudy(cont.index)}>
+          <img src={ART[SHOPS[cont.index].building]} alt="" />
+          <span className="grow">
+            <small>
+              이어서 하기 · {TRACKS[s.learn.track].name} {cont.ch.no}장 {cont.ch.title}
+            </small>
+            <b>
+              레슨 {cont.li + 1}. {cont.lesson.title}
+            </b>
+          </span>
+          <span className="cont-go">▶</span>
+        </button>
+      )}
+
+      {/* 오늘의 질문 (OX 하나) */}
+      {quiz && (
+        <section className="card quiz-card">
+          <div className="card-row">
+            <h3 className="card-title">오늘의 질문</h3>
+            <small className="quiz-coin">맞히면 코인 +{RULES.quizReward}</small>
+          </div>
+          <p className="quiz-q">{quiz.q}</p>
+          {!d.quiz ? (
+            <div className="quiz-ox">
+              {[true, false].map((v) => (
+                <button key={String(v)} className={v ? 'o' : 'x'} onClick={() => actions.answerQuiz(v === quiz.a)}>
+                  {v ? 'O' : 'X'}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className={`quiz-res ${d.quiz}`}>
+              <b>{d.quiz === 'right' ? `맞았어요! 코인 +${RULES.quizReward}` : `정답은 ${quiz.a ? 'O' : 'X'}예요`}</b>
+              <p>{quiz.why}</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* 내 계좌 미니 */}
+      <button className="card acct-mini" onClick={() => go('invest')}>
+        <div>
+          <small>총자산</small>
+          <b>{Math.round(v.total).toLocaleString()}원</b>
+        </div>
+        <div>
+          <small>오늘</small>
+          <b className={todayPct > 0 ? 'up' : todayPct < 0 ? 'down' : ''}>
+            {todayPct >= 0 ? '+' : ''}
+            {todayPct.toFixed(2)}%
+          </b>
+        </div>
+        <div>
+          <small>가진 종목</small>
+          <b>{v.holdings.length}개</b>
+        </div>
+      </button>
+
       <NewsFeed />
 
+      {study !== null && <BuildingPage index={study} onExit={() => setStudy(null)} />}
       {world && <CatWorld start={slide} dress={world.dress} onExit={() => setWorld(null)} />}
       {buying && (
         <ConfirmDialog

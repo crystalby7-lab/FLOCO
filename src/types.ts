@@ -137,7 +137,7 @@ export type User = {
 // zoom: 그림 폭(동그라미 대비, 기본 0.8) · x: 좌우(%) · y: 위아래(%, 그림 윗변 위치)
 export type AvatarLook = { art: string; bg: string; sticker?: string; zoom?: number; x?: number; y?: number }
 
-export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number; goodOrders?: number }
+export type Daily = { date: string; quest: boolean; vote: boolean; care: boolean; claimed: boolean; talks?: number; goodOrders?: number; quiz?: 'right' | 'wrong' } // quiz: 오늘의 질문 답한 결과
 
 export type GameState = {
   version: number
