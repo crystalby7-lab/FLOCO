@@ -372,7 +372,6 @@ export function Settings({ onClose }: { onClose: () => void }) {
               </li>
             ))}
           </ul>
-          <p className="fineprint">하늘·도윤은 서버 연결 전까지 투표와 돌아보기를 대신하는 데모 친구예요.</p>
           <button className="btn btn-block" onClick={shareCode}>
             친구 초대하기
           </button>
@@ -506,7 +505,7 @@ export function Settings({ onClose }: { onClose: () => void }) {
             </li>
             <li>
               <b>친구 없이 혼자 할 수 있나요?</b>
-              <span>지금은 하늘·도윤이 데모 친구로 같이 해요. 정식 버전에서 진짜 친구를 초대할 수 있어요.</span>
+              <span>길드 화면의 초대 코드로 친구를 불러요. 친구가 코드를 넣으면 같은 고양이를 같이 키워요.</span>
             </li>
             <li>
               <b>기록을 다른 기기로 옮길 수 있나요?</b>

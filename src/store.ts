@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Post, Prefs, Proposal, AiResult, Survey } from './types'
+import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { OUTFIT_OPEN, itemOf } from './data/shop'
@@ -88,6 +88,19 @@ function migrate(raw: Partial<GameState>): GameState {
   }
   s.learn = Object.assign({ track: 'basic', done: {}, built: {} }, s.learn)
   if (s.guild) {
+    // 예시 친구(하늘·도윤)와 그 친구들이 남긴 글·거래·피드백을 뺀다 (2026-11-22)
+    const g0 = s.guild as Guild
+    const botIds = new Set(g0.members.filter((m) => m.isBot).map((m) => m.id))
+    if (botIds.size) {
+      s.guild = {
+        ...g0,
+        members: g0.members.filter((m) => !m.isBot),
+        proposals: g0.proposals.filter((p) => !botIds.has(p.proposerId)).map((p) => ({ ...p, reviews: (p.reviews ?? []).filter((r) => !botIds.has(r.memberId)), likes: (p.likes ?? []).filter((x) => !botIds.has(x)) })),
+        retros: g0.retros.filter((r) => !botIds.has(r.authorId)),
+        board: g0.board.filter((p) => !botIds.has(p.memberId)).map((p) => ({ ...p, hearts: p.hearts.filter((x) => !botIds.has(x)), comments: (p.comments ?? []).filter((c) => !botIds.has(c.memberId)) })),
+        feed: g0.feed.filter((f) => !/하늘|도윤/.test(f.text)),
+      }
+    }
     const g = s.guild as Partial<Guild> & Guild
     s.guild = {
       ...g,
@@ -103,7 +116,7 @@ function migrate(raw: Partial<GameState>): GameState {
         const price = q.orderPrice ?? priceOf(q.ticker, s.day ?? 0)
         return { ...q, status: 'holding' as const, buyPrice: price, qty: q.orderQty ?? Math.max(1, Math.floor(q.amount / price)), boughtAt: q.boughtAt ?? Date.now() }
       }),
-      board: (g.board ?? seedBoard(g.members)).filter((p) => !p.text.startsWith('[신문]')), // 예전 신문 공유 글은 정리
+      board: (g.board ?? []).filter((p) => !p.text.startsWith('[신문]')), // 예전 신문 공유 글은 정리
       cheers: g.cheers ?? {},
       levelSeen: g.levelSeen ?? g.cat.level,
       createdAt: g.createdAt ?? s.user?.joinedAt ?? Date.now(),
@@ -268,12 +281,6 @@ function updateGuild(fn: (g: Guild, s: GameState) => Guild) {
   set((s) => (s.guild ? { ...s, guild: fn(s.guild, s) } : s))
 }
 
-// 데모 친구들이 먼저 남겨둔 한마디
-function seedBoard(members: Member[]): Post[] {
-  const bots = members.filter((m) => m.isBot)
-  const lines = ['이번 주엔 ETF 숲까지 가보자!', '주니 밥 내가 줬어 ㅎㅎ', '제안 올리기 전에 수수료 꼭 확인하기']
-  return bots.map((m, i) => ({ id: uid(), memberId: m.id, text: lines[i % lines.length], at: Date.now() - (i + 1) * 3_600_000, hearts: [] }))
-}
 
 function addFeed(g: Guild, icon: string, text: string): Guild {
   return { ...g, feed: [{ id: uid(), icon, text, at: now() }, ...g.feed].slice(0, 60) }
@@ -317,34 +324,7 @@ const BOT_RETRO_OPPONENT = [
 ]
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
 
-function botMembers(): Member[] {
-  return [
-    { id: 'bot-haneul', nickname: '하늘', isBot: true },
-    { id: 'bot-doyun', nickname: '도윤', isBot: true },
-  ]
-}
 
-function seedProposal(): Proposal {
-  return {
-    id: uid(),
-    proposerId: 'bot-haneul',
-    ticker: '360750',
-    amount: 2_000_000,
-    reasons: [
-      '미국 대표 회사 500곳을 한 번에 담고 있어서 한 회사가 떨어져도 덜 흔들리고, 총보수도 0.07%로 낮다.',
-      '원·달러 환율이 오르내리면 수익이 달라지는 점은 아직 확인 못 했다.',
-      '나스닥100 ETF도 봤는데 기술 기업에만 몰려 있어서 이번엔 사지 않기로 했다.',
-    ],
-    ai: { pass: true, message: '근거가 확인됐어요.' },
-    votes: [],
-    status: 'holding',
-    buyPrice: priceOf('360750', 0),
-    qty: Math.floor(2_000_000 / priceOf('360750', 0)),
-    boughtAt: Date.now(),
-    reviews: [{ memberId: 'bot-doyun', checks: [true, false, true], text: '총보수까지 본 건 좋아. 환율은 다음에 같이 찾아보자.', at: Date.now() }],
-    createdDay: 0,
-  }
-}
 
 // 데모 친구들이 내 거래에 피드백을 남겨 준다
 function scheduleBotReviews(proposalId: string) {
@@ -398,7 +378,8 @@ export const actions = {
   createGuild(guildName: string, catName: string, breed = 'calico') {
     set((s) => {
       if (!s.user) return s
-      const members: Member[] = [{ id: s.user.id, nickname: s.user.nickname, isMe: true }, ...botMembers()]
+      // 예시 친구 없이 나 혼자 시작. 친구는 초대 코드로 들어온다 (2026-11-22)
+      const members: Member[] = [{ id: s.user.id, nickname: s.user.nickname, isMe: true }]
       let guild: Guild = {
         name: guildName,
         code: Math.random().toString(36).slice(2, 8).toUpperCase(),
@@ -406,49 +387,27 @@ export const actions = {
         gold: RULES.startGold,
         cash: RULES.startCash,
         cat: newCat(catName, breed),
-        proposals: [seedProposal()],
+        proposals: [],
         retros: [],
         feed: [],
         ownedItems: [],
         inventory: { feed: 2, toy: 1 },
-        board: seedBoard(members),
+        board: [],
         cheers: {},
         levelSeen: 1,
         createdAt: now(),
       }
       guild = addFeed(guild, '🐣', `${guildName} 길드가 만들어지고 ${catName}가 태어났어요!`)
-      guild = addFeed(guild, '💡', '하늘님이 미국 S&P500 ETF를 샀어요. 근거에 피드백을 남겨 주세요!')
       return { ...s, guild }
     })
   },
 
-  // 서버에 연결돼 있으면 진짜 길드에 들어가고, 아니면 연습 길드
+  // 초대 코드로 진짜 길드에 들어가기 (서버 연결 필요, 예시 길드는 없음)
   async joinGuild(code: string): Promise<string | null> {
-    if (remote) return remote.join(code.toUpperCase())
-    set((s) => {
-      if (!s.user) return s
-      const members: Member[] = [...botMembers(), { id: s.user.id, nickname: s.user.nickname, isMe: true }]
-      let guild: Guild = {
-        name: '데모 길드',
-        code: code.toUpperCase(),
-        members,
-        gold: RULES.startGold,
-        cash: RULES.startCash,
-        cat: newCat('모찌'),
-        proposals: [seedProposal()],
-        retros: [],
-        feed: [],
-        ownedItems: [],
-        inventory: { feed: 2, toy: 1 },
-        board: seedBoard(members),
-        cheers: {},
-        levelSeen: 1,
-        createdAt: now(),
-      }
-      guild = addFeed(guild, '👋', `${s.user.nickname}님이 길드에 들어왔어요!`)
-      return { ...s, guild }
-    })
-    return null
+    const c = code.trim().toUpperCase()
+    if (!/^[A-Z0-9]{6}$/.test(c)) return '초대 코드는 영어·숫자 6자리예요.'
+    if (!remote) return '서버에 연결돼야 친구 길드에 들어갈 수 있어요. 인터넷을 확인하고 새로고침해 주세요.'
+    return remote.join(c)
   },
 
   claimTraining() {

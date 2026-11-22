@@ -171,7 +171,7 @@ export function Onboarding() {
             <button className="btn btn-primary btn-block" disabled={!guildName.trim() || !catName.trim()} onClick={() => actions.createGuild(guildName.trim(), catName.trim(), breed)}>
               고양이 데려오기
             </button>
-            <p className="fineprint">친구가 들어오기 전까지 테스트용 친구 하늘·도윤이 같이 있어요.</p>
+            <p className="fineprint">만들고 나면 길드 화면의 초대 코드로 친구를 불러요. 최대 5명.</p>
           </div>
         </>
       ) : (
@@ -182,7 +182,7 @@ export function Onboarding() {
           </label>
           <button
             className="btn btn-primary btn-block"
-            disabled={code.trim().length < 4 || joining}
+            disabled={code.trim().length < 6 || joining}
             onClick={async () => {
               setJoining(true)
               const err = await actions.joinGuild(code.trim())
@@ -193,7 +193,7 @@ export function Onboarding() {
             {joining ? '들어가는 중…' : '길드 참가하기'}
           </button>
           {joinErr && <p className="form-err">{joinErr}</p>}
-          <p className="fineprint">{isOnline() ? '친구에게 받은 6자리 코드를 넣어요.' : '지금은 서버 연결이 안 돼서 연습 길드로 들어가요.'}</p>
+          <p className="fineprint">{isOnline() ? '친구에게 받은 6자리 코드를 넣어요.' : '서버에 연결되면 들어갈 수 있어요. 인터넷을 확인하고 새로고침해 주세요.'}</p>
         </div>
       )}
     </div>

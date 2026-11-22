@@ -90,7 +90,10 @@ export function Home({ go }: { go: (t: Tab) => void }) {
   })()
   const missions = [
     { done: d.quest, label: '레슨 하나 배우기', sub: cont ? cont.lesson.title : '플로월드 건물에서', art: 'i_star', tone: 'mint', go: () => (cont ? setStudy(cont.index) : go('map')) },
-    { done: d.vote, label: '친구 거래에 피드백', sub: waiting[0] ? `${memberName(g, waiting[0].proposerId)}가 ${tickerOf(waiting[0].ticker).name}를 샀어요` : '근거 읽고 내 말로', art: 'i_heart', tone: 'pink', go: () => go('invest') },
+    // 길드에 나 혼자면 피드백할 친구가 없으니 '오늘의 질문'으로 대신
+    g.members.length > 1
+      ? { done: d.vote, label: '친구 거래에 피드백', sub: waiting[0] ? `${memberName(g, waiting[0].proposerId)}가 ${tickerOf(waiting[0].ticker).name}를 샀어요` : '근거 읽고 내 말로', art: 'i_heart', tone: 'pink', go: () => go('invest') }
+      : { done: !!d.quiz, label: '오늘의 질문 풀기', sub: '친구를 부르면 피드백도 같이 해요', art: 'i_heart', tone: 'pink', go: () => document.querySelector('.quiz-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) },
     { done: d.care, label: `${cat.name} 돌보기`, sub: '집에 들어가서', art: 'i_fish', tone: 'yellow', go: () => setWorld({ dress: false }) },
   ]
   const doneCount = missions.filter((m) => m.done).length

@@ -44,10 +44,17 @@ function toRemoteGuild(g: Guild): Guild {
   return clean({ ...g, members, memberIds: members.filter((m) => !m.isBot).map((m) => m.id) })
 }
 function fromRemoteGuild(g: Guild, uid: string): Guild {
-  let members = g.members.map((m) => ({ ...m, isMe: m.id === uid }))
-  // 진짜 친구가 들어오면 테스트용 봇 친구는 빠진다
-  if (members.filter((m) => !m.isBot).length >= 2) members = members.filter((m) => !m.isBot)
-  return { ...g, members }
+  // 예시 친구(봇)는 이제 없다: 서버 예전 기록에 남아 있어도 빼고 본다 (2026-11-22)
+  const bots = new Set(g.members.filter((m) => m.isBot).map((m) => m.id))
+  const members = g.members.filter((m) => !m.isBot).map((m) => ({ ...m, isMe: m.id === uid }))
+  if (!bots.size) return { ...g, members }
+  return {
+    ...g,
+    members,
+    proposals: (g.proposals ?? []).filter((p) => !bots.has(p.proposerId)).map((p) => ({ ...p, reviews: (p.reviews ?? []).filter((r) => !bots.has(r.memberId)) })),
+    retros: (g.retros ?? []).filter((r) => !bots.has(r.authorId)),
+    board: (g.board ?? []).filter((p) => !bots.has(p.memberId)),
+  }
 }
 const personal = (s: GameState) =>
   clean({ consent: s.consent, account: s.account, user: s.user, quests: s.quests, daily: s.daily, prefs: s.prefs, streak: s.streak, watch: s.watch, guides: s.guides, decor: s.decor, learn: s.learn, tutorialDone: s.tutorialDone, guildCode: s.guild?.code ?? null })
