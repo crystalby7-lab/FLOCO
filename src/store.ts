@@ -3,7 +3,7 @@
 // 각 action만 Firestore 읽기/쓰기로 바꾸면 화면 코드는 그대로 쓸 수 있습니다.
 
 import { useSyncExternalStore } from 'react'
-import type { AvatarLook, Cat, Daily, GameState, Guild, Member, Prefs, Proposal, AiResult, Survey } from './types'
+import type { ActKind, WeekRecord, AvatarLook, Cat, Daily, GameState, Guild, Member, Prefs, Proposal, AiResult, Survey } from './types'
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { OUTFIT_OPEN, itemOf } from './data/shop'
@@ -282,6 +282,13 @@ function updateGuild(fn: (g: Guild, s: GameState) => Guild) {
 }
 
 
+// 친구들의 발자국 남기기: 같은 key는 한 번만 (중복 점수 방지). 최근 300개까지.
+function addAct(g: Guild, memberId: string, kind: ActKind, key: string, text: string): Guild {
+  const acts = g.acts ?? []
+  if (acts.some((a) => a.key === key)) return g
+  return { ...g, acts: [{ id: uid(), memberId, kind, key, text, at: now() }, ...acts].slice(0, 300) }
+}
+
 function addFeed(g: Guild, icon: string, text: string): Guild {
   return { ...g, feed: [{ id: uid(), icon, text, at: now() }, ...g.feed].slice(0, 60) }
 }
@@ -348,6 +355,7 @@ function addReview(proposalId: string, memberId: string, checks: [boolean, boole
     const p = g.proposals.find((x) => x.id === proposalId)
     if (!p || (p.reviews ?? []).some((r) => r.memberId === memberId)) return g
     let ng: Guild = { ...g, proposals: g.proposals.map((x) => (x.id === proposalId ? { ...x, reviews: [...(x.reviews ?? []), { memberId, checks, text, at: now() }] } : x)) }
+    ng = addAct(ng, memberId, 'review', `review:${memberId}:${proposalId}`, `${memberName(g, p.proposerId)}의 투자 근거에 피드백했어요`)
     const who = memberName(g, memberId)
     ng = addFeed(ng, '💬', `${who}님이 ${memberName(g, p.proposerId)}님의 ${tickerOf(p.ticker).name} 거래에 피드백을 남겼어요.`)
     return addExp(ng, RULES.exp.review, `${who}님의 피드백`)
@@ -472,7 +480,8 @@ export const actions = {
       ...(asOfDate() ? { createdDate: asOfDate()! } : {}),
     }
     updateGuild((gg) => {
-      let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '✅', `${me(gg).nickname}님이 ${tickerOf(ticker).name} ${p.qty}주를 샀어요. 근거에 피드백을 남겨 주세요!`)
+      let ng = addFeed({ ...gg, proposals: [p, ...gg.proposals] }, '✅', `${me(gg).nickname}님이 ${tickerOf(ticker).name}를 샀어요. 근거에 피드백을 남겨 주세요!`)
+      ng = addAct(ng, myId, 'reason', `reason:${p.id}`, `${tickerOf(ticker).name} 투자 근거 3칸을 썼어요`)
       ng = addExp(ng, RULES.exp.proposalPass, '이유 확인 통과')
       return ng
     })
@@ -546,6 +555,10 @@ export const actions = {
         out.coins = coins
         out.chapterDone = chDone
         ns = { ...ns, learn, guild: g }
+      }
+      if (first && ns.guild) {
+        const my = me(ns.guild).id
+        ns = { ...ns, guild: addAct(ns.guild, my, 'lesson', `lesson:${my}:${lessonId}`, `${hit.l.title} 레슨을 끝냈어요`) }
       }
       return ns
     })
@@ -692,8 +705,10 @@ export const actions = {
         mood: Math.min(100, cat.mood + (e.mood ?? 0)),
         clean: e.clean ? Math.min(100, (cat.clean ?? 80) + e.clean) : cat.clean,
       }
+      const my = me(gg).id
+      const withAct = addAct(gg, my, 'care', `care:${my}:${today()}:${itemId === 'bath' ? 'bath' : 'feed'}`, itemId === 'bath' ? `${gg.cat.name}를 씻겨 줬어요` : `${gg.cat.name}에게 ${item.name}을(를) 줬어요`)
       return addFeed(
-        { ...gg, cat: ncat, inventory: { ...gg.inventory, [itemId]: (gg.inventory[itemId] ?? 0) - 1 } },
+        { ...withAct, cat: ncat, inventory: { ...gg.inventory, [itemId]: (gg.inventory[itemId] ?? 0) - 1 } },
         itemId === 'bath' ? '🛁' : '🍽',
         itemId === 'bath' ? `${me(gg).nickname}님이 ${gg.cat.name}를 씻겨줬어요.` : `${me(gg).nickname}님이 ${gg.cat.name}에게 ${item.name}을(를) 줬어요.`,
       )
@@ -741,9 +756,28 @@ export const actions = {
     })
   },
   // 친구 응원 (하루 한 번)
-  // 이번 주 같이 하기 보상 (길드가 같이 받음, 주에 한 번)
-  claimWeek(week: string) {
-    updateGuild((g) => (g.weekClaimed === week ? g : addFeed({ ...g, weekClaimed: week, gold: g.gold + RULES.weekReward }, '🎉', `이번 주 같이 하기 완료! 길드 코인 +${RULES.weekReward}`)))
+  // 이번 주 같이 하기 보상 (길드가 같이 받음, 주에 한 번) + 결과 기록
+  claimWeek(rec: WeekRecord) {
+    updateGuild((g) => {
+      if (g.weekClaimed === rec.week || !rec.done) return g
+      const weekLog = [rec, ...(g.weekLog ?? []).filter((w) => w.week !== rec.week)].slice(0, 12)
+      return addFeed({ ...g, weekClaimed: rec.week, weekLog, gold: g.gold + RULES.weekReward }, '🎉', `이번 주 같이 하기 완료! 길드 코인 +${RULES.weekReward}`)
+    })
+  },
+  // 지난주 결과만 남기기 (보상 없이, 다음 주가 되면 한 번)
+  logWeek(rec: WeekRecord) {
+    updateGuild((g) => ((g.weekLog ?? []).some((w) => w.week === rec.week) ? g : { ...g, weekLog: [rec, ...(g.weekLog ?? [])].slice(0, 12) }))
+  },
+
+  // 친구에게 의견 부탁하기 / 취소 (내 거래만, 3일 뒤 만료)
+  askFeedback(proposalId: string) {
+    updateGuild((g) => ({
+      ...g,
+      proposals: g.proposals.map((p) => (p.id === proposalId && p.proposerId === me(g).id ? { ...p, ask: { at: now(), until: now() + 3 * 86_400_000 } } : p)),
+    }))
+  },
+  cancelAsk(proposalId: string) {
+    updateGuild((g) => ({ ...g, proposals: g.proposals.map((p) => (p.id === proposalId && p.proposerId === me(g).id && p.ask ? { ...p, ask: { ...p.ask, canceled: true } } : p)) }))
   },
 
   cheer(memberId: string): string | null {
@@ -807,7 +841,7 @@ function writeRetro(proposalId: string, authorId: string, text: string, parts?: 
     const p = g.proposals.find((x) => x.id === proposalId)
     if (!p || g.retros.some((r) => r.proposalId === proposalId && r.authorId === authorId)) return g
     const role = p.proposerId === authorId ? 'proposer' : 'opponent'
-    const ng: Guild = { ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text, parts, at: now() }] }
+    const ng: Guild = addAct({ ...g, retros: [...g.retros, { id: uid(), proposalId, authorId, role, text, parts, at: now() }] }, authorId, 'retro', `retro:${authorId}:${proposalId}`, '투자 결정을 돌아봤어요')
     const withExp = addExp(ng, RULES.exp.retro, `${memberName(g, authorId)}님의 돌아보기`)
     // 내가 쓴 돌아보기면 코인도
     return g.members.find((m) => m.id === authorId)?.isMe ? addFeed({ ...withExp, gold: withExp.gold + RULES.retroCoin }, '🪞', `돌아보기를 썼어요 · 코인 +${RULES.retroCoin}`) : withExp

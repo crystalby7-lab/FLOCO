@@ -11,8 +11,21 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.auth.uid in request.resource.data.memberIds
         && request.resource.data.memberIds.size() == 1;
+      // 멤버는 길드 내용을 바꿀 수 있지만 (2026-11-22 강화)
+      // - 멤버 목록은 그대로 두거나 나만 빠질 수 있다 (남을 빼거나 넣지 못함)
+      // - 길드 만든 시각·코드는 못 바꾼다
+      // - 공용 코인은 한 번에 3,000 넘게 늘릴 수 없다 (레슨·주간·출석 보상 합보다 넉넉하게)
       allow update: if request.auth != null && (
-        request.auth.uid in resource.data.memberIds
+        (
+          request.auth.uid in resource.data.memberIds
+          && (
+            request.resource.data.memberIds == resource.data.memberIds
+            || request.resource.data.memberIds == resource.data.memberIds.removeAll([request.auth.uid])
+          )
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.code == resource.data.code
+          && request.resource.data.gold <= resource.data.gold + 3000
+        )
         || (
           !(request.auth.uid in resource.data.memberIds)
           && request.resource.data.memberIds.hasAll(resource.data.memberIds)

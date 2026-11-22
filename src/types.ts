@@ -57,7 +57,8 @@ export type Proposal = {
   soldAt?: number
   likes?: string[] // 피드 거래 카드 좋아요
   sellFee?: number // 매도 수수료 (원, 판 금액의 0.1%)
-  reviews?: Review[] // 친구들이 남긴 피어 피드백
+  reviews?: Review[]
+  ask?: FeedbackAsk // 친구에게 의견 부탁 중 // 친구들이 남긴 피어 피드백
 }
 
 export type Retro = {
@@ -73,6 +74,13 @@ export type Retro = {
 export type FeedItem = { id: string; text: string; at: number; icon: string }
 
 export type GuildLook = { theme: string; emblem: string; motto: string }
+
+// 길드원이 한 일 한 줄. key가 같으면 한 번만 남는다 (같은 레슨·같은 거래 중복 방지)
+export type ActKind = 'lesson' | 'review' | 'reason' | 'retro' | 'care' | 'post'
+export type Act = { id: string; memberId: string; kind: ActKind; key: string; text: string; at: number }
+export type WeekRecord = { week: string; mission: string; total: number; goal: number; done: boolean }
+// 친구에게 의견 부탁하기 (3일 뒤 만료)
+export type FeedbackAsk = { at: number; until: number; canceled?: boolean }
 
 export type Guild = {
   name: string
@@ -93,6 +101,8 @@ export type Guild = {
   levelSeen: number // 레벨업 축하를 본 마지막 레벨
   look?: GuildLook // 길드 꾸미기 (배경·문장·구호)
   weekClaimed?: string // 이번 주 같이 하기 보상을 받은 주 (주 시작 날짜)
+  acts?: Act[] // 친구들의 발자국: 길드원이 실제로 한 일 (금액·수익률은 안 남김)
+  weekLog?: WeekRecord[] // 지난 주 같이 하기 결과
   createdAt: number
 }
 

@@ -486,7 +486,24 @@ function ProposalCard({ g, p, day, onOpen }: { g: Guild; p: Proposal; day: numbe
               </button>
             </div>
           )}
-          {mine && reviews.length === 0 && p.status === 'holding' && <p className="muted">친구들이 근거를 읽는 중이에요</p>}
+          {mine && p.status === 'holding' && g.members.length > 1 && (
+            <div className="ask-row">
+              {p.ask && !p.ask.canceled && p.ask.until > Date.now() ? (
+                <>
+                  <span>
+                    친구에게 의견 부탁 중 · {reviews.length}/{g.members.length - 1}명 답함
+                  </span>
+                  <button className="text-btn" onClick={() => actions.cancelAsk(p.id)}>
+                    취소
+                  </button>
+                </>
+              ) : reviews.length < g.members.length - 1 ? (
+                <button className="btn btn-block ask-btn" onClick={() => actions.askFeedback(p.id)}>
+                  친구에게 의견 부탁하기
+                </button>
+              ) : null}
+            </div>
+          )}
 
           {p.status === 'holding' && mine && (
             <div className="hold">

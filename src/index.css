@@ -12200,3 +12200,47 @@ label.set2-row:active {
 .squad-card.add span { font-size: 26px; color: var(--blue); font-weight: 900; }
 .cm-trade-why { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card.wq { border-radius: 24px; }
+
+/* ───── v16 길드 커뮤니티: 고양이 요약 · 의견 부탁 · 발자국 · 협동 게이지 반응 ───── */
+.card.g-cat { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; font: inherit; text-align: left; cursor: pointer; }
+.g-cat > img { width: 58px; height: 58px; object-fit: contain; flex: none; }
+.g-cat .grow { display: grid; gap: 6px; min-width: 0; }
+.g-cat b { font-size: 15.5px; }
+.g-cat-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.g-cat-bars > span { display: grid; gap: 3px; }
+.g-cat-bars small { font-size: 10.5px; font-weight: 800; color: #8a97ab; }
+.g-cat-bars i { display: block; height: 6px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
+.g-cat-bars i i { height: 100%; background: #6fc9a3; }
+.g-cat-bars .low i i { background: #f07b8f; }
+.g-cat-coin { flex: none; font-size: 12px; font-weight: 900; color: #d49b17; background: #fff6dc; padding: 5px 10px; border-radius: 999px; }
+.wq-top { display: flex; align-items: center; gap: 10px; }
+.wq-top .wq-head { flex: 1; min-width: 0; }
+.wq-cat { position: relative; width: 58px; height: 58px; flex: none; }
+.wq-cat img { width: 100%; height: 100%; object-fit: contain; animation: wq-pop .5s ease-out; }
+.wq-cat em { position: absolute; top: -6px; right: -6px; font-style: normal; font-size: 12px; font-weight: 900; color: #fff; background: #f07b8f; padding: 2px 7px; border-radius: 999px; animation: wq-up 2.4s ease-out forwards; }
+@keyframes wq-pop { 0% { transform: scale(.7) translateY(6px); } 60% { transform: scale(1.12); } 100% { transform: none; } }
+@keyframes wq-up { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
+.wq.party { background: linear-gradient(180deg, #fff7e0, #fff); box-shadow: var(--card-shadow), 0 0 0 3px #ffd970 inset; }
+.wq.party .wq-cat img { animation: rm-bob 1s ease-in-out infinite; }
+.wq-party { margin: 0; text-align: center; font-size: 13.5px; font-weight: 900; color: #c9831a; }
+.wq-last { margin: 0; text-align: center; font-size: 11.5px; font-weight: 700; color: #a3aec0; }
+.asks { display: grid; gap: 8px; }
+.ask-card { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 0; border-radius: 20px; background: #fdebf0; font: inherit; text-align: left; cursor: pointer; box-shadow: 0 3px 0 #f4cbd7; }
+.ask-card .grow { display: grid; gap: 2px; min-width: 0; }
+.ask-card small { font-size: 11.5px; font-weight: 800; color: #d0587a; }
+.ask-card b { font-size: 14.5px; }
+.ask-card em { font-style: normal; font-size: 13px; font-weight: 900; color: #d0587a; flex: none; }
+.fp ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; }
+.fp li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f3f8; }
+.fp li:last-child { border-bottom: 0; }
+.fp-ic { width: 32px; height: 32px; flex: none; border-radius: 10px; display: grid; place-items: center; background: #f3f6fb; }
+.fp-ic.fk-lesson { background: #e6f6ef; } .fp-ic.fk-review { background: #fdebf0; } .fp-ic.fk-reason { background: #eaf2ff; } .fp-ic.fk-retro { background: #f1eaff; } .fp-ic.fk-care { background: #fff5d9; }
+.fp-ic img { width: 20px; height: 20px; object-fit: contain; }
+.fp li p { flex: 1; margin: 0; font-size: 13.5px; line-height: 1.4; min-width: 0; }
+.fp li small { flex: none; font-size: 11px; color: #a3aec0; font-weight: 700; }
+.fp-empty { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 13px; color: #8a97ab; }
+.fp-empty img { width: 24px; opacity: .6; }
+.fp-more { width: 100%; padding-top: 6px; }
+.ask-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 13px; font-weight: 800; color: #d0587a; }
+.ask-btn { background: #fdebf0; color: #d0587a; border: 0; }
+.tab-panel .card.g-cat { display: flex; flex-direction: row; align-items: center; text-align: left; }
