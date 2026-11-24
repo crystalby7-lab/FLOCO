@@ -7,7 +7,8 @@ import type { ActKind, WeekRecord, AvatarLook, Cat, Daily, GameState, Guild, Mem
 import { QUESTS, REGIONS } from './data/quests'
 import { asOfDate, isRealPrices, priceOf, realCode, tickerOf } from './data/market'
 import { OUTFIT_OPEN, itemOf } from './data/shop'
-import { chapterDone, lessonById } from './data/curriculum'
+import { COURSE, chapterDone, lessonById } from './data/curriculum'
+const BASIC_REV = 2 // Basic 커리큘럼 개정판 번호 — 올리면 예전 Basic 진도가 지워진다
 import { SHOPS } from './data/world'
 import { reviewReasons } from './aiReview'
 
@@ -67,7 +68,7 @@ export const DEFAULT_PREFS: Prefs = {
   quietTo: 7,
 }
 
-const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }
+const initial: GameState = { version: 4, user: null, guild: null, quests: {}, day: 0, daily: freshDaily(), tutorialDone: false, prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {}, basicRev: BASIC_REV } }
 
 // 예전 버전에 저장된 데이터도 새 항목을 채워서 불러온다
 function migrate(raw: Partial<GameState>): GameState {
@@ -87,6 +88,16 @@ function migrate(raw: Partial<GameState>): GameState {
     s.decor[k] = { style: d.style, slots: Object.fromEntries(Object.entries(d.slots ?? {}).filter(([sl, v]) => typeof v === 'string' && (!shop || (shop.options as Record<string, string[]>)[sl]?.includes(v)))) }
   }
   s.learn = Object.assign({ track: 'basic', done: {}, built: {} }, s.learn)
+  // Basic 커리큘럼 개정(2026-11-25, 보영 요청): 예전 Basic 진도를 지우고, 건물은 Advanced로 끝낸 챕터 것만 남긴다
+  if ((s.learn.basicRev ?? 0) < BASIC_REV) {
+    const done = Object.fromEntries(Object.entries(s.learn.done ?? {}).filter(([id]) => !id.startsWith('b')))
+    const built: Record<string, number> = {}
+    COURSE.adv.forEach((c, i) => {
+      const shop = SHOPS[i]
+      if (shop && chapterDone(c, done) && s.learn.built?.[shop.id]) built[shop.id] = s.learn.built[shop.id]
+    })
+    s.learn = { ...s.learn, done, built, basicRev: BASIC_REV }
+  }
   if (s.guild) {
     // 예시 친구(하늘·도윤)와 그 친구들이 남긴 글·거래·피드백을 뺀다 (2026-11-22)
     const g0 = s.guild as Guild
@@ -829,10 +840,10 @@ export const actions = {
   },
   // 다른 구글 계정으로 바뀌면 이 기기 기록을 비우고 서버 기록을 받는다 (동의·계정만 남김)
   resetForAccount() {
-    set((s) => ({ ...initial, consent: s.consent, account: s.account, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }))
+    set((s) => ({ ...initial, consent: s.consent, account: s.account, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {}, basicRev: BASIC_REV } }))
   },
   reset() {
-    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {} } }))
+    set(() => ({ ...initial, daily: freshDaily(), prefs: DEFAULT_PREFS, streak: { count: 0, last: '' }, watch: [], guides: [], decor: {}, learn: { track: 'basic', done: {}, built: {}, basicRev: BASIC_REV } }))
   },
 }
 
