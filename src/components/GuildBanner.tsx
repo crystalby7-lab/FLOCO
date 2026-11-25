@@ -5,19 +5,23 @@ import { ART } from './CatView'
 import { Avatar } from './Avatar'
 import type { Guild, GuildLook } from '../types'
 
+// 길드 마당 배경 = 보영이 준 고해상도 장소 그림 (2026-11-25, 예전 작은 그림 6장 대신)
 export const GUILD_THEMES = [
-  { id: 'cherry', name: '벚꽃길', art: 'sc_cherry' },
-  { id: 'beach', name: '바닷가', art: 'sc_beach' },
-  { id: 'country', name: '들판', art: 'sc_country' },
-  { id: 'sunset', name: '노을', art: 'sc_sunset' },
-  { id: 'night', name: '밤 도시', art: 'sc_night' },
-  { id: 'snow', name: '눈 마을', art: 'sc_snow' },
+  { id: 'yard', name: '마당', art: 'sc_h_yard' },
+  { id: 'park', name: '벚꽃길', art: 'sc_h_park' },
+  { id: 'harbor', name: '바닷가', art: 'sc_h_harbor' },
+  { id: 'roof', name: '옥상', art: 'sc_h_roof' },
+  { id: 'living', name: '거실', art: 'sc_h_living' },
 ]
+const OLD_THEME: Record<string, string> = { cherry: 'park', beach: 'harbor', country: 'yard', sunset: 'roof', night: 'roof', snow: 'yard' }
 export const GUILD_EMBLEMS = ['i_paw', 'i_star', 'i_heart', 'i_fish', 'i_cake', 'i_duck', 'i_yarn', 'i_boba']
 
-const DEFAULT: GuildLook = { theme: 'cherry', emblem: 'i_paw', motto: '' }
-export const lookOf = (g: Guild): GuildLook => ({ ...DEFAULT, ...(g.look ?? {}) })
-const themeArt = (id: string) => ART[(GUILD_THEMES.find((t) => t.id === id) ?? GUILD_THEMES[0]).art]
+const DEFAULT: GuildLook = { theme: 'yard', emblem: 'i_paw', motto: '' }
+export const lookOf = (g: Guild): GuildLook => {
+  const l = { ...DEFAULT, ...(g.look ?? {}) }
+  return { ...l, theme: OLD_THEME[l.theme] ?? l.theme }
+}
+export const themeArt = (id: string) => ART[(GUILD_THEMES.find((t) => t.id === id) ?? GUILD_THEMES[0]).art]
 
 export function GuildBanner({ g, days }: { g: Guild; days: number }) {
   const [edit, setEdit] = useState(false)
@@ -58,7 +62,7 @@ export function GuildBanner({ g, days }: { g: Guild; days: number }) {
   )
 }
 
-function GuildDeco({ g, onClose }: { g: Guild; onClose: () => void }) {
+export function GuildDeco({ g, onClose }: { g: Guild; onClose: () => void }) {
   const [name, setName] = useState(g.name)
   const [look, setLook] = useState(lookOf(g))
   const put = (k: keyof GuildLook, v: string) => setLook({ ...look, [k]: v })

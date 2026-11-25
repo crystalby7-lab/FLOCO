@@ -78,7 +78,7 @@ export type GuildLook = { theme: string; emblem: string; motto: string }
 // 길드원이 한 일 한 줄. key가 같으면 한 번만 남는다 (같은 레슨·같은 거래 중복 방지)
 export type ActKind = 'lesson' | 'review' | 'reason' | 'retro' | 'care' | 'post'
 export type Act = { id: string; memberId: string; kind: ActKind; key: string; text: string; at: number }
-export type WeekRecord = { week: string; mission: string; total: number; goal: number; done: boolean }
+export type WeekRecord = { week: string; mission: string; total: number; goal: number; done: boolean; members?: number } // members: 그 주에 한 번이라도 보탠 친구 수
 // 친구에게 의견 부탁하기 (3일 뒤 만료)
 export type FeedbackAsk = { at: number; until: number; canceled?: boolean }
 

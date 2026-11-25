@@ -1,12 +1,13 @@
-// 길드 (2026-11-21, 서영 의견: 단순하게): 배너 → 이번 주 같이 하기(공동 목표 하나) → 친구들(오늘 한 일 한 줄·응원) → 글쓰기 → 소식
+// 길드 (2026-11-25 개편, 피크민 벤치마크 문서 기준): 우리 마당(고양이+친구들 한 장면) → 지금 할 일 하나 → 이번 주 같이 하기 → 친구들의 발자국 → 기념 카드 → 이야기
 import { useState } from 'react'
-import { actions, catNow, memberName, needReview, today, useGame } from '../store'
+import { actions, memberName, needReview, RULES, useGame } from '../store'
 import { tickerOf } from '../data/market'
 import { ART } from '../components/CatView'
-import { Avatar, breedOf } from '../components/Avatar'
-import { GuildBanner } from '../components/GuildBanner'
-import { WeekQuest } from '../components/WeekQuest'
+import { Avatar } from '../components/Avatar'
+import { GuildYard } from '../components/GuildYard'
+import { WeekQuest, weekMission, weekStartKST } from '../components/WeekQuest'
 import { Footprints } from '../components/Footprints'
+import { WeekAlbum } from '../components/WeekAlbum'
 import type { Tab } from '../App'
 import type { FeedItem, Post, Proposal, Retro } from '../types'
 
@@ -31,14 +32,8 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
   const [draft, setDraft] = useState('')
   const [topic, setTopic] = useState<Topic>('chat')
   const [writing, setWriting] = useState(false)
-  const [toast, setToast] = useState('')
   const [copied, setCopied] = useState(false)
   const myId = g.members.find((m) => m.isMe)!.id
-  const days = Math.max(1, Math.floor((Date.now() - g.createdAt) / 86_400_000) + 1)
-  const flash = (t: string) => {
-    setToast(t)
-    setTimeout(() => setToast(''), 1600)
-  }
 
   // 피드: 글 + 길드 활동을 시간순으로 섞는다
   const posts = g.board.filter((p) => filter === 'all' || (p.topic ?? 'chat') === filter)
@@ -62,18 +57,21 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
     ...trades,
   ].sort((a, b) => b.at - a.at)
   const voting = needReview(g, myId)
-  const cat = catNow(g.cat)
   // 나한테 온 의견 부탁: 남의 거래 · 취소·만료 안 됨 · 내가 아직 피드백 안 함
   const asks = g.proposals.filter((p) => p.ask && !p.ask.canceled && p.ask.until > Date.now() && p.proposerId !== myId && !(p.reviews ?? []).some((r) => r.memberId === myId))
-  // 친구가 오늘 한 일 한 줄
-  const dayStart = new Date().setHours(0, 0, 0, 0)
-  const todayOf = (id: string) => {
-    const a = (g.acts ?? []).find((x) => x.memberId === id && x.at >= dayStart)
-    if (a) return a.text
-    const bought = g.proposals.find((p) => p.proposerId === id && (p.boughtAt ?? 0) >= dayStart)
-    if (bought) return `${tickerOf(bought.ticker).name} 샀어요`
-    return '오늘은 조용해요'
-  }
+  // 지금 할 일 (하나만 크게): 의견 부탁 → 이번 주 보상 → 피드백 기다리는 거래 → 친구 부르기 → 이번 주 미션
+  const w = weekMission(g, weekStartKST())
+  const waiting = voting.filter((p) => !asks.includes(p))
+  const MISSION_GO: Record<string, Tab> = { lesson: 'map', review: 'invest', reason: 'invest', retro: 'invest' }
+  type Now = { key: string; tag: string; title: string; btn: string; tone: string; who?: string; art?: string; run: () => void }
+  const nows: Now[] = [
+    ...asks.map((p) => ({ key: 'a' + p.id, tag: '의견 부탁', tone: 'pink', who: p.proposerId, title: `${memberName(g, p.proposerId)}의 ${tickerOf(p.ticker).name} 근거를 봐 줄래요?`, btn: '의견 남기기', run: () => go?.('invest') })),
+    ...(w.done && g.weekClaimed !== w.week ? [{ key: 'claim', tag: '이번 주 완료', tone: 'gold', art: 't_jump', title: '다 같이 채웠어요!', btn: `코인 +${RULES.weekReward} 받기`, run: () => actions.claimWeek({ week: w.week, mission: w.title, total: w.total, goal: w.goal, done: true, members: w.by.filter((b) => b.n > 0).length }) }] : []),
+    ...waiting.map((p) => ({ key: 'v' + p.id, tag: '피드백 기다려요', tone: 'blue', who: p.proposerId, title: `${memberName(g, p.proposerId)}의 ${tickerOf(p.ticker).name} 거래 근거`, btn: '근거 보기', run: () => go?.('invest') })),
+    ...(g.members.length < 2 ? [{ key: 'inv', tag: '친구 부르기', tone: 'mint', art: 't_wave', title: '같이 키울 친구를 불러요', btn: '초대 코드 보기', run: () => setInvite(true) }] : []),
+    ...(!w.done ? [{ key: 'm', tag: '이번 주 미션', tone: 'blue', art: 'sit', title: w.title, btn: w.m.id === 'lesson' ? '레슨하러 가기' : '투자 탭으로', run: () => go?.(MISSION_GO[w.m.id] ?? 'home') }] : []),
+  ]
+  const now0 = nows[0]
 
 
   const post = () => {
@@ -85,90 +83,44 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel">
-      <GuildBanner g={g} days={days} />
+      <GuildYard onInvite={() => setInvite(true)} />
 
-      {/* 우리 고양이 */}
-      <button className="card g-cat" onClick={() => go?.('home')}>
-        <img src={ART[cat.hunger < 40 || cat.mood < 40 ? 'face_sad' : 'sit']} alt="" />
-        <span className="grow">
-          <b>
-            {g.cat.name} · Lv.{g.cat.level}
-          </b>
-          <span className="g-cat-bars">
-            {(
-              [
-                ['배', cat.hunger],
-                ['기분', cat.mood],
-                ['청결', cat.clean ?? 80],
-              ] as const
-            ).map(([l, v]) => (
-              <span key={l} className={v < 40 ? 'low' : ''}>
-                <small>{l}</small>
-                <i>
-                  <i style={{ width: `${v}%` }} />
-                </i>
-              </span>
-            ))}
-          </span>
-        </span>
-        <span className="g-cat-coin">코인 {g.gold.toLocaleString()}</span>
-      </button>
-
-      <WeekQuest />
-
-      {/* 친구에게 온 피드백 요청 */}
-      {asks.length > 0 && (
-        <section className="asks">
-          {asks.map((p) => (
-            <button key={p.id} className="ask-card" onClick={() => go?.('invest')}>
-              <Avatar g={g} id={p.proposerId} size={38} />
-              <span className="grow">
-                <small>의견 부탁해요 · {Math.max(1, Math.ceil((p.ask!.until - Date.now()) / 86_400_000))}일 남음</small>
-                <b>
-                  {memberName(g, p.proposerId)}의 {tickerOf(p.ticker).name} 근거
-                </b>
-              </span>
-              <em>피드백 ›</em>
-            </button>
-          ))}
+      {/* 지금 할 일 하나 */}
+      {now0 && (
+        <section className={`card gnow ${now0.tone}`}>
+          <div className="gnow-main">
+            {now0.who ? <Avatar g={g} id={now0.who} size={52} /> : <img className="gnow-art" src={ART[now0.art ?? 'sit']} alt="" />}
+            <span className="grow">
+              <small>{now0.tag}</small>
+              <b>{now0.title}</b>
+            </span>
+          </div>
+          <button className="btn btn-primary btn-block" onClick={now0.run}>
+            {now0.btn}
+          </button>
+          {nows.length > 1 && (
+            <ul className="gnow-more">
+              {nows.slice(1, 4).map((n) => (
+                <li key={n.key}>
+                  <button onClick={n.run}>
+                    <small>{n.tag}</small>
+                    <span>{n.title}</span>
+                    <i>›</i>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 
+      <WeekQuest />
+
       <Footprints />
 
-      {/* 친구들: 오늘 무엇을 했는지 한 줄 + 응원 */}
-      <section className="squad">
-        {g.members.map((m) => {
-          const cheered = g.cheers[`${myId}>${m.id}`] === today()
-          return (
-            <div key={m.id} className={`squad-card ${m.isMe ? 'me' : ''}`}>
-              <img src={ART[m.isMe ? (s.user?.avatar?.art ?? 'sit') : breedOf(g, m.id)]} alt="" />
-              <b>{m.isMe ? '나' : m.nickname}</b>
-              <small>{todayOf(m.id)}</small>
-              {!m.isMe && (
-                <button
-                  className={`squad-cheer ${cheered ? 'done' : ''}`}
-                  aria-label={`${m.nickname} 응원하기`}
-                  onClick={() => {
-                    const err = actions.cheer(m.id)
-                    flash(err ?? `${m.nickname}에게 응원을 보냈어요`)
-                  }}
-                >
-                  <img src={ART.i_heart} alt="" />
-                </button>
-              )}
-            </div>
-          )
-        })}
-        {g.members.length < 5 && (
-          <button className="squad-card add" onClick={() => setInvite(true)}>
-            <span>＋</span>
-            <b>친구 부르기</b>
-            <small>최대 5명</small>
-          </button>
-        )}
-      </section>
+      <WeekAlbum />
 
+      <h3 className="g-sec">이야기</h3>
       {/* 글쓰기 */}
   {writing ? (
     <section className="cm-compose">
@@ -207,20 +159,6 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
       <i>✏️</i>
     </button>
   )}
-
-  {/* 피드백 기다리는 친구 거래 (고정) */}
-  {voting.filter((p) => !asks.includes(p)).map((p) => (
-    <button key={p.id} className="cm-pin" onClick={() => go?.('invest')}>
-      <Avatar g={g} id={p.proposerId} size={34} />
-      <span>
-        <small>📌 피드백을 기다려요</small>
-        <b>
-          {memberName(g, p.proposerId)}님의 {tickerOf(p.ticker).name} 거래 근거 보기
-        </b>
-      </span>
-      <i>›</i>
-    </button>
-  ))}
 
   <ul className="cm-feed">
     {items.length === 0 && <li className="cm-empty">아직 글이 없어요. 첫 글을 남겨볼까요?</li>}
@@ -276,7 +214,6 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
         </div>
       )}
 
-      <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </div>
   )
 }
