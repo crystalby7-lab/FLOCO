@@ -1,21 +1,23 @@
-// 길드 맨 위 '우리 마당' (2026-11-25 길드 개편): 길드 고양이와 친구들이 한 장면에 같이 서 있다.
+// 길드 맨 위 '우리 마당' (2026-11-25 길드 개편, 11-26 수정): 고양이는 길드가 같이 키우는 한 마리만 장면에 있고,
+// 친구들은 고양이 둘레에 동그란 프로필(같이 키우는 사람)로 둘러선다 — 고양이가 여러 마리로 보이지 않게(보영).
 // - 친구 머리 위 말풍선 = 오늘 한 일(발자국). 조용한 친구는 말풍선 없음(재촉하지 않기).
 // - 친구를 누르면 응원(하루 한 번). 빈자리는 '친구 부르기'.
 // - 금액·수익률은 보이지 않는다.
 import { useState } from 'react'
 import { actions, catNow, today, useGame } from '../store'
 import { ART } from './CatView'
-import { breedOf } from './Avatar'
+import { Avatar } from './Avatar'
 import { GuildDeco, lookOf, themeArt } from './GuildBanner'
 import type { ActKind } from '../types'
 
 // 고양이 둘레 자리 (left %, bottom %, 크기 %) — 뒤쪽 자리는 조금 작게
+// 프로필 자리 (left %, bottom %) — 고양이 양옆 두 줄 + 위 가운데
 const SPOTS = [
-  { l: 20, b: 17, w: 20 },
-  { l: 80, b: 17, w: 20 },
-  { l: 30, b: 40, w: 15 },
-  { l: 70, b: 40, w: 15 },
-  { l: 13, b: 44, w: 13 },
+  { l: 15, b: 21 },
+  { l: 85, b: 21 },
+  { l: 15, b: 58 },
+  { l: 85, b: 58 },
+  { l: 50, b: 72 },
 ]
 const SAY: Record<ActKind, string> = { lesson: '레슨 끝!', review: '피드백 남김', reason: '근거 썼어요', retro: '돌아봤어요', care: '돌봐줬어요', post: '글 남김' }
 
@@ -40,19 +42,18 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
 
   return (
     <section className="gy">
+      <div className="gy-top">
+        <span className="gy-name">
+          <img src={ART[look.emblem]} alt="" />
+          <b>{g.name}</b>
+          <small>{g.members.length}/5</small>
+        </span>
+        <button className="gy-edit" aria-label="길드 꾸미기" onClick={() => setEdit(true)}>
+          <img src={ART.i_star} alt="" />
+        </button>
+      </div>
       <div className="gy-stage">
         <img className="gy-bg" src={themeArt(look.theme)} alt="" />
-
-        <div className="gy-top">
-          <span className="gy-name">
-            <img src={ART[look.emblem]} alt="" />
-            <b>{g.name}</b>
-            <small>{g.members.length}/5</small>
-          </span>
-          <button className="gy-edit" aria-label="길드 꾸미기" onClick={() => setEdit(true)}>
-            <img src={ART.i_star} alt="" />
-          </button>
-        </div>
 
         {/* 길드 고양이 */}
         <div className="gy-cat">
@@ -68,7 +69,7 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
             <button
               key={m.id}
               className={`gy-mate ${m.isMe ? 'me' : ''} ${pop === m.id ? 'pop' : ''}`}
-              style={{ left: `${sp.l}%`, bottom: `${sp.b}%`, width: `${sp.w}%`, zIndex: 10 - Math.round(sp.b / 10) }}
+              style={{ left: `${sp.l}%`, bottom: `${sp.b}%` }}
               onClick={() => {
                 if (m.isMe) return
                 const err = actions.cheer(m.id)
@@ -79,7 +80,7 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
               aria-label={m.isMe ? '나' : `${m.nickname} 응원하기`}
             >
               {a && <span className="gy-say">{SAY[a.kind]}</span>}
-              <img src={ART[m.isMe ? (s.user?.avatar?.art ?? 'sit') : breedOf(g, m.id)]} alt="" />
+              <Avatar g={g} id={m.id} size={58} />
               <span className="gy-tag">
                 {m.isMe ? '나' : m.nickname}
                 {!m.isMe && cheered && <img src={ART.i_heart} alt="" />}
@@ -91,7 +92,7 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
         {g.members.length < 5 && (
           <button
             className="gy-mate ghost"
-            style={{ left: `${SPOTS[g.members.length].l}%`, bottom: `${SPOTS[g.members.length].b}%`, width: `${SPOTS[g.members.length].w}%` }}
+            style={{ left: `${SPOTS[g.members.length].l}%`, bottom: `${SPOTS[g.members.length].b}%` }}
             onClick={onInvite}
           >
             <span className="gy-plus">＋</span>

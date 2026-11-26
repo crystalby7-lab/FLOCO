@@ -12338,3 +12338,19 @@ label.set2-row:active {
 .wa-card em { font-style: normal; font-size: 11px; font-weight: 800; color: var(--moss); }
 .wa-empty { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,.6); border: 2px dashed #c9d8ea; font-size: 13px; font-weight: 800; color: var(--sub); }
 .wa-empty img { width: 26px; height: 26px; }
+
+/* 길드 마당 11-26: 고양이 한 마리 + 친구는 동그란 프로필 */
+.gy { display: grid; gap: 10px; }
+.gy-top { position: static; display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.gy-name { box-shadow: var(--card-shadow); background: #fff; }
+.gy-edit { background: #fff; box-shadow: var(--card-shadow); }
+.gy-cat { bottom: 17%; width: 38%; }
+.gy-mate { width: auto; z-index: 12; }
+.gy-mate > *:not(.gy-say):not(.gy-tag):not(.gy-heart):not(.gy-plus) { border-radius: 50%; box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(40,60,100,.2); }
+.gy-mate.me > *:not(.gy-say):not(.gy-tag):not(.gy-heart) { box-shadow: 0 0 0 3px var(--blue), 0 4px 10px rgba(40,60,100,.2); }
+.gy-mate.pop > *:not(.gy-say):not(.gy-tag):not(.gy-heart) { animation: gyHop .5s ease; }
+.gy-tag { margin-top: 5px; }
+.gy-heart { width: 28px; top: -10px; }
+.gy-mate.ghost { aspect-ratio: auto; }
+.gy-plus { width: 58px; height: 58px; margin-bottom: 0; }
+.gy-mate.ghost .gy-tag { margin-top: 5px; }
