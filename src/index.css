@@ -12366,3 +12366,19 @@ label.set2-row:active {
 .gy-care b { font-weight: 900; }
 .gy-care { margin-top: -10px; }
 .gy-care { position: relative; z-index: 2; margin-top: -2px; }
+
+/* 길드 11-27: 맨 위 돌보러 가기 배너, 발자국 크게 + 왼쪽 우리 고양이 */
+.gy .care-banner { height: 150px; }
+.tab-panel .card.fp2 { padding: 18px 16px; border-radius: 22px; }
+.fp2-head { display: flex; align-items: center; gap: 12px; padding-bottom: 6px; }
+.fp2-head > img { width: 76px; height: 76px; object-fit: contain; flex: none; }
+.fp2-head h3 { margin: 0; font-size: 19px; font-weight: 900; color: var(--ink); }
+.fp2-head small { display: block; margin-top: 3px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.fp2 ul { gap: 4px; }
+.fp2 li { gap: 12px; padding: 12px 0; }
+.fp2 .fp-ic { width: 44px; height: 44px; border-radius: 14px; }
+.fp2 .fp-ic img { width: 28px; height: 28px; }
+.fp2 li p { font-size: 15.5px; line-height: 1.45; }
+.fp2 li small { font-size: 12px; }
+.fp2 .fp-empty { font-size: 14.5px; padding: 6px 0; }
+.fp2 .fp-empty img { width: 30px; }

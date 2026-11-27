@@ -1,4 +1,4 @@
-// 길드 (2026-11-25 개편, 피크민 벤치마크 문서 기준): 우리 마당(고양이+친구들 한 장면) → 지금 할 일 하나 → 이번 주 같이 하기 → 친구들의 발자국 → 기념 카드 → 이야기
+// 길드 (2026-11-25 개편, 11-27 수정): 길드 이름 + 고양이 돌보러 가기 배너 → 지금 할 일 하나 → 이번 주 같이 하기 → 친구들의 발자국 → 기념 카드 → 이야기
 import { useState } from 'react'
 import { actions, memberName, needReview, RULES, useGame } from '../store'
 import { tickerOf } from '../data/market'
@@ -83,7 +83,7 @@ export function GuildScreen({ go }: { go?: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel">
-      <GuildYard onInvite={() => setInvite(true)} />
+      <GuildYard />
 
       {/* 지금 할 일 하나 */}
       {now0 && (

@@ -16,6 +16,7 @@ import { NewsFeed } from '../components/NewsFeed'
 import type { Cat, Daily } from '../types'
 import type { Tab } from '../App'
 import { CatWorld } from './CatWorld'
+import { CareBanner } from '../components/CareBanner'
 
 function useTick(ms = 30_000) {
   const [, setT] = useState(0)
@@ -100,12 +101,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   const r = retros[0]
 
-  // 고양이 상태: 40 아래면 배너 위에 아이콘
-  const low = [
-    { id: 'hunger', label: '배고파요', art: 'i_bowl', v: cat.hunger },
-    { id: 'mood', label: '심심해요', art: 'i_yarn', v: cat.mood },
-    { id: 'clean', label: '씻고 싶어요', art: 'i_duck', v: cat.clean ?? 80 },
-  ].filter((n) => n.v < 40)
   const streak = streakNow(s)
 
   const [study, setStudy] = useState<number | null>(null)
@@ -119,27 +114,8 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel home live">
-      {/* 고양이 돌보러 가기: 가로로 긴 배너. 배고픔·기분·청결이 낮으면 아이콘이 떠요 */}
-      <button className={`care-banner tod-${tod}`} onClick={() => setWorld({ dress: false })} aria-label={`${cat.name} 돌보러 가기`}>
-        <img className="cb-bg" src={ART.sc_home_house} alt="" />
-        <span className="cb-shade" />
-        <span className="cb-text">
-          <small>{cat.name}네 집</small>
-          <b>고양이 돌보러 가기 ›</b>
-        </span>
-        <span className="cb-cat">
-          <img src={ART[low.length ? 'face_sad' : 'sit']} alt="" />
-          {low.length > 0 && (
-            <span className="cb-needs">
-              {low.map((n) => (
-                <span key={n.id} className="cb-need" title={n.label}>
-                  <img src={ART[n.art]} alt={n.label} />
-                </span>
-              ))}
-            </span>
-          )}
-        </span>
-      </button>
+      {/* 고양이 돌보러 가기: 가로로 긴 배너 (길드 맨 위와 같은 것) */}
+      <CareBanner onOpen={() => setWorld({ dress: false })} />
 
       {/* 연속 출석: 고양이 발자국 7개 */}
       <section className="streak-row">

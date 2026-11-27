@@ -1,10 +1,11 @@
-// 친구들의 발자국 (기능 B): 길드원이 실제로 한 일 한 줄씩. 금액·수익률은 남기지 않는다.
+// 친구들의 발자국 (기능 B, 2026-11-27 크게 + 왼쪽에 우리 고양이): 길드원이 실제로 한 일 한 줄씩. 금액·수익률은 남기지 않는다.
 import { useState } from 'react'
 import { useGame } from '../store'
 import { ART } from './CatView'
 import type { ActKind } from '../types'
 
 const ICON: Record<ActKind, string> = { lesson: 'i_star', review: 'i_heart', reason: 'i_paw', retro: 'i_paw', care: 'i_fish', post: 'i_paw' }
+const wa = (n: string) => ((n.charCodeAt(n.length - 1) - 0xac00) % 28 > 0 ? '과' : '와')
 const ago = (at: number) => {
   const m = Math.floor((Date.now() - at) / 60000)
   return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`
@@ -21,8 +22,14 @@ export function Footprints() {
     return m ? (m.isMe ? '내가' : `${m.nickname}${(m.nickname.charCodeAt(m.nickname.length - 1) - 0xac00) % 28 ? '이' : '가'}`) : '떠난 친구가'
   }
   return (
-    <section className="card fp">
-      <h3 className="card-title">친구들의 발자국</h3>
+    <section className="card fp fp2">
+      <div className="fp2-head">
+        <img src={ART.sit} alt="" />
+        <div>
+          <h3>친구들의 발자국</h3>
+          <small>우리 {g.cat.name}{wa(g.cat.name)} 같이 한 일</small>
+        </div>
+      </div>
       {acts.length === 0 ? (
         <p className="fp-empty">
           <img src={ART.i_paw} alt="" />
