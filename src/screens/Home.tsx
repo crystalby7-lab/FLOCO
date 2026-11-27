@@ -16,7 +16,6 @@ import { NewsFeed } from '../components/NewsFeed'
 import type { Cat, Daily } from '../types'
 import type { Tab } from '../App'
 import { CatWorld } from './CatWorld'
-import { CareBanner } from '../components/CareBanner'
 
 function useTick(ms = 30_000) {
   const [, setT] = useState(0)
@@ -114,9 +113,6 @@ export function Home({ go }: { go: (t: Tab) => void }) {
 
   return (
     <div className="tab-panel home live">
-      {/* 고양이 돌보러 가기: 가로로 긴 배너 (길드 맨 위와 같은 것) */}
-      <CareBanner onOpen={() => setWorld({ dress: false })} />
-
       {/* 연속 출석: 고양이 발자국 7개 */}
       <section className="streak-row">
         <b>{streak > 0 ? <>{streak}일째 <span>같이 하는 중</span></> : <span>오늘 할 일로 첫 발자국을 찍어요</span>}</b>
