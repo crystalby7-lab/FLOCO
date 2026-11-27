@@ -183,6 +183,19 @@ export function Settings({ onClose }: { onClose: () => void }) {
           <Row icon="trash" tone="red" label="계정 삭제" danger onClick={() => setDialog('delete1')} />
         </Group>
 
+        <Group title="길드" note="꺼도 이번 주 같이 하기 진행도에는 그대로 들어가요.">
+          <label className="set2-row">
+            <span className="si mint">
+              <Ico n="person" />
+            </span>
+            <span className="set2-label">
+              <b>내 활동을 친구들에게 보이기</b>
+              <small>발자국·친구 카드에 레슨·피드백 같은 활동이 떠요</small>
+            </span>
+            <Switch on={!g.members.find((m) => m.isMe)?.hideActs} onChange={(v) => actions.setHideActs(!v)} />
+          </label>
+        </Group>
+
         <Group title="알림" note="정식 버전에서 휴대폰 알림으로 와요. 지금은 설정만 저장돼요.">
           <Toggle k="notifyAll" icon="bell" tone="honey" label="알림 받기" sub="끄면 아래 알림이 모두 멈춰요" onFlash={flash} />
           <Toggle k="notifyVote" icon="bulb" tone="sky" label="친구가 제안을 올리면" sub="의견을 기다리는 제안이 생겼을 때" dim={!p.notifyAll} onFlash={flash} />

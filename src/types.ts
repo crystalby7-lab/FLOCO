@@ -6,6 +6,7 @@ export type Member = {
   nickname: string
   isMe?: boolean
   isBot?: boolean // 데모용 친구 (Firebase 연결 전까지 투표·복기를 대신 해줌)
+  hideActs?: boolean // 내 활동을 길드 발자국·친구 카드에 안 보이기 (설정)
 }
 
 export type Comment = { id: string; memberId: string; text: string; at: number }

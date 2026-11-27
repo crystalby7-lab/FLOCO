@@ -12382,3 +12382,9 @@ label.set2-row:active {
 .fp2 li small { font-size: 12px; }
 .fp2 .fp-empty { font-size: 14.5px; padding: 6px 0; }
 .fp2 .fp-empty img { width: 30px; }
+.mate { flex: none; display: inline-grid; place-items: center; border-radius: 50%; color: #fff; font-weight: 900; line-height: 1; box-shadow: 0 0 0 2.5px #fff; }
+/* 길드 11-27 (문서 순서판) */
+.ask-card q { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--sub); quotes: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.squad2 .squad-card .mate { margin-bottom: 4px; }
+.squad2 .squad-card small { min-height: 1.3em; }
+.cm-compose-mini > .mate, .cm-compose-row > .mate, .ask-card > .mate { flex: none !important; }

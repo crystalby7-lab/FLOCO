@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react'
 import { actions, RULES, useGame } from '../store'
 import { ART } from './CatView'
-import { Avatar } from './Avatar'
+import { Mate } from './Mate'
 import type { ActKind, Guild } from '../types'
 
 const COLORS = ['#5b8def', '#f07b8f', '#46b39d', '#f2a33a', '#8d7bea']
@@ -109,7 +109,7 @@ export function WeekQuest() {
         <span className="wq2-who">
           {w.by.map((p) => (
             <span key={p.m.id} className={p.n ? '' : 'zero'} title={p.m.isMe ? '나' : p.m.nickname}>
-              <Avatar g={g} id={p.m.id} size={26} />
+              <Mate g={g} id={p.m.id} size={26} />
               {p.n > 0 && <b style={{ background: p.c }}>{p.n}</b>}
             </span>
           ))}

@@ -791,6 +791,11 @@ export const actions = {
     updateGuild((g) => ({ ...g, proposals: g.proposals.map((p) => (p.id === proposalId && p.proposerId === me(g).id && p.ask ? { ...p, ask: { ...p.ask, canceled: true } } : p)) }))
   },
 
+  // 내 활동을 길드에 보이기/숨기기 (피크민 문서 02: 공개 범위는 본인이 고름). 진행도 집계에는 그대로 들어간다.
+  setHideActs(hide: boolean) {
+    updateGuild((gg) => ({ ...gg, members: gg.members.map((m) => (m.isMe ? { ...m, hideActs: hide } : m)) }))
+  },
+
   cheer(memberId: string): string | null {
     const g = state.guild!
     const key = `${me(g).id}>${memberId}`

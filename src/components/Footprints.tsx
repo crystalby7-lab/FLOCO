@@ -15,7 +15,8 @@ export function Footprints() {
   const s = useGame()
   const g = s.guild!
   const [more, setMore] = useState(false)
-  const acts = g.acts ?? []
+  const hidden = new Set(g.members.filter((m) => m.hideActs).map((m) => m.id))
+  const acts = (g.acts ?? []).filter((a) => !hidden.has(a.memberId))
   const list = more ? acts.slice(0, 30) : acts.slice(0, 5)
   const name = (id: string) => {
     const m = g.members.find((x) => x.id === id)
