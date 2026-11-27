@@ -12354,3 +12354,15 @@ label.set2-row:active {
 .gy-mate.ghost { aspect-ratio: auto; }
 .gy-plus { width: 58px; height: 58px; margin-bottom: 0; }
 .gy-mate.ghost .gy-tag { margin-top: 5px; }
+
+/* 길드 마당 11-27: 상태 바 없앰, 고양이를 누르면 돌보러 가기 */
+.gy-cat { border: 0; background: none; padding: 0; cursor: pointer; bottom: 12%; display: flex; flex-direction: column; align-items: center; }
+.gy-cat:active img { transform: scale(.96); }
+.gy-care { margin-top: -6px; display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 14px 6px; border-radius: 14px; background: rgba(255,255,255,.95); box-shadow: 0 3px 10px rgba(40,60,100,.14); font-size: 13.5px; font-weight: 900; color: var(--ink); white-space: nowrap; }
+.gy-care small { font-size: 11px; color: var(--muted); font-weight: 800; }
+.gy-care em { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--sky-ink); }
+.gy-care.sad em { color: var(--pink-ink); animation: gyNudge 1.6s ease-in-out infinite; }
+@keyframes gyNudge { 50% { transform: translateY(-2px); } }
+.gy-care b { font-weight: 900; }
+.gy-care { margin-top: -10px; }
+.gy-care { position: relative; z-index: 2; margin-top: -2px; }

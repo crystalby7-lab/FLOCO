@@ -8,6 +8,7 @@ import { actions, catNow, today, useGame } from '../store'
 import { ART } from './CatView'
 import { Avatar } from './Avatar'
 import { GuildDeco, lookOf, themeArt } from './GuildBanner'
+import { CatWorld } from '../screens/CatWorld'
 import type { ActKind } from '../types'
 
 // 고양이 둘레 자리 (left %, bottom %, 크기 %) — 뒤쪽 자리는 조금 작게
@@ -25,13 +26,14 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
   const s = useGame()
   const g = s.guild!
   const [edit, setEdit] = useState(false)
+  const [world, setWorld] = useState(false)
   const [pop, setPop] = useState('')
   const [toast, setToast] = useState('')
   const look = lookOf(g)
   const cat = catNow(g.cat)
   const myId = g.members.find((m) => m.isMe)!.id
   const dayStart = new Date().setHours(0, 0, 0, 0)
-  const sad = cat.hunger < 40 || cat.mood < 40
+  const sad = cat.hunger < 40 || cat.mood < 40 || (cat.clean ?? 80) < 40
   const said = (id: string) => (g.acts ?? []).find((a) => a.memberId === id && a.at >= dayStart)
   const flash = (t: string) => {
     setToast(t)
@@ -56,9 +58,16 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
         <img className="gy-bg" src={themeArt(look.theme)} alt="" />
 
         {/* 길드 고양이 */}
-        <div className="gy-cat">
-          <img src={ART[sad ? 'face_sad' : 'sit']} alt={g.cat.name} />
-        </div>
+        {/* 같이 키우는 고양이 — 누르면 홈의 '돌보러 가기'와 같은 고양이 집으로 */}
+        <button className="gy-cat" onClick={() => setWorld(true)} aria-label={`${g.cat.name} 돌보러 가기`}>
+          <img src={ART[sad ? 'face_sad' : 'sit']} alt="" />
+          <span className={`gy-care ${sad ? 'sad' : ''}`}>
+            <b>
+              {g.cat.name} <small>Lv.{g.cat.level}</small>
+            </b>
+            <em>{sad ? '배고파요 · 돌봐주기' : '돌보러 가기'}</em>
+          </span>
+        </button>
 
         {/* 친구들 */}
         {members.slice(0, 5).map((m, i) => {
@@ -100,28 +109,9 @@ export function GuildYard({ onInvite }: { onInvite: () => void }) {
           </button>
         )}
 
-        {/* 고양이 상태 */}
-        <div className="gy-status">
-          <b>
-            {g.cat.name} <small>Lv.{g.cat.level}</small>
-          </b>
-          {(
-            [
-              ['i_fish', cat.hunger],
-              ['i_heart', cat.mood],
-              ['i_duck', cat.clean ?? 80],
-            ] as const
-          ).map(([ic, v]) => (
-            <span key={ic} className={v < 40 ? 'low' : ''}>
-              <img src={ART[ic]} alt="" />
-              <i>
-                <i style={{ width: `${v}%` }} />
-              </i>
-            </span>
-          ))}
-        </div>
       </div>
       {edit && <GuildDeco g={g} onClose={() => setEdit(false)} />}
+      {world && <CatWorld start={0} dress={false} onExit={() => setWorld(false)} />}
       <div className={`toast ${toast ? 'show' : ''}`}>{toast}</div>
     </section>
   )
